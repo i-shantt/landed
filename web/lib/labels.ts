@@ -46,6 +46,8 @@ export const EVENT_LABELS: Record<string, string> = {
   bank_account_created: "New bank account recorded (unverified)",
   contact_superseded: "Contact superseded",
   record_contact_added: "Contact of record added",
+  vendor_onboarded: "Vendor onboarded",
+  portal_credential_issued: "Portal credential issued",
   eml_ingested: "Email file ingested (.eml)",
   attachment_received: "Attachment received (evidence only; documents never verify an account)",
   discovered_contact_added: "Discovered contact added (cross-check only)",

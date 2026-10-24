@@ -147,3 +147,12 @@ export function useAuditChain() {
 export function useEmlIngest() {
   return useAction(api.emlIntake.ingest);
 }
+
+export function useOnboarding() {
+  return {
+    createVendor: useMutation(api.onboarding.createVendor),
+    attestRecordContact: useMutation(api.onboarding.attestRecordContact),
+    addFirstAccount: useAction(api.onboarding.addFirstAccount),
+    issuePortalCredential: useAction(api.onboarding.issuePortalCredential),
+  };
+}

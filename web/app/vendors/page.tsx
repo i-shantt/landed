@@ -2,7 +2,9 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import Link from "next/link";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { PageHeader, Loading, EmptyState } from "@/components/landed/primitives";
 import { useVendors } from "@/lib/hooks";
 import { absDate } from "@/lib/format";
@@ -14,7 +16,7 @@ export default function VendorsPage() {
   const rows = (vendors ?? []).filter((v) => !q || v.name.toLowerCase().includes(q.toLowerCase()) || v.domain.includes(q.toLowerCase()));
   return (
     <div className="space-y-4">
-      <PageHeader title="Vendors" description="Contacts of record and versioned bank accounts." actions={<Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search vendors…" aria-label="Search vendors" className="h-8 w-56" />} />
+      <PageHeader title="Vendors" description="Contacts of record and versioned bank accounts." actions={<><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search vendors…" aria-label="Search vendors" className="h-8 w-56" /><Button size="sm" nativeButton={false} render={<Link href="/vendors/new" />}>Onboard a vendor</Button></>} />
       {vendors === undefined ? (
         <Loading />
       ) : vendors.length === 0 ? (
