@@ -118,7 +118,7 @@ for i, (name, domain) in enumerate(VENDOR_NAMES):
         number = f"{prefix}-2026-{(i * 10 + k + 100):04d}"
         issued = ms(days_ago)
         due = issued + 30 * DAY
-        paid_at = issued + rng.randrange(12, 28) * DAY
+        paid_at = min(issued + rng.randrange(12, 28) * DAY, now_ms - 2 * DAY)  # history never post-dates the seed
         invoices.append({"vendorSlug": slug, "number": number, "amountCents": amount, "issuedAt": issued, "dueAt": due,
                          "remitAccountKey": acct_key, "status": "paid"})
         payments.append({"invoiceNumber": number, "sentAt": paid_at, "rail": "ach", "railRef": f"ACH-{rng.randrange(10**9, 10**10)}"})
@@ -128,7 +128,7 @@ for i, (name, domain) in enumerate(VENDOR_NAMES):
                          "sentAt": issued, "dmarc": True})
         messages.append({"vendorSlug": slug, "threadId": thread, "from": f"ap@{company['domain']}", "to": f"ap@{domain}",
                          "subject": f"Re: Invoice {number}", "body": f"Received, thanks. Scheduled for payment on our next run.\n\nAP, {company['name']}",
-                         "sentAt": issued + rng.randrange(1, 3) * DAY, "dmarc": True})
+                         "sentAt": min(issued + rng.randrange(1, 3) * DAY, now_ms - 2 * DAY), "dmarc": True})
         if rng.random() < 0.5:
             messages.append({"vendorSlug": slug, "threadId": thread, "from": f"ap@{company['domain']}", "to": f"ap@{domain}",
                              "subject": f"Re: Invoice {number}", "body": f"Payment for {number} was sent by ACH today. Trace {payments[-1]['railRef']}.",
