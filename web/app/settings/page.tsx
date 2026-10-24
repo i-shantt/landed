@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -68,7 +69,7 @@ export default function SettingsPage() {
             {msg && <p className="text-xs" role="status">{msg}</p>}
           </div>
         </Section>
-        <Section title="Environment" description="Which server keys are present on the deployment. Names only; values never leave the server.">
+        <Section title="Environment" description="Which server keys are present on the deployment. Names only; values never leave the server." actions={<Link href="/health" className="text-xs underline underline-offset-2">Health</Link>}>
           {!env ? <p className="text-sm text-muted-foreground">Loading…</p> : (
             <ul className="grid grid-cols-1 gap-1 sm:grid-cols-2">
               {Object.entries(env).map(([k, present]) => (

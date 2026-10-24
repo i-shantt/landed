@@ -13,8 +13,17 @@ import { stateLabel } from "@/lib/labels";
 import { absTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const FAMILY_LABELS: Record<string, string> = { custom: "Custom templates", compromised_inbox: "Compromised inbox", lookalike: "Lookalike sender", misdirection: "Misdirection", legit: "Legitimate change", recovery: "Recovery" };
-const FAMILY_ORDER = ["custom", "compromised_inbox", "lookalike", "misdirection", "legit", "recovery"];
+const FAMILY_LABELS: Record<string, string> = { judge: "Judge scenarios (try these)", custom: "Custom templates", compromised_inbox: "Compromised inbox", lookalike: "Lookalike sender", misdirection: "Misdirection", legit: "Legitimate change", recovery: "Recovery" };
+const FAMILY_ORDER = ["judge", "custom", "compromised_inbox", "lookalike", "misdirection", "legit", "recovery"];
+const FAMILY_HINTS: Record<string, string> = { judge: "What a finance judge is likely to ask for. Each ends with an outcome the pitch explains in one sentence." };
+
+function outcomeLine(expect: Record<string, unknown>): string {
+  const state = expect.final_state;
+  const head = typeof state === "string" ? stateLabel(state) : "no case opened";
+  const pays = Number(expect.payments_created ?? 0);
+  const human = expect.human_actions;
+  return `${head} · ${pays} payment${pays === 1 ? "" : "s"}${typeof human === "number" ? ` · ${human} human action${human === 1 ? "" : "s"}` : ""}`;
+}
 const STEP_LABELS: Record<string, string> = {
   inject: "Email arrives", manual_edit: "Clerk edits the account", expect_case: "Check case state", advance_to: "Advance the clock to the next timer", advance: "Advance the clock",
   vendor_statement: "Vendor of record answers", landing_statement: "Vendor confirms what landed", expect_confirmation: "Check how the statement was treated", pay: "Click Pay", expect_pay: "Check the guard's answer",
@@ -76,7 +85,7 @@ function JudgeView() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="space-y-4">
           {ordered.map(([fam, list]) => (
-            <Section key={fam} title={FAMILY_LABELS[fam] ?? fam} description={`${list.length} scenario${list.length === 1 ? "" : "s"}`}>
+            <Section key={fam} title={FAMILY_LABELS[fam] ?? fam} description={FAMILY_HINTS[fam] ? `${FAMILY_HINTS[fam]} ${list.length} scenarios.` : `${list.length} scenario${list.length === 1 ? "" : "s"}`}>
               <ul className="divide-y">
                 {list.map((s) => {
                   const hasInject = s.steps.includes("inject");
@@ -88,9 +97,7 @@ function JudgeView() {
                           <span className="text-xs text-muted-foreground">{s.steps.length} steps</span>
                         </div>
                         {s.description && <p className="mt-0.5 text-sm text-slate-700">{s.description}</p>}
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          Expected: {typeof s.expect.final_state === "string" ? stateLabel(s.expect.final_state as string) : "no case"} · {String(s.expect.payments_created ?? 0)} payment(s)
-                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Outcome: {outcomeLine(s.expect as Record<string, unknown>)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         {hasInject && (
