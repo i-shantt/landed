@@ -2,7 +2,7 @@
 
 Written for the two teammates joining today. It covers what Landed is, what exists, the rules of the repo, how to get running in 15 minutes, and what each of us does today. Deadline is **Sunday 9:00 AM PT** (Devpost). Judging is **Sunday 10:30 to 12:30**, a 2-minute pitch plus a live demo. Everything below is already built and deployed; today is about the pitch, the video, the Devpost, the live-call track, and finding anything that breaks in front of a judge.
 
-Live app: **https://landed-blue.vercel.app**  ·  Repo: **https://github.com/i-shantt/landed** (private for now)
+Live app: **https://landed-blue.vercel.app**  ·  Repo: **https://github.com/i-shantt/landed** (public)
 
 ---
 
@@ -73,10 +73,11 @@ Built over three overnight runs (git tags `v0-core-works`, `v1-overnight-2`, `v2
 
 ## 6. Get running in 15 minutes
 
-Prereqs: Node 20+, Python 3.11+, git, the GitHub invite from Ishant.
+Prereqs: Node 20+, Python 3.11+, git, a GitHub account. The repo is public: fork it, clone your fork, and open pull requests from it (send Ishant your GitHub username and he can add you as a collaborator later so you can push branches directly).
 
 ```bash
-git clone https://github.com/i-shantt/landed.git && cd landed
+gh repo fork i-shantt/landed --clone && cd landed      # or Fork on GitHub, then git clone <your fork>
+git remote add upstream https://github.com/i-shantt/landed.git
 cd web && npm ci
 cp ../.env.example .env.local          # then paste the values Ishant sends you by DM
 npx convex dev                          # terminal 1: creates a local Convex deployment, writes CONVEX_DEPLOYMENT / NEXT_PUBLIC_CONVEX_URL into .env.local
@@ -121,7 +122,7 @@ Three people, roughly ten working hours, one deadline. The split keeps one perso
 
 ### Ishant — integration, deploys, final calls
 
-1. Flip the repo public when Teammate A is ready to paste the link (`gh repo edit i-shantt/landed --visibility public --accept-visibility-change-consequences`).
+1. Repo is already public. Add teammates as collaborators once you have their usernames (`gh repo add-collaborator i-shantt/landed <username>`), so they can push branches instead of forking.
 2. Review and merge PRs; redeploy only after `bash scripts/verify.sh` and `node scripts/checkpoint2.mjs --prod`, then `node scripts/prod-seed.mjs`. Rollback ids are at the top of `STATUS.md`.
 3. Update `README.md` → Measured and `DEVPOST.md` → "How we know" to the current numbers (106 tests, 28 scenarios, 40 runs). Those are ours to change; the IC3 and AFP figures are not.
 4. Decide Cartesia and Apify by 14:00 based on Teammate B's reports.
@@ -142,7 +143,7 @@ Three people, roughly ten working hours, one deadline. The split keeps one perso
 
 ## 9. How we work together today
 
-- Branch names `<yourname>/<thing>`, PR into `main`, one feature per PR, gate green before you push.
+- Work on your fork (or a branch `<yourname>/<thing>` once you are a collaborator), PR into `i-shantt/landed` `main`, one feature per PR, gate green before you push. Pull `upstream main` before you start each item.
 - Say in the group chat when you start and finish each item above, one line each.
 - If you are stuck for more than 20 minutes, ask. If a fix needs a frozen file, stop and ask.
 - Everything you learn that a future reader would need goes into the matching doc, not just chat.
