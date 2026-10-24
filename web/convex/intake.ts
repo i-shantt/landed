@@ -74,13 +74,26 @@ export const run = internalAction({
     };
 
     if (extraction.changed && extraction.newRouting && extraction.newAccountNumber) {
-      if (!info.vendorId) {
-        // Unknown sender domain (lookalike / new vendor). We cannot bind the account to a vendor we know.
+      let vendorId = info.vendorId;
+      let senderMismatch = false;
+      if (!vendorId) {
+        // Unknown sender domain: who does the message claim to be? (homoglyph / subdomain / display-name spoof)
+        const claimed = await ctx.runQuery(internal.intakeQueries.resolveClaimedVendor, { from: info.from, subject: info.subject, body: info.body });
+        if (claimed) {
+          vendorId = claimed.vendorId;
+          senderMismatch = true;
+          result.claimedVendor = claimed.vendorName;
+          result.senderMismatch = claimed.reason;
+          await ctx.runMutation(internal.intakeQueries.noteSenderMismatch, { messageId, vendorId, from: info.from, reason: claimed.reason, realDomain: claimed.realDomain, senderDomain: claimed.senderDomain });
+        }
+      }
+      if (!vendorId) {
+        // Unknown sender and no vendor claimed. We cannot bind the account to a vendor we know; nothing can be paid to it.
         result.outcome = "unknown_vendor_held";
         await ctx.runMutation(internal.intakeQueries.noteUnknownVendor, { messageId, from: info.from, evidence: extraction.evidence });
       } else {
         const created = await ctx.runAction(internal.bankAccounts.createUnverified, {
-          vendorId: info.vendorId,
+          vendorId,
           routing: extraction.newRouting,
           accountNumberPlain: extraction.newAccountNumber,
           createdVia: "intake",
@@ -90,8 +103,11 @@ export const run = internalAction({
         result.caseId = created.caseId;
         result.accountId = created.accountId;
         result.outcome = created.reused ? "existing_case" : "case_opened";
+        if (senderMismatch && created.caseId) {
+          await ctx.runMutation(internal.intakeQueries.flagCaseSenderMismatch, { caseId: created.caseId, messageId, from: info.from });
+        }
         if (extraction.contactAlsoChanged && extraction.newContactValue) {
-          await ctx.runMutation(internal.contacts.addUntrustedContact, { vendorId: info.vendorId, kind: "phone", value: extraction.newContactValue, messageId, caseId: created.caseId ?? undefined });
+          await ctx.runMutation(internal.contacts.addUntrustedContact, { vendorId, kind: "phone", value: extraction.newContactValue, messageId, caseId: created.caseId ?? undefined });
         }
       }
     } else if (receiptClaimCents !== undefined && info.openCaseId) {
@@ -102,8 +118,9 @@ export const run = internalAction({
     }
 
     // Invoice carried by the message: if the remit account is not verified, a case already exists by construction.
-    if (info.invoice && info.vendorId) {
-      await ctx.runMutation(internal.intakeQueries.attachInvoice, { messageId, vendorId: info.vendorId, invoice: info.invoice, accountId: (result.accountId as never) ?? undefined });
+    if (info.invoice && (info.vendorId || (result.outcome === "case_opened" || result.outcome === "existing_case"))) {
+      const vid = info.vendorId ?? (await ctx.runQuery(internal.intakeQueries.resolveClaimedVendor, { from: info.from, subject: info.subject, body: info.body }))?.vendorId;
+      if (vid) await ctx.runMutation(internal.intakeQueries.attachInvoice, { messageId, vendorId: vid, invoice: info.invoice, accountId: (result.accountId as never) ?? undefined });
     }
 
     await ctx.runMutation(internal.messages.setIntakeResult, { messageId, status: "done", result });

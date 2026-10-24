@@ -1,0 +1,43 @@
+id: misdirection_03
+family: misdirection
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: New bank account
+    body: 'Hi Marisol,
+
+
+      CleanCo has moved to a new bank. Please update our remittance details for all open invoices:
+
+      Routing (ABA): 031000503
+
+      Account number: 55501234567
+
+
+      Thanks,
+
+      Dana Whitfield, CleanCo Facilities'
+    account:
+      routing: '031000503'
+      accountNumber: '55501234567'
+- advance_to: availability
+- vendor_statement: correct
+- expect_case:
+    state: VERIFIED
+- craft_invoice:
+    vendor: cleanco
+    remit: old
+    number: CC-STALE-TEMPLATE
+    amountCents: 990000
+- pay:
+    invoice: crafted
+- expect_pay:
+    ok: false
+    reason: destination_superseded
+expect:
+  final_state: VERIFIED
+  payments_created: 0

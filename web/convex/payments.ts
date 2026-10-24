@@ -2,7 +2,7 @@
 import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { v, ConvexError } from "convex/values";
+import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { append } from "./events";
 import { canPay } from "./guard";
@@ -33,7 +33,7 @@ export const send = mutation({
     // I6: a repeat call for the same invoice+destination returns the existing row and never touches the rail.
     if (invoice) {
       const prior = await ctx.db.query("payments").withIndex("by_key", (q) => q.eq("idempotencyKey", `payment:${invoiceId}:${invoice.remitAccountId}`)).unique();
-      if (prior) return { paymentId: prior._id, duplicate: true };
+      if (prior) return { ok: true as const, paymentId: prior._id, duplicate: true };
     }
     const destination = invoice ? await ctx.db.get(invoice.remitAccountId) : null;
     const currentVersion = destination ? await currentVersionForIdentity(ctx, destination.identityKey) : null;
@@ -66,14 +66,17 @@ export const send = mutation({
           initiatedBy,
         },
       });
-      throw new ConvexError({ code: "payment_refused", reason: decision.reason });
+      // Deliberately NOT a throw: a thrown ConvexError would roll back this transaction and erase the
+      // `payment_refused` audit event. The refusal is returned as a machine-readable value instead;
+      // callers (UI, HTTP, tests) treat ok:false as the refusal.
+      return { ok: false as const, code: "payment_refused" as const, reason: decision.reason };
     }
 
     const inv = invoice!;
     const dest = destination!;
     const idempotencyKey = `payment:${invoiceId}:${dest._id}`;
     const existing = await ctx.db.query("payments").withIndex("by_key", (q) => q.eq("idempotencyKey", idempotencyKey)).unique();
-    if (existing) return { paymentId: existing._id, duplicate: true };
+    if (existing) return { ok: true as const, paymentId: existing._id, duplicate: true };
 
     const t = await now(ctx);
     const landingCheckAt = railKind === "ach" ? t + 2 * HOUR : t + 1 * HOUR;
@@ -107,7 +110,7 @@ export const send = mutation({
       await createTimer(ctx, { caseId: openCase._id, kind: "landing_deadline", dueAt: landingDeadlineAt, payload: { paymentId } });
     }
     await ctx.scheduler.runAfter(0, internal.payments.submitToRail, { paymentId });
-    return { paymentId, duplicate: false };
+    return { ok: true as const, paymentId, duplicate: false };
   },
 });
 

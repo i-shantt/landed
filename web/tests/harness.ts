@@ -72,14 +72,10 @@ export async function vendorStatement(t: T, caseId: Id<"cases">, statedAmountCen
 }
 
 export async function pay(t: T, invoiceId: Id<"invoices">, rail: "ach" | "wire" = "ach") {
-  try {
-    const res = await t.mutation(api.payments.send, { invoiceId, initiatedBy: "test-clerk", rail });
-    await drain(t);
-    return { ok: true as const, ...res };
-  } catch (e) {
-    const data = (e as { data?: { reason?: string } }).data;
-    return { ok: false as const, reason: data?.reason ?? String(e) };
-  }
+  const res = await t.mutation(api.payments.send, { invoiceId, initiatedBy: "test-clerk", rail });
+  await drain(t);
+  if (!res.ok) return { ok: false as const, reason: res.reason };
+  return { ok: true as const, paymentId: res.paymentId, duplicate: res.duplicate };
 }
 
 export const VENDOR_B_ACCOUNT = { routing: "011000015", accountNumber: "900012345678" }; // mule / new account

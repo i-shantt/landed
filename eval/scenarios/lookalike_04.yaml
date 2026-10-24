@@ -1,0 +1,38 @@
+id: lookalike_04
+family: lookalike
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- create_vendor:
+    name: Pacific Rim Facility Partners
+    domain: pacrimfacility.example
+    slug: pacrim
+    phone: '+15550109999'
+    phoneTrust: untrusted
+    routing: '011000015'
+    accountNumber: '900012345678'
+    invoiceAmountCents: 2650000
+    invoiceNumber: PRF-0001
+- expect_case:
+    state: PROBE_SENT
+- pay:
+    invoice: new_vendor_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+- advance_to: availability
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- advance_to: sla
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: sla_expired
+- pay:
+    invoice: new_vendor_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

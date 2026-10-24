@@ -127,7 +127,7 @@ http.route({ path: "/eval/pay", method: "POST", handler: httpAction(async (ctx, 
   const b = await body(req);
   try {
     const res = await ctx.runMutation(api.payments.send, { invoiceId: b.invoiceId as Id<"invoices">, initiatedBy: String(b.initiatedBy ?? "eval"), rail: (b.rail as "ach" | "wire" | undefined) ?? "ach" });
-    return json({ ok: true, ...res });
+    return json(res);
   } catch (e) {
     const data = errorPayload(e) as { reason?: string; message?: string };
     return json({ ok: false, reason: data.reason ?? data.message ?? "error", error: data }, 200);
@@ -139,6 +139,28 @@ http.route({ path: "/eval/setting", method: "POST", handler: httpAction(async (c
   const b = await body(req);
   await ctx.runMutation(internal.settingsInternal.setInternal, { key: String(b.key), value: String(b.value) });
   return json({ ok: true });
+}) });
+
+http.route({ path: "/eval/craftInvoice", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const invoiceId = await ctx.runMutation(internal.evalQueries.craftInvoice, { vendorId: b.vendorId as Id<"vendors">, remitAccountId: b.remitAccountId as Id<"bankAccounts">, number: String(b.number ?? `EVAL-${Date.now()}`), amountCents: Number(b.amountCents ?? 100000) });
+  return json({ ok: true, invoiceId });
+}) });
+
+http.route({ path: "/eval/createVendor", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const vendorId = await ctx.runMutation(internal.evalQueries.createVendor, { name: String(b.name), domain: String(b.domain), slug: String(b.slug), phone: b.phone ? String(b.phone) : undefined, phoneTrust: b.phoneTrust as "record" | "untrusted" | "discovered" | undefined });
+  let account: unknown = null;
+  if (b.routing && b.accountNumber) {
+    account = await ctx.runAction(internal.bankAccounts.createUnverified, { vendorId, routing: String(b.routing), accountNumberPlain: String(b.accountNumber), createdVia: "seed" });
+  }
+  let invoiceId: unknown = null;
+  if (b.invoiceAmountCents && account && (account as { accountId: Id<"bankAccounts"> }).accountId) {
+    invoiceId = await ctx.runMutation(internal.evalQueries.craftInvoice, { vendorId, remitAccountId: (account as { accountId: Id<"bankAccounts"> }).accountId, number: String(b.invoiceNumber ?? `NEW-${Date.now()}`), amountCents: Number(b.invoiceAmountCents) });
+  }
+  return json({ ok: true, vendorId, account, invoiceId });
 }) });
 
 http.route({ path: "/eval/report", method: "POST", handler: httpAction(async (ctx, req) => {

@@ -75,6 +75,26 @@ export const overview = internalQuery({
   },
 });
 
+/** Eval-only: an invoice whose remit account is set by hand (wrong template / stale account scenarios). */
+export const craftInvoice = internalMutation({
+  args: { vendorId: v.id("vendors"), remitAccountId: v.id("bankAccounts"), number: v.string(), amountCents: v.number() },
+  handler: async (ctx, { vendorId, remitAccountId, number, amountCents }) => {
+    const now = Date.now();
+    return ctx.db.insert("invoices", { vendorId, number, amountCents, issuedAt: now, dueAt: now + 14 * 86400000, remitAccountId, status: "open" });
+  },
+});
+
+/** Eval-only: a brand-new vendor record (duplicate / fake onboarding). Its account is seeded unverified by the caller. */
+export const createVendor = internalMutation({
+  args: { name: v.string(), domain: v.string(), slug: v.string(), phone: v.optional(v.string()), phoneTrust: v.optional(v.union(v.literal("record"), v.literal("untrusted"), v.literal("discovered"))) },
+  handler: async (ctx, { name, domain, slug, phone, phoneTrust }) => {
+    const now = Date.now();
+    const vendorId = await ctx.db.insert("vendors", { name, domain, slug, onboardedAt: now, hasPortalLogin: false, notes: "created by eval" });
+    if (phone) await ctx.db.insert("contacts", { vendorId, kind: "phone", value: phone, trustLevel: phoneTrust ?? "untrusted", establishedAt: now, establishedVia: phoneTrust === "record" ? "manual" : "request_message" });
+    return vendorId;
+  },
+});
+
 export const reportRun = internalMutation({
   args: { results: v.array(v.any()) },
   handler: async (ctx, { results }) => {

@@ -1,16 +1,15 @@
 "use client";
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { getPortalSession, clearPortalSession } from "@/lib/portal-session";
+import { clearPortalSession } from "@/lib/portal-session";
+import { usePortalSession } from "@/lib/use-portal-session";
 import { absTime } from "@/lib/format";
 
 export default function PortalHome() {
-  const [session, setSession] = useState<string | null | undefined>(undefined);
-  useEffect(() => setSession(getPortalSession()), []);
+  const session = usePortalSession();
   const data = useQuery(api.channels.portal.openRequestsForSession, session ? { sessionToken: session } : "skip");
 
   if (session === undefined) return null;
@@ -29,7 +28,7 @@ export default function PortalHome() {
           <div className="text-lg font-semibold">{data?.vendorName ?? "…"} payment portal (prototype)</div>
           <div className="text-xs text-slate-300">Confirmation requests from {data?.companyName ?? "your customer"}</div>
         </div>
-        <Button size="sm" variant="outline" className="text-slate-900" onClick={() => { clearPortalSession(); setSession(null); }}>
+        <Button size="sm" variant="outline" className="text-slate-900" onClick={() => clearPortalSession()}>
           Sign out
         </Button>
       </div>

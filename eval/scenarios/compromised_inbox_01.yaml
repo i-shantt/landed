@@ -1,0 +1,46 @@
+id: compromised_inbox_01
+family: compromised_inbox
+vendor: cleanco
+extractor: rules
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Updated banking details
+    body: 'Hi Marisol,
+
+
+      We have changed banks effective this month. Please update our remittance details for all open and future invoices:
+
+      Bank: First Harbor Bank
+
+      Routing (ABA): 011000015
+
+      Account number: 900012345678
+
+
+      Thanks,
+
+      Dana Whitfield
+
+      Accounts Receivable, CleanCo Facilities'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- expect_case:
+    state: PROBE_SENT
+- advance_to: availability
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- vendor_statement: nothing
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: vendor_reports_nothing_arrived
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

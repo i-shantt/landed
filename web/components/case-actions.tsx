@@ -56,7 +56,11 @@ export function CaseActions({ caseId, state, openInvoices }: { caseId: Id<"cases
                 setPayResult(null);
                 try {
                   const r = await send({ invoiceId: selected as Id<"invoices">, initiatedBy: "demo-clerk", rail: "ach" });
-                  setPayResult({ ok: true, text: `${r.duplicate ? "Already sent earlier; same payment returned" : "Payment sent"} · id ${r.paymentId}` });
+                  if (!r.ok) {
+                    setPayResult({ ok: false, text: `Refused: ${r.reason} — ${refusalLabel(r.reason)}` });
+                  } else {
+                    setPayResult({ ok: true, text: `${r.duplicate ? "Already sent earlier; same payment returned" : "Payment sent"} · id ${r.paymentId}` });
+                  }
                 } catch (e) {
                   const reason = errorMessage(e);
                   setPayResult({ ok: false, text: `Refused: ${reason} — ${refusalLabel(reason)}` });

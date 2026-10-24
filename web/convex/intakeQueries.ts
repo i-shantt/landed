@@ -44,6 +44,43 @@ export const messageContext = internalQuery({
   },
 });
 
+/** Which known vendor does an unresolved sender claim to be? Name match or a lookalike of the domain. */
+export const resolveClaimedVendor = internalQuery({
+  args: { from: v.string(), subject: v.string(), body: v.string() },
+  handler: async (ctx, { from, subject, body }) => {
+    const vendors = await ctx.db.query("vendors").collect();
+    const text = `${from}\n${subject}\n${body}`.toLowerCase();
+    const norm = (s: string) => s.toLowerCase().replace(/1/g, "l").replace(/0/g, "o").replace(/3/g, "e").replace(/5/g, "s").replace(/[^a-z]/g, "");
+    const senderDomain = (from.match(/@([^>\s]+)/)?.[1] ?? "").toLowerCase();
+    for (const vnd of vendors) {
+      const label = vnd.domain.split(".")[0];
+      const nameHit = text.includes(vnd.name.toLowerCase()) || text.includes(label);
+      const lookalike = senderDomain !== vnd.domain && (norm(senderDomain).includes(norm(label)) || senderDomain.includes(label));
+      if (nameHit || lookalike) {
+        return { vendorId: vnd._id, vendorName: vnd.name, reason: lookalike ? "lookalike_domain" : "name_match", realDomain: vnd.domain, senderDomain };
+      }
+    }
+    return null;
+  },
+});
+
+export const noteSenderMismatch = internalMutation({
+  args: { messageId: v.id("messages"), vendorId: v.id("vendors"), from: v.string(), reason: v.string(), realDomain: v.string(), senderDomain: v.string() },
+  handler: async (ctx, { messageId, vendorId, from, reason, realDomain, senderDomain }) => {
+    await append(ctx, { actor: "agent", type: "sender_domain_mismatch", payload: { messageId, vendorId, from, reason, realDomain, senderDomain, note: "message claims to be a vendor of record but did not come from its domain; the requested account is bound to that vendor and held like any other change" } });
+  },
+});
+
+export const flagCaseSenderMismatch = internalMutation({
+  args: { caseId: v.id("cases"), messageId: v.id("messages"), from: v.string() },
+  handler: async (ctx, { caseId, messageId, from }) => {
+    const c = await ctx.db.get(caseId);
+    if (!c) return;
+    if (c.triggerType === "instruction_change") await ctx.db.patch(caseId, { triggerType: "instruction_change_lookalike" });
+    await append(ctx, { caseId, actor: "agent", type: "sender_domain_mismatch", payload: { messageId, from } });
+  },
+});
+
 export const noteUnknownVendor = internalMutation({
   args: { messageId: v.id("messages"), from: v.string(), evidence: v.array(v.string()) },
   handler: async (ctx, { messageId, from, evidence }) => {

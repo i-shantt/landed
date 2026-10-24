@@ -1,0 +1,19 @@
+id: misdirection_02
+family: misdirection
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- craft_invoice:
+    vendor: cleanco
+    remit_vendor: northpeak
+    number: CC-WRONG-TEMPLATE
+    amountCents: 1250000
+- pay:
+    invoice: crafted
+- expect_pay:
+    ok: false
+    reason: destination_vendor_mismatch
+expect:
+  final_state: null
+  payments_created: 0

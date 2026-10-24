@@ -1,0 +1,61 @@
+id: legit_04
+family: legit
+vendor: cleanco
+extractor: rules
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: New bank account
+    body: 'Hi Marisol,
+
+
+      CleanCo has moved to a new bank. Please update our remittance details for all open invoices:
+
+      Routing (ABA): 031000503
+
+      Account number: 55501234567
+
+
+      Thanks,
+
+      Dana Whitfield, CleanCo Facilities'
+    account:
+      routing: '031000503'
+      accountNumber: '55501234567'
+- advance_to: availability
+- vendor_statement: correct
+- expect_case:
+    state: VERIFIED
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: true
+- expect_case:
+    state: PAID
+- advance_to: landing_check
+- landing_statement: correct
+- expect_case:
+    state: CLOSED
+- advance:
+    days: 30
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Another banking update
+    body: 'We are consolidating banks again. New details: routing 026009593, account 4471100239. Thanks, Dana, CleanCo Facilities'
+    account:
+      routing: 026009593
+      accountNumber: '4471100239'
+- expect_case:
+    state: PROBE_SENT
+- advance_to: availability
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- vendor_statement: correct
+- expect_case:
+    state: VERIFIED
+expect:
+  final_state: VERIFIED
+  payments_created: 1
+  human_actions: 0

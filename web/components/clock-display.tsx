@@ -20,5 +20,6 @@ export function ClockDisplay() {
 /** Hook: the application clock's current time (demo or live), with a fallback. */
 export function useNow(): number {
   const clock = useQuery(api.clock.get, {});
-  return clock?.now ?? Date.now();
+  // 0 while loading: callers render "—" style placeholders for unknown times.
+  return clock?.now ?? 0;
 }

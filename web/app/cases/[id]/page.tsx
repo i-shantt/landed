@@ -210,32 +210,39 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
 
 /** Reads the events once, freezes them, and plays them back at 10x (no live subscription afterwards). */
 function ReplayTimeline({ caseId }: { caseId: Id<"cases"> }) {
-  const [frozen, setFrozen] = useState<TimelineEvent[] | null>(null);
-  const live = useQuery(api.events.listForCase, frozen ? "skip" : { caseId });
+  const live = useQuery(api.events.listForCase, { caseId });
+  if (!live) return <p className="text-sm text-muted-foreground">Loading once…</p>;
+  // Mounting the player with the first snapshot freezes it: ReplayPlayer never re-reads `events`.
+  return <ReplayPlayer events={live as TimelineEvent[]} />;
+}
+
+function ReplayPlayer({ events }: { events: TimelineEvent[] }) {
+  const [frozen] = useState(events); // captured once; later live updates are ignored
   const [shown, setShown] = useState(0);
   const [run, setRun] = useState(0);
   useEffect(() => {
-    if (!frozen && live) setFrozen(live as TimelineEvent[]);
-  }, [live, frozen]);
-  useEffect(() => {
-    if (!frozen) return;
-    setShown(0);
     let i = 0;
     const timer = setInterval(() => {
       i++;
-      setShown(i);
+      setShown(Math.min(i, frozen.length));
       if (i >= frozen.length) clearInterval(timer);
     }, 300);
     return () => clearInterval(timer);
   }, [frozen, run]);
-  if (!frozen) return <p className="text-sm text-muted-foreground">Loading once…</p>;
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>
           {shown}/{frozen.length} events · 10x · offline (no live subscription)
         </span>
-        <Button size="xs" variant="outline" onClick={() => setRun((r) => r + 1)}>
+        <Button
+          size="xs"
+          variant="outline"
+          onClick={() => {
+            setShown(0);
+            setRun((r) => r + 1);
+          }}
+        >
           Restart
         </Button>
       </div>

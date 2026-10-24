@@ -21,7 +21,7 @@ export default function CasesPage() {
       {cases === undefined ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : cases.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No cases yet. Send a bank-change email from the Mailbox or edit a vendor's bank account.</p>
+        <p className="text-sm text-muted-foreground">No cases yet. Send a bank-change email from the Mailbox or edit a vendor&apos;s bank account.</p>
       ) : (
         <Table>
           <TableHeader>

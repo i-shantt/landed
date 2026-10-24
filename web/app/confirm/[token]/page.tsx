@@ -1,5 +1,5 @@
 "use client";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -8,13 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { getPortalSession } from "@/lib/portal-session";
+import { usePortalSession } from "@/lib/use-portal-session";
 import { errorMessage } from "@/components/reason-dialog";
 
 export default function ConfirmPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
-  const [session, setSession] = useState<string | null | undefined>(undefined);
-  useEffect(() => setSession(getPortalSession()), []);
+  const session = usePortalSession();
   const info = useQuery(api.channels.portal.tokenInfo, session ? { sessionToken: session, token } : "skip");
   const confirm = useMutation(api.channels.portal.confirm);
   const [dollars, setDollars] = useState("");

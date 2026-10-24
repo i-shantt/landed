@@ -1,0 +1,31 @@
+id: compromised_inbox_03
+family: compromised_inbox
+vendor: cleanco
+extractor: rules
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: 'URGENT: payment account update before Friday'
+    body: Our finance team has moved to a new banking partner. To avoid a delay on CC-2026-0412 please remit to routing 026009593, account 4471100239 effective immediately. Our CFO has asked that this be
+      processed today.
+    account:
+      routing: 026009593
+      accountNumber: '4471100239'
+- expect_case:
+    state: PROBE_SENT
+- advance_to: availability
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- vendor_statement: nothing
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: vendor_reports_nothing_arrived
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

@@ -1,0 +1,27 @@
+id: lookalike_05
+family: lookalike
+vendor: cleanco
+extractor: rules
+steps:
+- inject:
+    from: ap@c1eanco.example
+    dmarc: true
+    subject: Banking and contact update
+    body: 'CleanCo Facilities has updated our bank: routing 011000015, account 900012345678. I also have a new direct phone number, please call me at (415) 555-0199 for verification.'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- advance:
+    hours: 72
+- advance:
+    hours: 25
+- expect_case:
+    state: NEEDS_HUMAN
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

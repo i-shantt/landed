@@ -49,7 +49,7 @@ export async function insertMessage(ctx: MutationCtx, args: {
     authResult: { spf: args.spf ?? args.dmarc ?? true, dkim: args.dkim ?? args.dmarc ?? true, dmarc: args.dmarc ?? true },
     attachmentStorageIds: args.attachmentStorageIds ?? [],
     intakeStatus: "pending",
-    intakeResult: args.attachmentText ? { attachmentText: args.attachmentText } : undefined,
+    intakeResult: args.attachmentText || args.invoice ? { attachmentText: args.attachmentText, invoice: args.invoice } : undefined,
   });
   await append(ctx, { actor: "vendor", type: "message_received", payload: { messageId, from: args.from, subject: args.subject, dmarc: args.dmarc ?? true, vendorResolved: !!vendorId } });
   await ctx.scheduler.runAfter(0, internal.intake.run, { messageId });

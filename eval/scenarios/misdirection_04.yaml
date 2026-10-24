@@ -1,0 +1,29 @@
+id: misdirection_04
+family: misdirection
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- create_vendor:
+    name: CleanCo Facilities LLC
+    domain: cleanco-facilities.example
+    slug: cleanco2
+    routing: '011000015'
+    accountNumber: '900012345678'
+    invoiceAmountCents: 4200000
+    invoiceNumber: CC-DUP-0412
+- expect_case:
+    state: PROBE_SENT
+- pay:
+    invoice: new_vendor_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+- advance_to: availability
+- advance_to: sla
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: sla_expired
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

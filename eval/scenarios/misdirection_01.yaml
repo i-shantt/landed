@@ -1,0 +1,26 @@
+id: misdirection_01
+family: misdirection
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- manual_edit:
+    routing: '031000503'
+    accountNumber: '55501234576'
+- expect_case:
+    state: PROBE_SENT
+- advance_to: availability
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- vendor_statement: nothing
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: vendor_reports_nothing_arrived
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

@@ -1,0 +1,201 @@
+[
+  {
+    "scenarioId": "compromised_inbox_04",
+    "family": "compromised_inbox",
+    "startedAt": 1792828262469,
+    "finishedAt": 1792828272374,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "vendor_reports_nothing_arrived",
+      "payments_created": 0,
+      "account_status": "probing",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 531,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 9904,
+      "extractor_off": false
+    },
+    "log": [
+      "inject -> case_opened mode=rules changed=True",
+      "advance_to availability",
+      "inject -> receipt_claim_ignored mode=rules changed=False",
+      "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  },
+  {
+    "scenarioId": "compromised_inbox_04__off",
+    "family": "compromised_inbox",
+    "startedAt": 1792828272374,
+    "finishedAt": 1792828279710,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "vendor_reports_nothing_arrived",
+      "payments_created": 0,
+      "account_status": "probing",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 10,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 7335,
+      "extractor_off": true
+    },
+    "log": [
+      "manual_edit -> case jd7ccc38dbtdpr4kms1xk683q58gxrc9 reused=False",
+      "advance_to availability",
+      "inject skipped (extractor off)",
+      "expect_confirmation skipped (extractor off)",
+      "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  },
+  {
+    "scenarioId": "compromised_inbox_05",
+    "family": "compromised_inbox",
+    "startedAt": 1792828279710,
+    "finishedAt": 1792828287501,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "contact_and_bank_changed_together",
+      "payments_created": 0,
+      "account_status": "unverified",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 532,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 7791,
+      "extractor_off": false
+    },
+    "log": [
+      "inject -> case_opened mode=rules changed=True",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  },
+  {
+    "scenarioId": "compromised_inbox_05__off",
+    "family": "compromised_inbox",
+    "startedAt": 1792828287501,
+    "finishedAt": 1792828294794,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "sla_expired",
+      "payments_created": 0,
+      "account_status": "probing",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 11,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 7292,
+      "extractor_off": true
+    },
+    "log": [
+      "manual_edit -> case jd7becj1z5dxq7ep6vm8jcaz6d8gwxk2 reused=False",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  },
+  {
+    "scenarioId": "lookalike_05",
+    "family": "lookalike",
+    "startedAt": 1792828294794,
+    "finishedAt": 1792828302564,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "contact_and_bank_changed_together",
+      "payments_created": 0,
+      "account_status": "unverified",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 534,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 7770,
+      "extractor_off": false
+    },
+    "log": [
+      "inject -> case_opened mode=rules changed=True",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  },
+  {
+    "scenarioId": "lookalike_05__off",
+    "family": "lookalike",
+    "startedAt": 1792828302564,
+    "finishedAt": 1792828309849,
+    "expected": {
+      "final_state": "NEEDS_HUMAN",
+      "payments_created": 0
+    },
+    "actual": {
+      "final_state": "NEEDS_HUMAN",
+      "humanReason": "sla_expired",
+      "payments_created": 0,
+      "account_status": "probing",
+      "payments_to_new_destination": 0,
+      "human_actions": 0
+    },
+    "passed": true,
+    "failures": [],
+    "metrics": {
+      "time_to_hold_ms": 9,
+      "time_to_release_demo_ms": null,
+      "time_to_package_demo_ms": null,
+      "human_actions": 0,
+      "wall_ms": 7284,
+      "extractor_off": true
+    },
+    "log": [
+      "manual_edit -> case jd70dacd40zxp8aqb73gy1cf6n8gw9ge reused=False",
+      "pay -> {'ok': False, 'reason': 'destination_not_verified', 'error': {'code': 'payment_refused', 'reason': 'destination_not_verified'}}"
+    ]
+  }
+]

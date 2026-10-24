@@ -1,0 +1,28 @@
+id: compromised_inbox_05
+family: compromised_inbox
+vendor: cleanco
+extractor: rules
+off_note: in off mode the contact change is not visible to a manual edit; the probe path still blocks the payment
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Banking and contact update
+    body: 'We have updated our bank: routing 011000015, account 900012345678. Also, I have a new direct phone number, please call me at (415) 555-0199 for any verification instead of the main line.'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- advance:
+    hours: 72
+- advance:
+    hours: 25
+- expect_case:
+    state: NEEDS_HUMAN
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0
