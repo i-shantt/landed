@@ -2,12 +2,14 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader, Section, Loading, EmptyState } from "@/components/landed/primitives";
 import { useEvalRuns } from "@/lib/hooks";
+import { EvalBars } from "@/components/landed/EvalBars";
+import { absTime } from "@/lib/format";
 import { stateLabel } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 
 const FAMILY_LABELS: Record<string, string> = { compromised_inbox: "Compromised inbox", lookalike: "Lookalike sender", misdirection: "Misdirection", legit: "Legitimate change", recovery: "Recovery" };
 
-type Run = { _id: string; scenarioId: string; passed?: boolean; expected: Record<string, unknown>; actual: Record<string, unknown>; metrics?: Record<string, unknown>; family?: string };
+type Run = { _id: string; scenarioId: string; passed?: boolean; startedAt: number; finishedAt?: number; expected: Record<string, unknown>; actual: Record<string, unknown>; metrics?: Record<string, unknown>; family?: string };
 
 function fmtState(v: unknown) {
   return typeof v === "string" ? stateLabel(v) : v === null ? "no case" : "—";
@@ -16,7 +18,8 @@ function fmtState(v: unknown) {
 export default function EvalPage() {
   const runs = useEvalRuns() as Run[] | undefined;
   const metrics = runs?.find((r) => r.scenarioId === "__metrics__");
-  const rows = (runs ?? []).filter((r) => r.scenarioId !== "__metrics__");
+  const rows = (runs ?? []).filter((r) => r.scenarioId !== "__metrics__" && !r.scenarioId.startsWith("judge:"));
+  const judgeRows = (runs ?? []).filter((r) => r.scenarioId.startsWith("judge:"));
   const families = new Map<string, Run[]>();
   for (const r of rows) {
     const fam = (r.family as string | undefined) ?? r.scenarioId.replace(/_\d+(__off)?$/, "");
@@ -39,6 +42,9 @@ export default function EvalPage() {
               </ul>
             </Section>
           )}
+          <Section title="Outcomes by family">
+            <EvalBars rows={rows} />
+          </Section>
           {Array.from(families.entries()).map(([fam, list]) => (
             <Section key={fam} title={FAMILY_LABELS[fam] ?? fam} description={`${list.filter((r) => r.passed).length} / ${list.length} passed`}>
               <div className="overflow-x-auto">
@@ -72,6 +78,25 @@ export default function EvalPage() {
               </div>
             </Section>
           ))}
+          <Section title="Run history" description="Every posted run, newest first, including judge-mode runs.">
+            <div className="max-h-72 overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow><TableHead>Scenario</TableHead><TableHead>Source</TableHead><TableHead>Finished</TableHead><TableHead>Result</TableHead></TableRow>
+                </TableHeader>
+                <TableBody>
+                  {[...rows, ...judgeRows].sort((x, y) => (y.finishedAt ?? y.startedAt) - (x.finishedAt ?? x.startedAt)).map((r) => (
+                    <TableRow key={r._id}>
+                      <TableCell className="font-mono text-xs">{r.scenarioId.startsWith("judge:") ? String((r.actual as { scenarioId?: string }).scenarioId ?? r.scenarioId) : r.scenarioId}</TableCell>
+                      <TableCell className="text-xs">{r.scenarioId.startsWith("judge:") ? "judge mode" : "eval runner"}</TableCell>
+                      <TableCell className="font-mono text-xs tabular-nums">{r.finishedAt ? absTime(r.finishedAt) : "running"}</TableCell>
+                      <TableCell><span className={cn("rounded border px-1.5 text-[11px]", r.passed ? "border-emerald-200 bg-emerald-50 text-emerald-800" : r.finishedAt ? "border-red-200 bg-red-50 text-red-800" : "border-slate-200 bg-slate-50 text-slate-700")}>{r.passed ? "pass" : r.finishedAt ? "fail" : "running"}</span></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </Section>
           <p className="text-xs text-muted-foreground">Re-run: <code className="rounded bg-muted px-1 font-mono">cd eval &amp;&amp; .venv/bin/python runner.py</code></p>
         </>
       )}
