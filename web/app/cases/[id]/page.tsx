@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, use, useEffect, useState } from "react";
+import { Suspense, use, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { Id } from "@/convex/_generated/dataModel";
@@ -10,6 +10,10 @@ import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { CaseTimeline, type TimelineEvent } from "@/components/landed/CaseTimeline";
 import { ProbeCard, AccountTable, ConfirmationList, PaymentCard } from "@/components/landed/CaseCards";
 import { CaseActions, SimulateVendorAnswer } from "@/components/landed/CaseActions";
+import { ExplainPanel } from "@/components/landed/ExplainPanel";
+import { NessiePanel } from "@/components/landed/NessiePanel";
+import { ExportButton } from "@/components/landed/ExportButton";
+import { captionFor } from "@/lib/captions";
 import { useCase, useCaseEvents, useProbe, useConfirmations, useNow } from "@/lib/hooks";
 import { absTime, countdown } from "@/lib/format";
 import { triggerLabel, humanReasonLabel, caseSummary } from "@/lib/labels";
@@ -25,7 +29,8 @@ export default function CasePage({ params }: { params: Promise<{ id: string }> }
 
 function CaseView({ caseId }: { caseId: Id<"cases"> }) {
   const sp = useSearchParams();
-  const replay = sp.get("replay") === "1";
+  const autoplay = sp.get("autoplay") === "1";
+  const replay = sp.get("replay") === "1" || autoplay;
   const c = useCase(caseId);
   const live = useCaseEvents(caseId, !replay);
   const probe = useProbe(caseId);
@@ -43,7 +48,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
           <>
             {c.vendor ? <Link href={`/vendors/${c.vendor._id}`} className="hover:underline">{c.vendor.name}</Link> : "Unknown vendor"}
             <CaseStatusBadge state={c.state} />
-            {replay && <span className="rounded-md border border-indigo-200 bg-indigo-50 px-1.5 text-[11px] text-indigo-900">Replay</span>}
+            {replay && <span className="rounded-md border border-indigo-200 bg-indigo-50 px-1.5 text-[11px] text-indigo-900">{autoplay ? "Autoplay" : "Replay"}</span>}
           </>
         }
         description={
@@ -56,7 +61,11 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
           replay ? (
             <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}`} />}>Exit replay</Button>
           ) : (
-            <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}?replay=1`} />}>Replay timeline</Button>
+            <>
+              <ExportButton caseId={caseId} />
+              <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}?replay=1`} />}>Replay timeline</Button>
+              <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}?autoplay=1`} />}>Play with captions</Button>
+            </>
           )
         }
       >
@@ -72,7 +81,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
           description="Append-only audit log. Probe amounts are redacted everywhere."
           actions={!replay ? <Input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Filter events…" aria-label="Filter timeline events" className="h-7 w-44 text-xs" /> : undefined}
         >
-          {replay ? <ReplayTimeline caseId={caseId} now={now} /> : <CaseTimeline events={(live ?? []) as TimelineEvent[]} now={now} filter={filter} />}
+          {replay ? <ReplayTimeline caseId={caseId} now={now} captions={autoplay} /> : <CaseTimeline events={(live ?? []) as TimelineEvent[]} now={now} filter={filter} />}
         </Section>
 
         <div className="space-y-4">
@@ -87,6 +96,8 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
             <>
               <SimulateVendorAnswer caseId={caseId} state={c.state} />
               <CaseActions caseId={caseId} state={c.state} openInvoices={c.openInvoices} />
+              <ExplainPanel caseId={caseId} />
+              <NessiePanel caseId={caseId} />
             </>
           )}
         </div>
@@ -96,31 +107,66 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
 }
 
 /** Reads the events once, freezes them, and plays them back at 10x (no live subscription afterwards). */
-function ReplayTimeline({ caseId, now }: { caseId: Id<"cases">; now: number }) {
+function ReplayTimeline({ caseId, now, captions }: { caseId: Id<"cases">; now: number; captions?: boolean }) {
   const live = useCaseEvents(caseId, true);
   if (!live) return <Loading label="Loading once…" />;
-  return <ReplayPlayer events={live as TimelineEvent[]} now={now} />;
+  return <ReplayPlayer events={live as TimelineEvent[]} now={now} captions={!!captions} />;
 }
 
-function ReplayPlayer({ events, now }: { events: TimelineEvent[]; now: number }) {
+function usePrefersReducedMotion() {
+  // useSyncExternalStore keeps the media query in sync without setState-in-effect.
+  return useSyncExternalStore(
+    (cb) => {
+      const mq = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+      mq?.addEventListener?.("change", cb);
+      return () => mq?.removeEventListener?.("change", cb);
+    },
+    () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false,
+    () => false
+  );
+}
+
+function ReplayPlayer({ events, now, captions }: { events: TimelineEvent[]; now: number; captions: boolean }) {
   const [frozen] = useState(events);
   const [run, setRun] = useState(0);
   const [tick, setTick] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  // Captions pace slower (2.4s per event) so a viewer can read them; plain replay runs at 10x (300ms).
+  const interval = captions ? 2400 : 300;
   useEffect(() => {
-    const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    if (reduced) return;
-    const timer = setInterval(() => setTick((t) => t + 1), 300);
+    if (reduced || paused) return;
+    const timer = setInterval(() => setTick((t) => Math.min(t + 1, frozen.length)), interval);
     return () => clearInterval(timer);
-  }, [run]);
-  const reduced = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  const shown = reduced ? frozen.length : Math.min(tick, frozen.length);
+  }, [run, reduced, paused, interval, frozen.length]);
+  const shown = reduced && !captions ? frozen.length : Math.min(tick, frozen.length);
+  const current = shown > 0 ? frozen[shown - 1] : null;
+  const caption = captions && current ? captionFor(current.type, current.payload) : null;
+  const step = (d: number) => setTick((t) => Math.max(0, Math.min(frozen.length, t + d)));
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="font-mono tabular-nums">{shown}/{frozen.length} events · 10x · offline (no live subscription)</span>
-        <Button size="xs" variant="outline" onClick={() => { setTick(0); setRun((r) => r + 1); }}>Restart</Button>
+    <div className="relative space-y-2">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className="font-mono tabular-nums">{shown}/{frozen.length} events · {captions ? "captioned" : "10x"} · offline (no live subscription)</span>
+        <Button size="xs" variant="outline" onClick={() => { setTick(0); setPaused(false); setRun((r) => r + 1); }}>Restart</Button>
+        {captions && !reduced && <Button size="xs" variant="outline" onClick={() => setPaused((p) => !p)} aria-pressed={paused}>{paused ? "Resume" : "Pause"}</Button>}
+        {(reduced || paused) && (
+          <>
+            <Button size="xs" variant="outline" onClick={() => step(-1)} aria-label="Previous event">Prev</Button>
+            <Button size="xs" variant="outline" onClick={() => step(1)} aria-label="Next event">Next</Button>
+          </>
+        )}
+        {reduced && <span>(reduced motion: step manually)</span>}
       </div>
       <CaseTimeline events={frozen.slice(0, shown)} now={now} />
+      {captions && (
+        <div className="pointer-events-none sticky bottom-4 z-20 flex justify-center" aria-live="polite">
+          {caption && (
+            <p className="pointer-events-auto max-w-2xl rounded-full bg-slate-900/95 px-5 py-2.5 text-center text-sm text-white shadow-lg">
+              {caption}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
