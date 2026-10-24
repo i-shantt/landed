@@ -1,4 +1,4 @@
-# NARRATION.md — voice-over for assets/video/landed-raw.webm (target 2:30, first 15 s is the moment)
+# NARRATION.md — voice-over for assets/video/landed-raw.webm (raw take is 1:14; narrate at the marks below, pausing the video where the line is longer)
 
 Timestamps follow the marks printed by `web/scripts/record-demo.mjs` (re-run it to refresh them; they are listed at the end of this file after each recording).
 
@@ -16,6 +16,16 @@ Timestamps follow the marks printed by `web/scripts/record-demo.mjs` (re-run it 
 | 2:00 | "Judges can run their own scenario on the Judge page: insistent vendor, bank letter PDF, bank and phone changed together, two days of silence, wrong vendor. Twenty scripted cases, zero false releases." |
 | 2:15 | "Landed. No payment to an account the vendor hasn't confirmed." |
 
-## Marks from the last recording
+## Marks from the last recording (2026-10-24 04:22 PT, production)
 
-(filled in by the recording run; see BUILD_LOG.md)
+| Video time | What is on screen | Narration row to use |
+|---|---|---|
+| 0:03 | `/cases` with the three demo cases | 0:00 (hold the frame while you speak) |
+| 0:07–0:44 | captioned autoplay of the fraud case (15 events, captions on screen) | 0:08, 0:20, 0:30 |
+| 0:50 | CleanCo vendor page, extractor off | 0:45 |
+| 0:55 | manual edit saved: new row probing, old superseded | (silence) |
+| 1:01 | Pay refused by the server | 0:58 |
+| 1:03 | the legitimate case, landed and closed | 1:10 |
+| 1:10 | About: what the agent can and cannot do | 1:30, then 1:45 over the second video (`judge-run.webm`) |
+
+`judge-run.webm` (≈20 s): `/judge` running `custom_change_in_thread` to PASS; use it under the 2:00 line.
