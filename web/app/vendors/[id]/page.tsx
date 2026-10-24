@@ -1,35 +1,29 @@
 "use client";
 import { use, useState } from "react";
 import Link from "next/link";
-import { useAction, useMutation, useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { NativeSelect } from "@/components/native-select";
-import { StateBadge, AccountStatusBadge } from "@/components/state-badge";
-import { TrustBadge } from "@/components/trust-badge";
-import { ReasonDialog, errorMessage } from "@/components/reason-dialog";
+import { PageHeader, Section, Loading } from "@/components/landed/primitives";
+import { CaseStatusBadge, AccountStatusBadge, InvoiceStatusBadge } from "@/components/landed/badges";
+import { ContactList } from "@/components/landed/ContactList";
+import { ReasonDialog, errorMessage } from "@/components/landed/ReasonDialog";
+import { useVendor, useVendorActions } from "@/lib/hooks";
 import { usd, absDate, absTime } from "@/lib/format";
-import { TRIGGER_LABELS } from "@/lib/labels";
+import { triggerLabel, CONTACT_KIND_LABELS } from "@/lib/labels";
 
 export default function VendorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const vendorId = id as Id<"vendors">;
-  const v = useQuery(api.vendors.get, { vendorId });
-  const supersede = useMutation(api.contacts.supersede);
-  const addRecord = useMutation(api.contacts.addRecordContact);
-  const manualEdit = useAction(api.bankAccounts.manualEdit);
-  const discover = useAction(api.discovery.discoverFromWebsite);
+  const v = useVendor(vendorId);
+  const { supersede, addRecord, manualEdit, discover } = useVendorActions();
   const [discovering, setDiscovering] = useState(false);
   const [discoverMsg, setDiscoverMsg] = useState<string | null>(null);
-
   const [editing, setEditing] = useState<{ accountId: Id<"bankAccounts">; last4: string } | null>(null);
   const [routing, setRouting] = useState("");
   const [account, setAccount] = useState("");
@@ -41,167 +35,77 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
   const [newValue, setNewValue] = useState("");
   const [attested, setAttested] = useState("");
 
-  if (v === undefined) return <p className="text-sm text-muted-foreground">Loading…</p>;
+  if (v === undefined) return <Loading />;
   if (v === null) return <p className="text-sm text-red-700">Vendor not found.</p>;
   const accountById = new Map(v.accounts.map((a) => [a._id, a]));
 
-  const recordPhones = new Set(v.contacts.filter((c) => c.kind === "phone" && c.trustLevel === "record" && !c.supersededAt).map((c) => c.value));
   return (
-    <div className="space-y-5">
-      <div>
-        <h1 className="text-xl font-semibold">{v.name}</h1>
-        <p className="text-sm text-muted-foreground font-mono">
-          {v.domain} · onboarded {absDate(v.onboardedAt)} {v.hasPortalLogin ? "· has portal login" : ""}
-        </p>
-      </div>
+    <div className="space-y-4">
+      <PageHeader title={v.name} description={<span className="font-mono text-xs">{v.domain} · onboarded {absDate(v.onboardedAt)}{v.hasPortalLogin ? " · portal login" : ""}</span>} />
 
       {editResult && (
-        <Alert variant={editResult.ok ? "default" : "destructive"}>
+        <Alert variant={editResult.ok ? "default" : "destructive"} role="status">
           <AlertTitle>{editResult.ok ? "Bank account recorded as unverified" : "Edit failed"}</AlertTitle>
           <AlertDescription>
             {editResult.text}{" "}
-            {editResult.caseId && (
-              <Link className="underline" href={`/cases/${editResult.caseId}`}>
-                Open the case →
-              </Link>
-            )}
+            {editResult.caseId && <Link className="underline" href={`/cases/${editResult.caseId}`}>Open the case →</Link>}
           </AlertDescription>
         </Alert>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Contacts</CardTitle>
-          <CardDescription>
-            Only a contact of record, reached on its established channel, can confirm a probe.
-            {discoverMsg && <span className="block mt-1 text-amber-800">{discoverMsg}</span>}
-          </CardDescription>
-          <CardAction className="flex gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={discovering}
-              onClick={async () => {
-                setDiscovering(true);
-                try {
-                  const r = await discover({ vendorId });
-                  setDiscoverMsg(r.ok ? `Discovered ${r.phones?.length ?? 0} phone number(s) from the website (cross-check only).` : `Discovery skipped: ${r.reason}`);
-                } catch (e) {
-                  setDiscoverMsg(errorMessage(e));
-                } finally {
-                  setDiscovering(false);
-                }
-              }}
-            >
+      <Section
+        title="Contacts"
+        description={<>Only a contact of record, reached on its established channel, can confirm a probe.{discoverMsg && <span className="block text-amber-800">{discoverMsg}</span>}</>}
+        actions={
+          <>
+            <Button size="sm" variant="outline" disabled={discovering} onClick={async () => { setDiscovering(true); try { const r = await discover({ vendorId }); setDiscoverMsg(r.ok ? `Discovered ${r.phones?.length ?? 0} phone number(s) from the website (cross-check only).` : `Discovery skipped: ${r.reason}`); } catch (e) { setDiscoverMsg(errorMessage(e)); } finally { setDiscovering(false); } }}>
               Discover from website (Apify)
             </Button>
-            <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
-              Add record contact (prototype: human-attested)
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Kind</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Trust</TableHead>
-                <TableHead>Established</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {v.contacts.map((c) => (
-                <TableRow key={c._id}>
-                  <TableCell>{c.kind}</TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {c.value}
-                    {c.trustLevel === "discovered" && c.kind === "phone" && (
-                      <span className={`ml-2 text-xs ${recordPhones.has(c.value) ? "text-green-700" : "text-amber-700"}`}>
-                        {recordPhones.has(c.value) ? "matches the phone of record" : "differs from the phone of record"}
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <TrustBadge level={c.trustLevel} superseded={!!c.supersededAt} />
-                    {c.supersededAt && <span className="ml-2 text-xs text-muted-foreground">at {absTime(c.supersededAt)}</span>}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {absDate(c.establishedAt)} · {c.establishedVia}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {!c.supersededAt && (
-                      <Button size="xs" variant="outline" onClick={() => setSupersedeId(c._id)}>
-                        Supersede
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>Add contact of record</Button>
+          </>
+        }
+      >
+        <ContactList contacts={v.contacts} onSupersede={(id) => setSupersedeId(id as Id<"contacts">)} />
+      </Section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bank accounts</CardTitle>
-          <CardDescription>Editing never changes a row. It creates a new unverified row and opens a case; the edited row is superseded.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Status</TableHead>
-                <TableHead>Version</TableHead>
-                <TableHead>Routing</TableHead>
-                <TableHead>Account</TableHead>
-                <TableHead>First paid</TableHead>
-                <TableHead>Created via</TableHead>
-                <TableHead></TableHead>
+      <Section title="Bank accounts" description="Editing never changes a row. It creates a new unverified version and opens a case; the edited row is superseded.">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Status</TableHead>
+              <TableHead>Version</TableHead>
+              <TableHead>Routing</TableHead>
+              <TableHead>Account</TableHead>
+              <TableHead className="hidden md:table-cell">First paid</TableHead>
+              <TableHead className="hidden md:table-cell">Created via</TableHead>
+              <TableHead className="w-36" />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {v.accounts.map((a) => (
+              <TableRow key={a._id}>
+                <TableCell><AccountStatusBadge status={a.status} /></TableCell>
+                <TableCell className="font-mono text-xs">v{a.version}</TableCell>
+                <TableCell className="font-mono text-xs tabular-nums">{a.routing}</TableCell>
+                <TableCell className="font-mono text-xs tabular-nums">…{a.accountLast4}</TableCell>
+                <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{absDate(a.firstPaidAt)}</TableCell>
+                <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{a.createdVia.replace(/_/g, " ")}</TableCell>
+                <TableCell className="text-right">
+                  {(a.status === "verified" || a.status === "unverified" || a.status === "probing") && (
+                    <Button size="xs" variant="outline" onClick={() => { setEditing({ accountId: a._id, last4: a.accountLast4 }); setRouting(a.routing); setAccount(""); setEditResult(null); }}>
+                      Edit account
+                    </Button>
+                  )}
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {v.accounts.map((a) => (
-                <TableRow key={a._id}>
-                  <TableCell>
-                    <AccountStatusBadge status={a.status} />
-                  </TableCell>
-                  <TableCell className="font-mono text-sm">v{a.version}</TableCell>
-                  <TableCell className="font-mono text-sm">{a.routing}</TableCell>
-                  <TableCell className="font-mono text-sm">…{a.accountLast4}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{absDate(a.firstPaidAt)}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{a.createdVia}</TableCell>
-                  <TableCell className="text-right">
-                    {(a.status === "verified" || a.status === "unverified" || a.status === "probing") && (
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={() => {
-                          setEditing({ accountId: a._id, last4: a.accountLast4 });
-                          setRouting(a.routing);
-                          setAccount("");
-                          setEditResult(null);
-                        }}
-                      >
-                        Edit bank account
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </Section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoices</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Section title="Invoices" description="Open invoices follow a bank-change request and are blocked until the destination is verified.">
+          {v.invoices.length === 0 ? <p className="text-sm text-muted-foreground">No invoices.</p> : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -217,82 +121,61 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
                   const acct = accountById.get(i.remitAccountId);
                   return (
                     <TableRow key={i._id}>
-                      <TableCell className="font-mono text-sm">{i.number}</TableCell>
-                      <TableCell className="text-right font-mono text-sm">{usd(i.amountCents)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{absDate(i.dueAt)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{i.status}</Badge>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        …{acct?.accountLast4 ?? "????"} {acct && <AccountStatusBadge status={acct.status} />}
-                      </TableCell>
+                      <TableCell className="font-mono text-xs">{i.number}</TableCell>
+                      <TableCell className="text-right font-mono text-xs tabular-nums">{usd(i.amountCents)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{absDate(i.dueAt)}</TableCell>
+                      <TableCell><InvoiceStatusBadge status={i.status} /></TableCell>
+                      <TableCell className="font-mono text-xs">…{acct?.accountLast4 ?? "????"} {acct && <AccountStatusBadge status={acct.status} />}</TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Cases</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {v.cases.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No cases.</p>
-            ) : (
-              <ul className="space-y-2 text-sm">
-                {v.cases.map((c) => (
-                  <li key={c._id} className="flex items-center gap-2">
-                    <StateBadge state={c.state} />
-                    <Link className="hover:underline" href={`/cases/${c._id}`}>
-                      {TRIGGER_LABELS[c.triggerType] ?? c.triggerType}
-                    </Link>
-                    <span className="text-xs text-muted-foreground">{absTime(c.openedAt)}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </Section>
+        <Section title="Cases">
+          {v.cases.length === 0 ? <p className="text-sm text-muted-foreground">No cases.</p> : (
+            <ul className="divide-y">
+              {v.cases.map((c) => (
+                <li key={c._id} className="flex flex-wrap items-center gap-2 py-1.5 text-sm">
+                  <CaseStatusBadge state={c.state} showToken={false} />
+                  <Link className="hover:underline" href={`/cases/${c._id}`}>{triggerLabel(c.triggerType)}</Link>
+                  <span className="font-mono text-[11px] tabular-nums text-muted-foreground">{absTime(c.openedAt)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
       </div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit bank account (…{editing?.last4})</DialogTitle>
-            <DialogDescription>This creates a new unverified account row and opens a verification case. The row you are editing becomes superseded. Nothing is paid to the new account until the vendor of record confirms the probe.</DialogDescription>
+            <DialogDescription>This creates a new unverified account version and opens a verification case. The row you are editing becomes superseded. Nothing is paid to the new account until the vendor of record confirms the probe.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label>Routing (ABA, 9 digits)</Label>
-              <Input value={routing} onChange={(e) => setRouting(e.target.value)} className="font-mono" />
+              <Label htmlFor="edit-routing">Routing (ABA, 9 digits)</Label>
+              <Input id="edit-routing" value={routing} onChange={(e) => setRouting(e.target.value)} className="font-mono" inputMode="numeric" />
             </div>
             <div className="space-y-1">
-              <Label>Account number</Label>
-              <Input value={account} onChange={(e) => setAccount(e.target.value)} className="font-mono" placeholder="new account number" />
+              <Label htmlFor="edit-account">Account number</Label>
+              <Input id="edit-account" value={account} onChange={(e) => setAccount(e.target.value)} className="font-mono" placeholder="new account number" inputMode="numeric" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>
-              Cancel
-            </Button>
-            <Button
-              disabled={busy || !routing || !account}
-              onClick={async () => {
-                if (!editing) return;
-                setBusy(true);
-                try {
-                  const r = await manualEdit({ vendorId, routing, accountNumber: account, replacesAccountId: editing.accountId });
-                  setEditResult({ ok: true, text: r.reused ? "This account already has an open case; reusing it." : "New row created as unverified; the previous row is superseded. A case was opened and a probe deposit queued.", caseId: r.caseId ?? undefined });
-                  setEditing(null);
-                } catch (e) {
-                  setEditResult({ ok: false, text: errorMessage(e) });
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+            <Button disabled={busy || !routing || !account} onClick={async () => {
+              if (!editing) return;
+              setBusy(true);
+              try {
+                const r = await manualEdit({ vendorId, routing, accountNumber: account, replacesAccountId: editing.accountId });
+                setEditResult({ ok: true, text: r.reused ? "This account already has an open case; reusing it." : "New version created as unverified; the previous row is superseded. A case was opened and a probe deposit queued.", caseId: r.caseId ?? undefined });
+                setEditing(null);
+              } catch (e) { setEditResult({ ok: false, text: errorMessage(e) }); }
+              finally { setBusy(false); }
+            }}>
               Save new account
             </Button>
           </DialogFooter>
@@ -309,41 +192,23 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1">
-              <Label>Kind</Label>
-              <NativeSelect value={newKind} onChange={(e) => setNewKind(e.target.value as typeof newKind)}>
-                <option value="phone">phone</option>
-                <option value="portal">portal</option>
-                <option value="email">email</option>
+              <Label htmlFor="new-kind">Kind</Label>
+              <NativeSelect id="new-kind" value={newKind} onChange={(e) => setNewKind(e.target.value as typeof newKind)}>
+                {(["phone", "portal", "email"] as const).map((k) => <option key={k} value={k}>{CONTACT_KIND_LABELS[k]}</option>)}
               </NativeSelect>
             </div>
             <div className="space-y-1">
-              <Label>Value</Label>
-              <Input value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="+15550100099" className="font-mono" />
+              <Label htmlFor="new-value">Value</Label>
+              <Input id="new-value" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="+15550100099" className="font-mono" />
             </div>
             <div className="space-y-1">
-              <Label>Attested by</Label>
-              <Input value={attested} onChange={(e) => setAttested(e.target.value)} placeholder="your name" />
+              <Label htmlFor="new-attested">Attested by</Label>
+              <Input id="new-attested" value={attested} onChange={(e) => setAttested(e.target.value)} placeholder="your name" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              disabled={busy || !newValue || !attested}
-              onClick={async () => {
-                setBusy(true);
-                try {
-                  await addRecord({ vendorId, kind: newKind, value: newValue, attestedBy: attested });
-                  setAddOpen(false);
-                  setNewValue("");
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              Add
-            </Button>
+            <Button variant="outline" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button disabled={busy || !newValue || !attested} onClick={async () => { setBusy(true); try { await addRecord({ vendorId, kind: newKind, value: newValue, attestedBy: attested }); setAddOpen(false); setNewValue(""); } finally { setBusy(false); } }}>Add</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

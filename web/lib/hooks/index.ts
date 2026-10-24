@@ -1,0 +1,96 @@
+"use client";
+// Data hooks. Pages import these (and landed components) only.
+import { useAction, useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+
+export function useClock() {
+  return useQuery(api.clock.get, {});
+}
+/** Demo-clock now; 0 while loading. */
+export function useNow(): number {
+  return useClock()?.now ?? 0;
+}
+export function useSettings() {
+  return useQuery(api.settings.all, {});
+}
+export function useEnvPresence() {
+  return useQuery(api.env.presence, {});
+}
+export function useNextTimers() {
+  return useQuery(api.timerQueries.nextByKind, {});
+}
+export function useCases() {
+  return useQuery(api.cases.list, {});
+}
+export function useCase(caseId: Id<"cases">) {
+  return useQuery(api.cases.get, { caseId });
+}
+export function useCaseEvents(caseId: Id<"cases">, enabled = true) {
+  return useQuery(api.events.listForCase, enabled ? { caseId } : "skip");
+}
+export function useProbe(caseId: Id<"cases">) {
+  return useQuery(api.probes.getPublic, { caseId });
+}
+export function useConfirmations(caseId: Id<"cases">) {
+  return useQuery(api.confirmations.listForCase, { caseId });
+}
+export function usePackage(caseId: Id<"cases">) {
+  return useQuery(api.package.getForCase, { caseId });
+}
+export function useVendors() {
+  return useQuery(api.vendors.list, {});
+}
+export function useVendor(vendorId: Id<"vendors">) {
+  return useQuery(api.vendors.get, { vendorId });
+}
+export function useMessages() {
+  return useQuery(api.messages.list, {});
+}
+export function useEvalRuns() {
+  return useQuery(api.evalRuns.list, {});
+}
+export function useSeedStatus() {
+  return useQuery(api.seed.status, {});
+}
+export function usePortalRequests(sessionToken: string | null | undefined) {
+  return useQuery(api.channels.portal.openRequestsForSession, sessionToken ? { sessionToken } : "skip");
+}
+export function usePortalToken(sessionToken: string | null | undefined, token: string) {
+  return useQuery(api.channels.portal.tokenInfo, sessionToken ? { sessionToken, token } : "skip");
+}
+
+// Mutations / actions (human-initiated).
+export function useClockControls() {
+  return { advance: useMutation(api.clock.advance), advanceTo: useMutation(api.clock.advanceTo), setMode: useMutation(api.clock.setMode) };
+}
+export function useSetSetting() {
+  return useMutation(api.settings.set);
+}
+export function useReseed() {
+  return useAction(api.seed.reseed);
+}
+export function useCaseActions() {
+  return {
+    pay: useMutation(api.payments.send),
+    requestReview: useMutation(api.cases.requestHumanReview),
+    markFraud: useMutation(api.cases.markFraud),
+    rejectChange: useMutation(api.cases.rejectChange),
+    exceptionalRelease: useMutation(api.cases.exceptionalRelease),
+    simAnswer: useMutation(api.channels.simVoice.answer),
+  };
+}
+export function useVendorActions() {
+  return {
+    supersede: useMutation(api.contacts.supersede),
+    addRecord: useMutation(api.contacts.addRecordContact),
+    manualEdit: useAction(api.bankAccounts.manualEdit),
+    discover: useAction(api.discovery.discoverFromWebsite),
+  };
+}
+export function useMailboxActions() {
+  return { insert: useMutation(api.messages.insert), generateUploadUrl: useMutation(api.messages.generateUploadUrl) };
+}
+export function usePortalActions() {
+  return { login: useAction(api.portalAuth.login), confirm: useMutation(api.channels.portal.confirm) };
+}
