@@ -105,7 +105,7 @@
     "from": "ap@northpeak.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice NL-2026-0110",
-    "body": "Hello,\n\nPlease find invoice NL-2026-0110 for $35,445.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "body": "Hi Marisol,\n\nInvoice NL-2026-0110 for $35,445.00 is attached, due September 06. Payment instructions are unchanged and remain on file.\nLet me know if you need anything else from us.\n\nThanks,\nDana Whitaker\nAccounts Receivable, NorthPeak Logistics",
     "sentAt": 1786122540000,
     "dmarc": true
   },
@@ -115,7 +115,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0110",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot NL-2026-0110, thanks. It's in the queue for our next payment run.\n\nMarisol, AP",
     "sentAt": 1786208940000,
     "dmarc": true
   },
@@ -125,7 +125,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0110",
-    "body": "Payment for NL-2026-0110 was sent by ACH today. Trace ACH-6241428839.",
+    "body": "Hi Dana,\n\nPayment for NL-2026-0110 went out by ACH today. Trace is ACH-6241428839.\nLet us know if it doesn't show up on your end.\n\nMarisol, AP",
     "sentAt": 1787245740000,
     "dmarc": true
   },
@@ -135,7 +135,7 @@
     "from": "ap@northpeak.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice NL-2026-0111",
-    "body": "Hello,\n\nPlease find invoice NL-2026-0111 for $34,961.00, due September 24. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "body": "Hi Marisol,\n\nHere's invoice NL-2026-0111 for $34,961.00, due September 24. Remittance details are unchanged and remain on file.\nThanks for your help as always.\n\nThanks,\nDana Whitaker\nAccounts Receivable, NorthPeak Logistics",
     "sentAt": 1787678100000,
     "dmarc": true
   },
@@ -145,7 +145,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0111",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nNL-2026-0111 received. We've scheduled it for the next payment run.\n\nMarisol, AP",
     "sentAt": 1787764500000,
     "dmarc": true
   },
@@ -155,7 +155,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0111",
-    "body": "Payment for NL-2026-0111 was sent by ACH today. Trace ACH-3348912430.",
+    "body": "Hi Dana,\n\nWe sent payment for NL-2026-0111 by ACH today. Trace: ACH-3348912430.\nPlease confirm once it posts.\n\nMarisol, AP",
     "sentAt": 1789578900000,
     "dmarc": true
   },
@@ -165,7 +165,7 @@
     "from": "ap@northpeak.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice NL-2026-0112",
-    "body": "Hello,\n\nPlease find invoice NL-2026-0112 for $26,673.00, due October 16. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "body": "Hi Marisol,\n\nInvoice NL-2026-0112 for $26,673.00 is attached, due October 16. Nothing has changed on our payment details.\nHappy to answer any questions.\n\nThanks,\nDana Whitaker\nAccounts Receivable, NorthPeak Logistics",
     "sentAt": 1789580280000,
     "dmarc": true
   },
@@ -175,7 +175,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0112",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have NL-2026-0112. It'll go out on our next payment run.\n\nMarisol, AP",
     "sentAt": 1789666680000,
     "dmarc": true
   },
@@ -185,7 +185,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0112",
-    "body": "Payment for NL-2026-0112 was sent by ACH today. Trace ACH-7042258835.",
+    "body": "Hi Dana,\n\nPayment for NL-2026-0112 was sent by ACH today. Trace is ACH-7042258835.\nShout if anything looks off.\n\nMarisol, AP",
     "sentAt": 1791653880000,
     "dmarc": true
   },
@@ -195,7 +195,7 @@
     "from": "ap@northpeak.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice NL-2026-0113",
-    "body": "Hello,\n\nPlease find invoice NL-2026-0113 for $30,397.00, due November 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "body": "Hi Marisol,\n\nPlease see invoice NL-2026-0113 for $30,397.00, due November 04. Payment details are the same as before and on file.\nThank you!\n\nThanks,\nDana Whitaker\nAccounts Receivable, NorthPeak Logistics",
     "sentAt": 1791220920000,
     "dmarc": true
   },
@@ -205,7 +205,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@northpeak.example",
     "subject": "Re: Invoice NL-2026-0113",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived NL-2026-0113, thank you. We've scheduled it for our next payment run.\n\nMarisol, AP",
     "sentAt": 1791307320000,
     "dmarc": true
   },
@@ -215,7 +215,7 @@
     "from": "ap@graniteridge.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice GR-2026-0120",
-    "body": "Hello,\n\nPlease find invoice GR-2026-0120 for $19,387.00, due September 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "body": "Hi Marisol,\n\nAttached is invoice GR-2026-0120 for $19,387.00, due September 02.\nPayment goes to the account we already have on file with you.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Granite Ridge Packaging",
     "sentAt": 1785779400000,
     "dmarc": true
   },
@@ -225,7 +225,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0120",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot GR-2026-0120, thank you.\nIt's scheduled for our next payment run.\n\nMarisol, AP",
     "sentAt": 1785865800000,
     "dmarc": true
   },
@@ -235,7 +235,7 @@
     "from": "ap@graniteridge.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice GR-2026-0121",
-    "body": "Hello,\n\nPlease find invoice GR-2026-0121 for $29,046.00, due September 25. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "body": "Hi Marisol,\n\nHere's invoice GR-2026-0121 for $29,046.00, due September 25.\nPayment goes to the account we already have on file with you.\nHappy to answer any questions.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Granite Ridge Packaging",
     "sentAt": 1787766360000,
     "dmarc": true
   },
@@ -245,7 +245,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0121",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived GR-2026-0121, thanks.\nWe've lined it up for the next payment run.\n\nMarisol, AP",
     "sentAt": 1787852760000,
     "dmarc": true
   },
@@ -255,7 +255,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0121",
-    "body": "Payment for GR-2026-0121 was sent by ACH today. Trace ACH-6884746860.",
+    "body": "Hi Dana,\n\nPayment for GR-2026-0121 went out by ACH today.\nThe trace is ACH-6884746860.\n\nMarisol, AP",
     "sentAt": 1789235160000,
     "dmarc": true
   },
@@ -265,7 +265,7 @@
     "from": "ap@graniteridge.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice GR-2026-0122",
-    "body": "Hello,\n\nPlease find invoice GR-2026-0122 for $33,652.00, due October 11. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "body": "Hi Marisol,\n\nPlease see invoice GR-2026-0122 for $33,652.00, due October 11.\nPayment goes to the account we already have on file with you.\nThanks for your help as always.\n\nBest,\nDana Whitfield\nAccounts Receivable, Granite Ridge Packaging",
     "sentAt": 1789149240000,
     "dmarc": true
   },
@@ -275,7 +275,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0122",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have GR-2026-0122.\nIt's set for our next payment run.\n\nMarisol, AP",
     "sentAt": 1789235640000,
     "dmarc": true
   },
@@ -285,7 +285,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0122",
-    "body": "Payment for GR-2026-0122 was sent by ACH today. Trace ACH-8308754194.",
+    "body": "Hi Dana,\n\nWe sent payment for GR-2026-0122 by ACH today.\nTrace number is ACH-8308754194.\n\nMarisol, AP",
     "sentAt": 1791482040000,
     "dmarc": true
   },
@@ -295,7 +295,7 @@
     "from": "ap@graniteridge.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice GR-2026-0123",
-    "body": "Hello,\n\nPlease find invoice GR-2026-0123 for $29,018.00, due November 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "body": "Hi Marisol,\n\nInvoice GR-2026-0123 is attached for $29,018.00, due November 06.\nPayment goes to the account we already have on file with you.\nPlease reach out if anything looks off.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Granite Ridge Packaging",
     "sentAt": 1791394500000,
     "dmarc": true
   },
@@ -305,7 +305,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0123",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGR-2026-0123 is in, thank you.\nWe'll pay it on our next run.\n\nMarisol, AP",
     "sentAt": 1791567300000,
     "dmarc": true
   },
@@ -315,7 +315,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@graniteridge.example",
     "subject": "Re: Invoice GR-2026-0123",
-    "body": "Payment for GR-2026-0123 was sent by ACH today. Trace ACH-9635002239.",
+    "body": "Hi Dana,\n\nPayment for GR-2026-0123 was sent by ACH today.\nTrace: ACH-9635002239.\n\nMarisol, AP",
     "sentAt": 1792652400000,
     "dmarc": true
   },
@@ -325,7 +325,7 @@
     "from": "ap@bluewatertextiles.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BT-2026-0130",
-    "body": "Hello,\n\nPlease find invoice BT-2026-0130 for $16,291.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "body": "Hi team,\n\nAttached is invoice BT-2026-0130 for $16,291.00, due September 06. Payment details are unchanged and remain as already on file with you.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Bluewater Textiles",
     "sentAt": 1786124820000,
     "dmarc": true
   },
@@ -335,7 +335,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0130",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot BT-2026-0130, thank you. It's queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786297620000,
     "dmarc": true
   },
@@ -345,7 +345,7 @@
     "from": "ap@bluewatertextiles.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BT-2026-0131",
-    "body": "Hello,\n\nPlease find invoice BT-2026-0131 for $31,765.00, due September 26. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "body": "Hi team,\n\nHere's invoice BT-2026-0131 for $31,765.00, due September 26. Payment details are unchanged and remain as already on file with you.\nShout if you have any questions.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Bluewater Textiles",
     "sentAt": 1787852820000,
     "dmarc": true
   },
@@ -355,7 +355,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0131",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, BT-2026-0131 is in. We've scheduled it for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1788025620000,
     "dmarc": true
   },
@@ -365,7 +365,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0131",
-    "body": "Payment for BT-2026-0131 was sent by ACH today. Trace ACH-6794838868.",
+    "body": "Hi Dana,\n\nWe sent payment for BT-2026-0131 by ACH today. The trace is ACH-6794838868.\nPlease confirm once it posts on your end.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789667220000,
     "dmarc": true
   },
@@ -375,7 +375,7 @@
     "from": "ap@bluewatertextiles.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BT-2026-0132",
-    "body": "Hello,\n\nPlease find invoice BT-2026-0132 for $13,796.00, due October 15. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "body": "Hi team,\n\nPlease see invoice BT-2026-0132 for $13,796.00, due October 15. Payment details are unchanged and remain as already on file with you.\nThanks again for the continued business.\n\nBest,\nDana Whitfield\nAccounts Receivable, Bluewater Textiles",
     "sentAt": 1789494900000,
     "dmarc": true
   },
@@ -385,7 +385,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0132",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived BT-2026-0132, thank you. It's set for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789581300000,
     "dmarc": true
   },
@@ -395,7 +395,7 @@
     "from": "ap@bluewatertextiles.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BT-2026-0133",
-    "body": "Hello,\n\nPlease find invoice BT-2026-0133 for $28,638.00, due November 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "body": "Hi team,\n\nSending over invoice BT-2026-0133 for $28,638.00, due November 02. Payment details are unchanged and remain as already on file with you.\nLet me know if anything looks off.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Bluewater Textiles",
     "sentAt": 1791048720000,
     "dmarc": true
   },
@@ -405,7 +405,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0133",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have BT-2026-0133. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791135120000,
     "dmarc": true
   },
@@ -415,7 +415,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@bluewatertextiles.example",
     "subject": "Re: Invoice BT-2026-0133",
-    "body": "Payment for BT-2026-0133 was sent by ACH today. Trace ACH-1492260562.",
+    "body": "Hi Dana,\n\nPayment for BT-2026-0133 went out by ACH today, trace ACH-1492260562.\nLet us know if it doesn't show up on your side.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1792344720000,
     "dmarc": true
   },
@@ -435,7 +435,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@summitprint.example",
     "subject": "Re: Invoice SP-2026-0140",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot it, thanks. SP-2026-0140 is in the queue for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786209000000,
     "dmarc": true
   },
@@ -445,7 +445,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@summitprint.example",
     "subject": "Re: Invoice SP-2026-0140",
-    "body": "Payment for SP-2026-0140 was sent by ACH today. Trace ACH-2578149223.",
+    "body": "Hi Dana,\n\nPayment for SP-2026-0140 went out by ACH today. Trace ACH-2578149223.\nPlease confirm once it posts on your end.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1788109800000,
     "dmarc": true
   },
@@ -465,7 +465,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@summitprint.example",
     "subject": "Re: Invoice SP-2026-0141",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived SP-2026-0141, thank you. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787592480000,
     "dmarc": true
   },
@@ -485,7 +485,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@summitprint.example",
     "subject": "Re: Invoice SP-2026-0142",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have SP-2026-0142. It will go out on our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789579980000,
     "dmarc": true
   },
@@ -505,7 +505,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@summitprint.example",
     "subject": "Re: Invoice SP-2026-0143",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nInvoice SP-2026-0143 received, thanks. We've scheduled it for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791395940000,
     "dmarc": true
   },
@@ -515,7 +515,7 @@
     "from": "ap@riverbendit.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice RI-2026-0150",
-    "body": "Hello,\n\nPlease find invoice RI-2026-0150 for $19,700.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Riverbend IT Services",
+    "body": "Hi Marisol,\n\nAttached is invoice RI-2026-0150 for $19,700.00, due September 01.\nPayment goes to the account we already have on file with you.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Riverbend IT Services",
     "sentAt": 1785693300000,
     "dmarc": true
   },
@@ -525,7 +525,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@riverbendit.example",
     "subject": "Re: Invoice RI-2026-0150",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot RI-2026-0150, thanks. It's queued for our next payment run.\n\nMarisol, AP",
     "sentAt": 1785779700000,
     "dmarc": true
   },
@@ -535,7 +535,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@riverbendit.example",
     "subject": "Re: Invoice RI-2026-0150",
-    "body": "Payment for RI-2026-0150 was sent by ACH today. Trace ACH-3169211529.",
+    "body": "Hi Dana,\n\nPayment for RI-2026-0150 went out by ACH today.\nTrace is ACH-3169211529.\n\nMarisol, AP",
     "sentAt": 1787507700000,
     "dmarc": true
   },
@@ -555,7 +555,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@riverbendit.example",
     "subject": "Re: Invoice RI-2026-0151",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived RI-2026-0151, thank you. It's scheduled for our next payment run.\n\nMarisol, AP",
     "sentAt": 1788198660000,
     "dmarc": true
   },
@@ -565,7 +565,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@riverbendit.example",
     "subject": "Re: Invoice RI-2026-0151",
-    "body": "Payment for RI-2026-0151 was sent by ACH today. Trace ACH-7002708769.",
+    "body": "Hi Dana,\n\nWe sent payment for RI-2026-0151 by ACH today.\nTrace: ACH-7002708769.\n\nMarisol, AP",
     "sentAt": 1790099460000,
     "dmarc": true
   },
@@ -575,7 +575,7 @@
     "from": "ap@riverbendit.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice RI-2026-0152",
-    "body": "Hello,\n\nPlease find invoice RI-2026-0152 for $22,798.00, due November 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Riverbend IT Services",
+    "body": "Hi Marisol,\n\nPlease see invoice RI-2026-0152 for $22,798.00, due November 01.\nRemittance goes to the account we already have on file.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Riverbend IT Services",
     "sentAt": 1790963700000,
     "dmarc": true
   },
@@ -585,7 +585,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@riverbendit.example",
     "subject": "Re: Invoice RI-2026-0152",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have RI-2026-0152. It's set to go out in our next payment run.\n\nMarisol, AP",
     "sentAt": 1791136500000,
     "dmarc": true
   },
@@ -605,7 +605,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@alderfinch.example",
     "subject": "Re: Invoice A&-2026-0160",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot A&-2026-0160, thanks. It's queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786036620000,
     "dmarc": true
   },
@@ -615,7 +615,7 @@
     "from": "ap@alderfinch.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice A&-2026-0161",
-    "body": "Hello,\n\nPlease find invoice A&-2026-0161 for $23,000.00, due September 23. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Alder & Finch Legal",
+    "body": "Hi Marisol,\n\nSending over invoice A&-2026-0161 for $23,000.00, due September 23.\nRemittance goes to our account on file, as usual.\n\nThanks,\nDana Whitcombe\nAccounts Receivable, Alder & Finch Legal",
     "sentAt": 1787591520000,
     "dmarc": true
   },
@@ -625,7 +625,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@alderfinch.example",
     "subject": "Re: Invoice A&-2026-0161",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived A&-2026-0161, thank you. We've scheduled it for the next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787764320000,
     "dmarc": true
   },
@@ -645,7 +645,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@alderfinch.example",
     "subject": "Re: Invoice A&-2026-0162",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, A&-2026-0162 is in. It will go out on our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789492620000,
     "dmarc": true
   },
@@ -665,7 +665,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@alderfinch.example",
     "subject": "Re: Invoice A&-2026-0163",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nWe have A&-2026-0163, thanks. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791653580000,
     "dmarc": true
   },
@@ -675,7 +675,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@alderfinch.example",
     "subject": "Re: Invoice A&-2026-0163",
-    "body": "Payment for A&-2026-0163 was sent by ACH today. Trace ACH-3190485240.",
+    "body": "Hi Dana,\n\nPayment for A&-2026-0163 went out by ACH today.\nThe trace is ACH-3190485240.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1792652400000,
     "dmarc": true
   },
@@ -685,7 +685,7 @@
     "from": "ap@cascadefleet.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice CF-2026-0170",
-    "body": "Hello,\n\nPlease find invoice CF-2026-0170 for $17,558.00, due August 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "body": "Hi Marisol,\n\nAttached is invoice CF-2026-0170 for $17,558.00, due August 30. Payment goes to our account on file.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Cascade Fleet Maintenance",
     "sentAt": 1785518460000,
     "dmarc": true
   },
@@ -695,7 +695,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@cascadefleet.example",
     "subject": "Re: Invoice CF-2026-0170",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot CF-2026-0170, thanks. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785691260000,
     "dmarc": true
   },
@@ -705,7 +705,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@cascadefleet.example",
     "subject": "Re: Invoice CF-2026-0170",
-    "body": "Payment for CF-2026-0170 was sent by ACH today. Trace ACH-2434007565.",
+    "body": "Hi Dana,\n\nPayment for CF-2026-0170 went out by ACH today. Trace is ACH-2434007565.\nPlease confirm once it posts on your end.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787419260000,
     "dmarc": true
   },
@@ -715,7 +715,7 @@
     "from": "ap@cascadefleet.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice CF-2026-0171",
-    "body": "Hello,\n\nPlease find invoice CF-2026-0171 for $4,948.00, due September 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "body": "Hi Marisol,\n\nHere's invoice CF-2026-0171 for $4,948.00, due September 30. Payment goes to our account on file.\nShout if you have any questions.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Cascade Fleet Maintenance",
     "sentAt": 1788195900000,
     "dmarc": true
   },
@@ -725,7 +725,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@cascadefleet.example",
     "subject": "Re: Invoice CF-2026-0171",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived CF-2026-0171, thank you. We've queued it for the next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1788368700000,
     "dmarc": true
   },
@@ -735,7 +735,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@cascadefleet.example",
     "subject": "Re: Invoice CF-2026-0171",
-    "body": "Payment for CF-2026-0171 was sent by ACH today. Trace ACH-1380232793.",
+    "body": "Hi Dana,\n\nWe sent payment for CF-2026-0171 by ACH today. Trace: ACH-1380232793.\nLet us know if it doesn't show up.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790183100000,
     "dmarc": true
   },
@@ -745,7 +745,7 @@
     "from": "ap@cascadefleet.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice CF-2026-0172",
-    "body": "Hello,\n\nPlease find invoice CF-2026-0172 for $7,896.00, due November 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "body": "Hi Marisol,\n\nSending over invoice CF-2026-0172 for $7,896.00, due November 01. Payment goes to our account on file.\nThanks again for your help on these.\n\nBest,\nDana Whitfield\nAccounts Receivable, Cascade Fleet Maintenance",
     "sentAt": 1790960820000,
     "dmarc": true
   },
@@ -755,7 +755,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@cascadefleet.example",
     "subject": "Re: Invoice CF-2026-0172",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have CF-2026-0172. It's set for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791047220000,
     "dmarc": true
   },
@@ -775,7 +775,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@pinecreststaffing.example",
     "subject": "Re: Invoice PS-2026-0180",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot PS-2026-0180, thank you. It's scheduled for our next payment run.\n\nMarisol, AP",
     "sentAt": 1785606300000,
     "dmarc": true
   },
@@ -795,7 +795,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@pinecreststaffing.example",
     "subject": "Re: Invoice PS-2026-0181",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived PS-2026-0181, thanks. It's queued for our next payment run.\n\nMarisol, AP",
     "sentAt": 1789492020000,
     "dmarc": true
   },
@@ -805,7 +805,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@pinecreststaffing.example",
     "subject": "Re: Invoice PS-2026-0181",
-    "body": "Payment for PS-2026-0181 was sent by ACH today. Trace ACH-4790153296.",
+    "body": "Hi Dana,\n\nPayment for PS-2026-0181 went out by ACH today. Trace is ACH-4790153296.\nPlease confirm once it lands.\n\nMarisol, AP",
     "sentAt": 1790960820000,
     "dmarc": true
   },
@@ -825,7 +825,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@harborline.example",
     "subject": "Re: Invoice HF-2026-0190",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot it, thanks. HF-2026-0190 is scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785777420000,
     "dmarc": true
   },
@@ -845,7 +845,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@harborline.example",
     "subject": "Re: Invoice HF-2026-0191",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived, thank you. HF-2026-0191 will go out on our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787504880000,
     "dmarc": true
   },
@@ -865,7 +865,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@harborline.example",
     "subject": "Re: Invoice HF-2026-0192",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have HF-2026-0192. It's queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789234260000,
     "dmarc": true
   },
@@ -885,7 +885,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@harborline.example",
     "subject": "Re: Invoice HF-2026-0193",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived, thanks. HF-2026-0193 is scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791480660000,
     "dmarc": true
   },
@@ -895,7 +895,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@harborline.example",
     "subject": "Re: Invoice HF-2026-0193",
-    "body": "Payment for HF-2026-0193 was sent by ACH today. Trace ACH-2632700871.",
+    "body": "Hi Dana,\n\nPayment for HF-2026-0193 went out by ACH today.\nTrace is ACH-2632700871.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1792652400000,
     "dmarc": true
   },
@@ -905,7 +905,7 @@
     "from": "ap@timberlinedisplays.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TD-2026-0200",
-    "body": "Hello,\n\nPlease find invoice TD-2026-0200 for $5,163.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "body": "Hi Marisol,\n\nAttached is invoice TD-2026-0200 for $5,163.00, due September 01.\nPayment details are the same as what you have on file.\n\nThanks,\nDana Whitlock\nAccounts Receivable, Timberline Displays",
     "sentAt": 1785692760000,
     "dmarc": true
   },
@@ -915,7 +915,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0200",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot TD-2026-0200, thanks. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785865560000,
     "dmarc": true
   },
@@ -925,7 +925,7 @@
     "from": "ap@timberlinedisplays.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TD-2026-0201",
-    "body": "Hello,\n\nPlease find invoice TD-2026-0201 for $17,268.00, due September 26. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "body": "Hi Marisol,\n\nHere's invoice TD-2026-0201 for $17,268.00, due September 26.\nPayment details are unchanged from what you have on file.\n\nThanks,\nDana Whitlock\nAccounts Receivable, Timberline Displays",
     "sentAt": 1787850720000,
     "dmarc": true
   },
@@ -935,7 +935,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0201",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived TD-2026-0201, thank you. It's in line for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787937120000,
     "dmarc": true
   },
@@ -945,7 +945,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0201",
-    "body": "Payment for TD-2026-0201 was sent by ACH today. Trace ACH-8724672643.",
+    "body": "Hi Dana,\n\nPayment for TD-2026-0201 went out by ACH today.\nTrace is ACH-8724672643.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790010720000,
     "dmarc": true
   },
@@ -955,7 +955,7 @@
     "from": "ap@timberlinedisplays.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TD-2026-0202",
-    "body": "Hello,\n\nPlease find invoice TD-2026-0202 for $32,283.00, due October 11. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "body": "Hi Marisol,\n\nSending over invoice TD-2026-0202 for $32,283.00, due October 11.\nPayment details are the same as on file.\n\nThanks,\nDana Whitlock\nAccounts Receivable, Timberline Displays",
     "sentAt": 1789149420000,
     "dmarc": true
   },
@@ -965,7 +965,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0202",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have TD-2026-0202. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789322220000,
     "dmarc": true
   },
@@ -975,7 +975,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0202",
-    "body": "Payment for TD-2026-0202 was sent by ACH today. Trace ACH-3752010282.",
+    "body": "Hi Dana,\n\nTD-2026-0202 was paid by ACH today.\nTrace: ACH-3752010282.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790618220000,
     "dmarc": true
   },
@@ -985,7 +985,7 @@
     "from": "ap@timberlinedisplays.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TD-2026-0203",
-    "body": "Hello,\n\nPlease find invoice TD-2026-0203 for $17,967.00, due November 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "body": "Hi Marisol,\n\nPlease see invoice TD-2026-0203 for $17,967.00, due November 04.\nNo changes to our payment details on file.\n\nThanks,\nDana Whitlock\nAccounts Receivable, Timberline Displays",
     "sentAt": 1791223080000,
     "dmarc": true
   },
@@ -995,7 +995,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0203",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot TD-2026-0203, thanks. We'll include it in our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791395880000,
     "dmarc": true
   },
@@ -1005,7 +1005,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@timberlinedisplays.example",
     "subject": "Re: Invoice TD-2026-0203",
-    "body": "Payment for TD-2026-0203 was sent by ACH today. Trace ACH-5029474269.",
+    "body": "Hi Dana,\n\nWe sent payment for TD-2026-0203 by ACH today.\nTrace is ACH-5029474269.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1792346280000,
     "dmarc": true
   },
@@ -1015,7 +1015,7 @@
     "from": "ap@westforksecurity.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice WS-2026-0210",
-    "body": "Hello,\n\nPlease find invoice WS-2026-0210 for $12,824.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Westfork Security",
+    "body": "Hi Marisol,\n\nAttached is invoice WS-2026-0210 for $12,824.00, due September 01. Payment goes to our account on file.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Westfork Security",
     "sentAt": 1785691500000,
     "dmarc": true
   },
@@ -1025,7 +1025,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@westforksecurity.example",
     "subject": "Re: Invoice WS-2026-0210",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot WS-2026-0210, thanks. It's in the queue for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785864300000,
     "dmarc": true
   },
@@ -1035,7 +1035,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@westforksecurity.example",
     "subject": "Re: Invoice WS-2026-0210",
-    "body": "Payment for WS-2026-0210 was sent by ACH today. Trace ACH-9944603530.",
+    "body": "Hi Dana,\n\nPayment for WS-2026-0210 went out by ACH today. Trace is ACH-9944603530.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786901100000,
     "dmarc": true
   },
@@ -1045,7 +1045,7 @@
     "from": "ap@westforksecurity.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice WS-2026-0211",
-    "body": "Hello,\n\nPlease find invoice WS-2026-0211 for $2,379.00, due October 16. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Westfork Security",
+    "body": "Hi Marisol,\n\nHere's invoice WS-2026-0211 for $2,379.00, due October 16. Payment goes to our account on file.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Westfork Security",
     "sentAt": 1789580820000,
     "dmarc": true
   },
@@ -1055,7 +1055,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@westforksecurity.example",
     "subject": "Re: Invoice WS-2026-0211",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived WS-2026-0211, thank you. We'll include it in our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789753620000,
     "dmarc": true
   },
@@ -1065,7 +1065,7 @@
     "from": "ap@junipercreative.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice JC-2026-0220",
-    "body": "Hello,\n\nPlease find invoice JC-2026-0220 for $24,567.00, due August 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Juniper Creative Studio",
+    "body": "Hi Marisol,\n\nAttached is invoice JC-2026-0220 for $24,567.00, due August 30.\nPayment can go to our account already on file.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Juniper Creative Studio",
     "sentAt": 1785519240000,
     "dmarc": true
   },
@@ -1075,7 +1075,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@junipercreative.example",
     "subject": "Re: Invoice JC-2026-0220",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have invoice JC-2026-0220 and it's in the queue.\nIt will go out on our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785692040000,
     "dmarc": true
   },
@@ -1095,7 +1095,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@junipercreative.example",
     "subject": "Re: Invoice JC-2026-0221",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot it, thank you. JC-2026-0221 is approved and scheduled.\nIt will be included in our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789924140000,
     "dmarc": true
   },
@@ -1105,7 +1105,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@junipercreative.example",
     "subject": "Re: Invoice JC-2026-0221",
-    "body": "Payment for JC-2026-0221 was sent by ACH today. Trace ACH-5068810799.",
+    "body": "Hi Dana,\n\nPayment for JC-2026-0221 went out by ACH today.\nTrace is ACH-5068810799.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1792084140000,
     "dmarc": true
   },
@@ -1125,7 +1125,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@redstonemetal.example",
     "subject": "Re: Invoice RM-2026-0230",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot RM-2026-0230, thanks. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786124460000,
     "dmarc": true
   },
@@ -1135,7 +1135,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@redstonemetal.example",
     "subject": "Re: Invoice RM-2026-0230",
-    "body": "Payment for RM-2026-0230 was sent by ACH today. Trace ACH-1274983859.",
+    "body": "Hi Dana,\n\nPayment for RM-2026-0230 went out by ACH today. Trace is ACH-1274983859.\nLet us know once it lands.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787938860000,
     "dmarc": true
   },
@@ -1155,7 +1155,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@redstonemetal.example",
     "subject": "Re: Invoice RM-2026-0231",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived RM-2026-0231, thank you. We've queued it for the next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1788196320000,
     "dmarc": true
   },
@@ -1165,7 +1165,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@redstonemetal.example",
     "subject": "Re: Invoice RM-2026-0231",
-    "body": "Payment for RM-2026-0231 was sent by ACH today. Trace ACH-8502027038.",
+    "body": "Hi Dana,\n\nWe sent payment for RM-2026-0231 by ACH today. Trace: ACH-8502027038.\nPlease confirm when you see it.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789405920000,
     "dmarc": true
   },
@@ -1185,7 +1185,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@redstonemetal.example",
     "subject": "Re: Invoice RM-2026-0232",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, RM-2026-0232 is in. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790963280000,
     "dmarc": true
   },
@@ -1195,7 +1195,7 @@
     "from": "ap@lakeviewcatering.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice LC-2026-0240",
-    "body": "Hello,\n\nPlease find invoice LC-2026-0240 for $5,713.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Lakeview Catering",
+    "body": "Hi Marisol and team,\n\nAttached is invoice LC-2026-0240 for $5,713.00, due September 06.\nPayment can go to our account on file. Let me know if you need anything else from us.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Lakeview Catering",
     "sentAt": 1786124220000,
     "dmarc": true
   },
@@ -1205,7 +1205,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@lakeviewcatering.example",
     "subject": "Re: Invoice LC-2026-0240",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot invoice LC-2026-0240, thanks. It's queued for our next payment run.\nWe'll reach out if anything comes up.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786210620000,
     "dmarc": true
   },
@@ -1215,7 +1215,7 @@
     "from": "ap@lakeviewcatering.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice LC-2026-0241",
-    "body": "Hello,\n\nPlease find invoice LC-2026-0241 for $35,583.00, due October 15. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Lakeview Catering",
+    "body": "Hi Marisol and team,\n\nHere is invoice LC-2026-0241 for $35,583.00, due October 15.\nPayment can go to our account on file, as usual.\nPlease shout if you need a PO reference or any backup.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Lakeview Catering",
     "sentAt": 1789492800000,
     "dmarc": true
   },
@@ -1225,7 +1225,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@lakeviewcatering.example",
     "subject": "Re: Invoice LC-2026-0241",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nWe have LC-2026-0241, thank you. It's scheduled for our next payment run.\nI'll confirm once it's released.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789579200000,
     "dmarc": true
   },
@@ -1235,7 +1235,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@lakeviewcatering.example",
     "subject": "Re: Invoice LC-2026-0241",
-    "body": "Payment for LC-2026-0241 was sent by ACH today. Trace ACH-4736646280.",
+    "body": "Hi Dana,\n\nPayment for LC-2026-0241 went out by ACH today.\nTrace is ACH-4736646280.\nLet us know once it lands on your end.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790788800000,
     "dmarc": true
   },
@@ -1245,7 +1245,7 @@
     "from": "ap@sierrauniform.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice SU-2026-0250",
-    "body": "Hello,\n\nPlease find invoice SU-2026-0250 for $14,830.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Sierra Uniform Supply",
+    "body": "Hi Marisol,\n\nAttached is invoice SU-2026-0250 for $14,830.00, due September 06. Payment goes to our account on file.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Sierra Uniform Supply",
     "sentAt": 1786122000000,
     "dmarc": true
   },
@@ -1255,7 +1255,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@sierrauniform.example",
     "subject": "Re: Invoice SU-2026-0250",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot invoice SU-2026-0250, thanks. It's queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786208400000,
     "dmarc": true
   },
@@ -1265,7 +1265,7 @@
     "from": "ap@sierrauniform.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice SU-2026-0251",
-    "body": "Hello,\n\nPlease find invoice SU-2026-0251 for $16,345.00, due October 14. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Sierra Uniform Supply",
+    "body": "Hi Marisol,\n\nHere's invoice SU-2026-0251 for $16,345.00, due October 14. Payment goes to our account on file.\nShout if anything looks off or you need a copy of the paperwork.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Sierra Uniform Supply",
     "sentAt": 1789406820000,
     "dmarc": true
   },
@@ -1275,7 +1275,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@sierrauniform.example",
     "subject": "Re: Invoice SU-2026-0251",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have invoice SU-2026-0251. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789579620000,
     "dmarc": true
   },
@@ -1285,7 +1285,7 @@
     "from": "ap@ironwoodtooling.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice IT-2026-0260",
-    "body": "Hello,\n\nPlease find invoice IT-2026-0260 for $21,206.00, due September 03. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Ironwood Tooling",
+    "body": "Hi Marisol,\n\nAttached is invoice IT-2026-0260 for $21,206.00, due September 03.\nPayment can go to our account on file, same as usual.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Ironwood Tooling",
     "sentAt": 1785863880000,
     "dmarc": true
   },
@@ -1295,7 +1295,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@ironwoodtooling.example",
     "subject": "Re: Invoice IT-2026-0260",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot invoice IT-2026-0260, thanks. It's in the queue for our next payment run.\nWe'll reach out if anything comes up.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785950280000,
     "dmarc": true
   },
@@ -1315,7 +1315,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@ironwoodtooling.example",
     "subject": "Re: Invoice IT-2026-0261",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have invoice IT-2026-0261 and it's scheduled for our next payment run.\nWe'll let you know if we need anything.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789406100000,
     "dmarc": true
   },
@@ -1325,7 +1325,7 @@
     "from": "ap@clearwaterjan.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice CJ-2026-0270",
-    "body": "Hello,\n\nPlease find invoice CJ-2026-0270 for $3,413.00, due September 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Clearwater Janitorial",
+    "body": "Hi Marisol,\n\nAttached is invoice CJ-2026-0270 for $3,413.00, due September 04. Payment goes to our account on file, nothing has changed there.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Clearwater Janitorial",
     "sentAt": 1785951180000,
     "dmarc": true
   },
@@ -1335,7 +1335,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@clearwaterjan.example",
     "subject": "Re: Invoice CJ-2026-0270",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot invoice CJ-2026-0270, thank you. It's queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1786037580000,
     "dmarc": true
   },
@@ -1355,7 +1355,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@clearwaterjan.example",
     "subject": "Re: Invoice CJ-2026-0271",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived CJ-2026-0271, thanks. We've scheduled it for the next run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1788195960000,
     "dmarc": true
   },
@@ -1365,7 +1365,7 @@
     "from": "ap@clearwaterjan.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice CJ-2026-0272",
-    "body": "Hello,\n\nPlease find invoice CJ-2026-0272 for $29,648.00, due October 29. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Clearwater Janitorial",
+    "body": "Hi Marisol,\n\nSending invoice CJ-2026-0272 for $29,648.00, due October 29. Payment goes to our account on file, same as before.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Clearwater Janitorial",
     "sentAt": 1790702340000,
     "dmarc": true
   },
@@ -1375,7 +1375,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@clearwaterjan.example",
     "subject": "Re: Invoice CJ-2026-0272",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have CJ-2026-0272. It's set up for payment on our next run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1790788740000,
     "dmarc": true
   },
@@ -1385,7 +1385,7 @@
     "from": "ap@basecampanalytics.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BA-2026-0280",
-    "body": "Hello,\n\nPlease find invoice BA-2026-0280 for $17,000.00, due September 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Basecamp Analytics",
+    "body": "Hi Marisol and team,\n\nAttached is invoice BA-2026-0280 for $17,000.00, due September 02. Payment goes to our account on file.\nLet me know if you need anything else from our side.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Basecamp Analytics",
     "sentAt": 1785779100000,
     "dmarc": true
   },
@@ -1395,7 +1395,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@basecampanalytics.example",
     "subject": "Re: Invoice BA-2026-0280",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot it, thanks. BA-2026-0280 is queued for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1785865500000,
     "dmarc": true
   },
@@ -1405,7 +1405,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@basecampanalytics.example",
     "subject": "Re: Invoice BA-2026-0280",
-    "body": "Payment for BA-2026-0280 was sent by ACH today. Trace ACH-3692585834.",
+    "body": "Hi Dana,\n\nPayment for BA-2026-0280 went out by ACH today. Trace is ACH-3692585834.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1787939100000,
     "dmarc": true
   },
@@ -1415,7 +1415,7 @@
     "from": "ap@basecampanalytics.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice BA-2026-0281",
-    "body": "Hello,\n\nPlease find invoice BA-2026-0281 for $32,135.00, due October 13. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Basecamp Analytics",
+    "body": "Hi Marisol and team,\n\nAttached is invoice BA-2026-0281 for $32,135.00, due October 13. Payment goes to our account on file.\nPlease reach out if anything is unclear.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Basecamp Analytics",
     "sentAt": 1789320360000,
     "dmarc": true
   },
@@ -1425,7 +1425,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@basecampanalytics.example",
     "subject": "Re: Invoice BA-2026-0281",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have BA-2026-0281. It's scheduled for our next payment run.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1789406760000,
     "dmarc": true
   },
@@ -1435,7 +1435,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@basecampanalytics.example",
     "subject": "Re: Invoice BA-2026-0281",
-    "body": "Payment for BA-2026-0281 was sent by ACH today. Trace ACH-3623002207.",
+    "body": "Hi Dana,\n\nPayment for BA-2026-0281 was sent by ACH today. Trace is ACH-3623002207.\n\nMarisol, AP\nMeridian Outdoor Co.",
     "sentAt": 1791480360000,
     "dmarc": true
   },
@@ -1445,7 +1445,7 @@
     "from": "ap@trailheadmedia.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TM-2026-0290",
-    "body": "Hello,\n\nPlease find invoice TM-2026-0290 for $6,599.00, due September 03. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "body": "Hi Marisol,\n\nAttached is invoice TM-2026-0290 for $6,599.00, due September 03.\nPayment goes to the account we already have on file with you.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Trailhead Media",
     "sentAt": 1785866160000,
     "dmarc": true
   },
@@ -1455,7 +1455,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0290",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nGot invoice TM-2026-0290, thanks. It's in the queue for our next payment run.\n\nMarisol, AP",
     "sentAt": 1785952560000,
     "dmarc": true
   },
@@ -1465,7 +1465,7 @@
     "from": "ap@trailheadmedia.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TM-2026-0291",
-    "body": "Hello,\n\nPlease find invoice TM-2026-0291 for $17,173.00, due September 24. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "body": "Hi Marisol,\n\nHere's invoice TM-2026-0291 for $17,173.00, due September 24.\nPayment goes to the account we already have on file with you.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Trailhead Media",
     "sentAt": 1787680500000,
     "dmarc": true
   },
@@ -1475,7 +1475,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0291",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nReceived TM-2026-0291, thank you. It's scheduled for our next payment run.\n\nMarisol, AP",
     "sentAt": 1787853300000,
     "dmarc": true
   },
@@ -1485,7 +1485,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0291",
-    "body": "Payment for TM-2026-0291 was sent by ACH today. Trace ACH-7565403209.",
+    "body": "Hi Dana,\n\nPayment for TM-2026-0291 went out by ACH today.\nTrace is ACH-7565403209.\n\nMarisol, AP",
     "sentAt": 1789408500000,
     "dmarc": true
   },
@@ -1495,7 +1495,7 @@
     "from": "ap@trailheadmedia.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TM-2026-0292",
-    "body": "Hello,\n\nPlease find invoice TM-2026-0292 for $7,206.00, due October 14. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "body": "Hi Marisol,\n\nSending over invoice TM-2026-0292 for $7,206.00, due October 14.\nPayment goes to the account we already have on file with you.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Trailhead Media",
     "sentAt": 1789406340000,
     "dmarc": true
   },
@@ -1505,7 +1505,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0292",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nThanks, we have TM-2026-0292. It's lined up for our next payment run.\n\nMarisol, AP",
     "sentAt": 1789492740000,
     "dmarc": true
   },
@@ -1515,7 +1515,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0292",
-    "body": "Payment for TM-2026-0292 was sent by ACH today. Trace ACH-9382834348.",
+    "body": "Hi Dana,\n\nTM-2026-0292 was paid by ACH today.\nTrace is ACH-9382834348.\n\nMarisol, AP",
     "sentAt": 1790702340000,
     "dmarc": true
   },
@@ -1525,7 +1525,7 @@
     "from": "ap@trailheadmedia.example",
     "to": "ap@meridianoutdoor.example",
     "subject": "Invoice TM-2026-0293",
-    "body": "Hello,\n\nPlease find invoice TM-2026-0293 for $16,501.00, due November 05. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "body": "Hi Marisol,\n\nPlease see invoice TM-2026-0293 for $16,501.00, due November 05.\nPayment goes to the account we already have on file with you.\n\nThanks,\nDana Whitfield\nAccounts Receivable, Trailhead Media",
     "sentAt": 1791308880000,
     "dmarc": true
   },
@@ -1535,7 +1535,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0293",
-    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "body": "Hi Dana,\n\nInvoice TM-2026-0293 received, thanks. It's set for our next payment run.\n\nMarisol, AP",
     "sentAt": 1791395280000,
     "dmarc": true
   },
@@ -1545,7 +1545,7 @@
     "from": "ap@meridianoutdoor.example",
     "to": "ap@trailheadmedia.example",
     "subject": "Re: Invoice TM-2026-0293",
-    "body": "Payment for TM-2026-0293 was sent by ACH today. Trace ACH-9656502945.",
+    "body": "Hi Dana,\n\nWe sent payment for TM-2026-0293 by ACH today.\nTrace is ACH-9656502945.\n\nMarisol, AP",
     "sentAt": 1792604880000,
     "dmarc": true
   }

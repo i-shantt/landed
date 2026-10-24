@@ -147,6 +147,17 @@ for i, (name, domain) in enumerate(VENDOR_NAMES):
                          "subject": f"Re: Invoice {number} - October facilities services", "body": "Thanks Dana, received and approved. It is in the queue for our payment run.\n\nMarisol, AP",
                          "sentAt": issued + 1 * DAY, "dmarc": True})
 
+# Optional realism pass: fixtures/thread_bodies.json (from enrich_threads.py) replaces message bodies by index.
+# Deterministic bodies remain the fallback; ids, amounts, dates and accounts never change.
+_bodies_path = os.path.join(HERE, "thread_bodies.json")
+if os.path.exists(_bodies_path):
+    _bodies = json.load(open(_bodies_path))
+    _applied = 0
+    for _i, _m in enumerate(messages):
+        if str(_i) in _bodies:
+            _m["body"] = _bodies[str(_i)]; _applied += 1
+    print(f"applied {_applied} enriched thread bodies")
+
 fixture = {
     "generatedAt": now_ms,
     "company": company,
