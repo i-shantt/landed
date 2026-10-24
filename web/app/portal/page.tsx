@@ -17,7 +17,7 @@ export default function PortalHome() {
     return (
       <div className="mx-auto max-w-sm space-y-3">
         <p className="text-sm">You are not signed in to the vendor portal.</p>
-        <Button render={<Link href="/portal/login" />}>Sign in</Button>
+        <Button nativeButton={false} render={<Link href="/portal/login" />}>Sign in</Button>
       </div>
     );
   }
@@ -54,7 +54,7 @@ export default function PortalHome() {
                       {r.attemptsLeft} attempt(s) left · expires {absTime(r.expiresAt)}
                     </div>
                   </div>
-                  <Button size="sm" render={<Link href={`/confirm/${r.token}`} />}>
+                  <Button size="sm" nativeButton={false} render={<Link href={`/confirm/${r.token}`} />}>
                     Confirm deposit
                   </Button>
                 </li>

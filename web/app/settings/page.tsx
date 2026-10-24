@@ -118,7 +118,7 @@ export default function SettingsPage() {
           <CardDescription>Open the vendor login in a second tab and act as the vendor. Credentials: vendor slug / landed-demo.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button variant="outline" render={<a href="/portal/login" target="_blank" rel="noreferrer" />}>
+          <Button variant="outline" nativeButton={false} render={<a href="/portal/login" target="_blank" rel="noreferrer" />}>
             Portal demo: open as vendor ↗
           </Button>
         </CardContent>

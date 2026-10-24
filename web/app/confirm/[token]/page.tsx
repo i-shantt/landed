@@ -26,7 +26,7 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
     return (
       <div className="mx-auto max-w-sm space-y-3">
         <p className="text-sm">Please sign in to the vendor portal first.</p>
-        <Button render={<Link href="/portal/login" />}>Sign in</Button>
+        <Button nativeButton={false} render={<Link href="/portal/login" />}>Sign in</Button>
       </div>
     );
   }

@@ -62,7 +62,8 @@ export async function createUnverifiedWithHash(
   }
 
   const version = latest ? latest.version + 1 : 1;
-  if (latest && latest.status !== "superseded" && latest.status !== "disputed") await ctx.db.patch(latest._id, { status: "superseded" });
+  // A rejected or disputed prior version keeps its status (it is part of the fraud record).
+  if (latest && !["superseded", "disputed", "rejected"].includes(latest.status)) await ctx.db.patch(latest._id, { status: "superseded" });
 
   const accountId = await ctx.db.insert("bankAccounts", {
     vendorId: args.vendorId,

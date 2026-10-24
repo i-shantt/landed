@@ -16,8 +16,9 @@ import fixtureData from "./fixtureData.json";
 const TABLES: TableNames[] = [
   "company", "clock", "vendors", "contacts", "bankAccounts", "messages", "invoices", "cases", "probes",
   "confirmations", "payments", "events", "timers", "packages", "portalCredentials", "portalSessions",
-  "confirmTokens", "simLedger", "evalRuns", "settings",
+  "confirmTokens", "simLedger", "settings",
 ];
+// `evalRuns` is intentionally NOT wiped by reset: eval results survive a re-seed so the /eval page keeps the last run.
 
 export const DAY = 86_400_000;
 

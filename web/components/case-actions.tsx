@@ -91,12 +91,12 @@ export function CaseActions({ caseId, state, openInvoices }: { caseId: Id<"cases
             Reject change
           </Button>
           {state === "NEEDS_HUMAN" && (
-            <Button variant="outline" render={<Link href={`/exceptional-release/${caseId}`} />}>
+            <Button variant="outline" nativeButton={false} render={<Link href={`/exceptional-release/${caseId}`} />}>
               Exceptional release…
             </Button>
           )}
           {(state === "UNCONFIRMED" || state === "RECOVERY") && (
-            <Button variant="outline" render={<Link href={`/cases/${caseId}/package`} />}>
+            <Button variant="outline" nativeButton={false} render={<Link href={`/cases/${caseId}/package`} />}>
               Recovery package →
             </Button>
           )}

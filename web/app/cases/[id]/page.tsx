@@ -69,11 +69,11 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
         </div>
         <div className="flex gap-2">
           {!replay ? (
-            <Button variant="outline" size="sm" render={<Link href={`/cases/${caseId}?replay=1`} />}>
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}?replay=1`} />}>
               Replay timeline
             </Button>
           ) : (
-            <Button variant="outline" size="sm" render={<Link href={`/cases/${caseId}`} />}>
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}`} />}>
               Exit replay
             </Button>
           )}

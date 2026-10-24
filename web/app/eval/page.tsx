@@ -27,7 +27,16 @@ export default function EvalPage() {
                 <CardTitle>Metrics</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify(metrics.metrics ?? metrics.actual, null, 2)}</pre>
+                {(() => {
+                  const m = (metrics.metrics ?? {}) as { markdown?: string; passed?: number; total?: number };
+                  const lines = (m.markdown ?? "").split("\n").map((l) => l.replace(/\*\*/g, "").replace(/^- /, "").trim()).filter(Boolean);
+                  return (
+                    <div className="space-y-1 text-sm">
+                      {typeof m.passed === "number" && <p className="font-medium">{m.passed} / {m.total} scenario runs passed</p>}
+                      <ul className="list-disc pl-5 space-y-1">{lines.map((l, i) => <li key={i}>{l}</li>)}</ul>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           )}
@@ -49,8 +58,8 @@ export default function EvalPage() {
                       {r.passed ? "pass" : "fail"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="font-mono text-xs max-w-xs break-all">{JSON.stringify(r.expected)}</TableCell>
-                  <TableCell className="font-mono text-xs max-w-md break-all">{JSON.stringify(r.actual)}</TableCell>
+                  <TableCell className="font-mono text-xs max-w-xs whitespace-normal break-all align-top">{JSON.stringify(r.expected)}</TableCell>
+                  <TableCell className="font-mono text-xs max-w-md whitespace-normal break-all align-top">{JSON.stringify({ final_state: r.actual?.final_state, payments_created: r.actual?.payments_created, account_status: r.actual?.account_status, humanReason: r.actual?.humanReason })}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

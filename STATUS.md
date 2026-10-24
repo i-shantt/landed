@@ -6,7 +6,7 @@ Written 2026-10-24 ~01:20 PT by the autonomous build. Read this first, then `DEM
 
 The core is done and verified: **no payment can reach a destination that is not verified for that vendor**, with the AI on, off, or fooled. All three checkpoints passed. 68 vitest tests green; 30 eval scenario runs (20 scenarios, fraud ones run twice: extractor on and off) all pass with **0 false releases**. The UI runs, the demo script matches it, and the recovery package is generated (Claude prose, numerically verified against deterministic fields).
 
-Not verified live: Vapi voice (no key), Apify crawl (no token), the browser click-through (the Chrome tool needed a human to pick a browser; pages were verified by build + route sweep + a script that calls the same public functions the pages call).
+Not verified live: Vapi voice (no key) and Apify crawl (no token). The browser click-through of DEMO.md (A–E and the portal) was done in Chrome at 01:45 and matched the script.
 
 ## Run it
 
@@ -78,13 +78,12 @@ cd web && npx tsc --noEmit && npx next build     # 0 type errors, 14 routes
 
 ## What I would do next, in priority order
 
-1. Click through DEMO.md in a real browser once (10 minutes) and fix any label drift.
-2. Set `ACCOUNT_HMAC_KEY`, `ACCOUNT_ENC_KEY`, `EVAL_KEY` on the deployment.
-3. Vapi: add a key + a test number, dial once, confirm the webhook shape and the leak check end to end.
-4. Add a "Pay to the previous verified account" shortcut on NEEDS_HUMAN cases (today: Reject change, then Pay).
-5. Nessie: complete deposits (`PUT /deposits/{id}` → completed) when the engine marks the probe settled.
-6. More refusal-path tests on `payments.send` (stale version via a real re-entry flow; disputed via Mark fraud) and a vitest for lookalike resolution.
-7. Apify crawl against a real vendor domain.
+1. Set `ACCOUNT_HMAC_KEY`, `ACCOUNT_ENC_KEY`, `EVAL_KEY` on the deployment.
+2. Vapi: add a key + a test number, dial once, confirm the webhook shape and the leak check end to end.
+3. Add a "Pay to the previous verified account" shortcut on NEEDS_HUMAN cases (today: Reject change, then Pay).
+4. Nessie: complete deposits (`PUT /deposits/{id}` → completed) when the engine marks the probe settled.
+5. More refusal-path tests on `payments.send` (stale version via a real re-entry flow; disputed via Mark fraud) and a vitest for lookalike resolution.
+6. Apify crawl against a real vendor domain.
 
 ## Files the team will want
 

@@ -55,7 +55,8 @@ export default function MailboxPage() {
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<string | null>(null);
 
-  const vendor = vendors?.find((v) => v._id === vendorId) ?? vendors?.[0];
+  // Default to the demo vendor (CleanCo) rather than the first alphabetically.
+  const vendor = vendors?.find((v) => v._id === vendorId) ?? vendors?.find((v) => v.slug === "cleanco") ?? vendors?.[0];
   const slug = vendor?.slug ?? vendor?.domain.split(".")[0] ?? "vendor";
   const from = useMemo(() => {
     if (!vendor) return "";
