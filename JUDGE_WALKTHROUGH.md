@@ -66,4 +66,6 @@ Fresh seed, 1440×813, as a stranger.
 - **Payment run**: the held CleanCo line is red with the plain-English refusal and the enum token; totals split payable vs blocked; "Run payable" never touches the blocked line.
 - **Judge**: judge scenarios first with full descriptions and an "Outcome:" line; judge_01…05 all pass on prod (validated by the eval runner locally and by judge mode on prod).
 - **About**: "Where Claude could go wrong" and "Built on Convex" present; `/about#permissions` reachable from every case's Actions footer.
-- **Still open (acceptable for Sunday)**: the demo clock reads Monday afternoon after a reset (explained in RUNBOOK); the pitch deck uses the browser's serif for headings; portal pages poll rather than subscribe.
+- **Still open (acceptable for Sunday)**: the pitch deck uses the browser's serif for headings; portal pages poll rather than subscribe.
+
+- **Third pass fix (Sat 11:00)**: the demo seed now starts the clock seven days back and returns it to real time at the end, so `/cases` shows no dates after today after a reset. Verified by `checkpoint2 --prod` (clock offset, case open dates, case states).

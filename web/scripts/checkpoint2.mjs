@@ -55,6 +55,14 @@ check(vendorPage.accounts.length === 1 && vendorPage.accounts[0].status === "ver
 check(!("accountCiphertext" in vendorPage.accounts[0]) && !("accountHash" in vendorPage.accounts[0]), "vendor page account projection has no ciphertext/hash");
 const openInv = vendorPage.invoices.find((i) => i.status === "open");
 check(openInv && openInv.amountCents === 4200000, "CleanCo has the open $42,000 invoice");
+{
+  // Demo history is built in the past; after a reset demo-now equals real-now and nothing on /cases post-dates today.
+  const clk = await client.query(api.clock.get, {});
+  check(Math.abs(clk.offsetMs) < 5 * 60_000, "demo clock equals real time after a reset", `offsetMs=${clk.offsetMs}`);
+  const seeded = await client.query(api.cases.list, {});
+  check(seeded.length === 3 && seeded.every((c) => c.openedAt <= Date.now()), "three demo cases, none opened in the future", seeded.map((c) => `${c.state}@${new Date(c.openedAt).toISOString().slice(0, 10)}`).join(" "));
+  check(["CLOSED", "RECOVERY", "NEEDS_HUMAN"].every((st) => seeded.some((c) => c.state === st)), "demo cases are CLOSED / RECOVERY / NEEDS_HUMAN");
+}
 
 // ---------------- (a) compromised inbox end to end ----------------
 console.log("\n== (a) compromised inbox: /mailbox compose -> api.messages.insert");

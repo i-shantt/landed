@@ -19,6 +19,8 @@ if [ "$SKIP_EVAL" = "0" ]; then
   grep -q '"passed": false' "$ROOT/eval/results.json" && { echo "eval FAILED"; exit 1; } || true
   python3 -c "import json,sys; r=json.load(open('$ROOT/eval/results.json')); bad=[x['scenarioId'] for x in r if not x['passed']]; sys.exit(1 if bad else 0)" || { echo "eval FAILED"; exit 1; }
 fi
+echo "== measured numbers (README/DEVPOST vs eval/results.json)"
+(cd "$ROOT/web" && node scripts/sync-measured.mjs --check) || { echo "measured numbers STALE: run node web/scripts/sync-measured.mjs"; exit 1; }
 if [ "$SKIP_BUILD" = "0" ]; then
   echo "== next build"
   (cd "$ROOT/web" && npx next build >/tmp/landed-next-build.log 2>&1) || { tail -30 /tmp/landed-next-build.log; echo "next build FAILED"; exit 1; }

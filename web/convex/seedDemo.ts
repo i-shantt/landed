@@ -12,6 +12,11 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+const DAY = 24 * 3600_000;
+// The demo history is built in the past: the demo clock starts this far behind real time, the engine
+// advances through ACH windows and the landing check, and at the end demo-now is brought back up to
+// real-now. Nothing on /cases post-dates today, and a fresh live probe is still one Fast-forward click.
+export const DEMO_LOOKBACK_MS = 7 * DAY;
 
 export const vendorIdBySlug = internalQuery({
   args: { slug: v.string() },
@@ -49,6 +54,9 @@ export const createDemoCases = internalAction({
     const granite = await vid("graniteridge");
     const bluewater = await vid("bluewatertextiles");
 
+    // Start the demo clock in the past (see DEMO_LOOKBACK_MS). The timers table is empty after a re-seed.
+    await ctx.runMutation(api.clock.advance, { ms: -DEMO_LOOKBACK_MS });
+
     // Give NorthPeak an open invoice so the legit case can be paid and land.
     const npInvoice = await ctx.runMutation(internal.evalQueries.craftInvoice, { vendorId: northpeak, remitAccountId: (await currentAccount(northpeak)) as Id<"bankAccounts">, number: "NP-2026-0310", amountCents: 1_825_000 });
 
@@ -83,6 +91,11 @@ export const createDemoCases = internalAction({
 
     // Fraud: human marks fraud -> RECOVERY + package.
     await ctx.runMutation(api.cases.markFraud, { caseId: fraud.caseId, reason: "Granite Ridge AR confirmed by phone that they never requested a change" });
+
+    // Bring demo-now back up to real-now (never backwards). Any timer due on the way fires through the
+    // normal tick; the three cases are already in terminal or human states.
+    const clk = await ctx.runQuery(api.clock.get, {});
+    if (clk.offsetMs < 0) await ctx.runMutation(api.clock.advance, { ms: -clk.offsetMs });
 
     const demo = [
       { caseId: legit.caseId, label: "Legitimate change: verified, paid, landed" },

@@ -51,6 +51,6 @@ cd web && npx vercel rollback <deployment id>            # roll back the app
 ## Known rough edges
 
 - Judge mode and the eval runner re-seed the database; run them on a deployment that is not mid-demo. The runbook's clean-state step restores the demo cases.
-- The demo clock after a demo reset sits on Monday afternoon (the demo legit case had to land); new probes therefore queue for Tuesday's first ACH window. One Fast-forward click still covers it.
+- The demo history is built with the clock started seven days in the past and brought back to real time at the end of seeding, so a reset shows no future dates; a fresh live probe queues for the next ACH window (Monday 13:30 ET from a weekend) and Fast-forward is still one click.
 - Portal pages poll every 5 s (no live subscription) since the session cookie is httpOnly.
 - `.webm` only (no ffmpeg).

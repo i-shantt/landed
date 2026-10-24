@@ -36,7 +36,7 @@ export default function EvalPage() {
       ) : (
         <>
           {metrics && (
-            <Section title="Metrics (reported, not targeted)" description={typeof m.passed === "number" ? `${m.passed} / ${m.total} scenario runs passed` : undefined}>
+            <Section title="Metrics (reported, not targeted)" description={typeof m.passed === "number" ? `${m.passed} / ${m.total} scenario runs passed across ${new Set(rows.map((r) => r.scenarioId.replace(/__off$/, ""))).size} scenarios. The README and Devpost numbers are generated from this run's results.json (web/scripts/sync-measured.mjs); the gate fails if they drift.` : undefined}>
               <ul className="grid gap-1 text-sm sm:grid-cols-2">
                 {lines.filter((l) => !l.startsWith("These are results") && !l.startsWith("(reported")).map((l, i) => <li key={i} className="rounded border bg-muted/40 px-2 py-1">{l}</li>)}
               </ul>
