@@ -1,0 +1,266 @@
+// HTTP actions: /eval/* (shared secret), /vapi/webhook, /portal/*.
+import { httpRouter } from "convex/server";
+import { httpAction } from "./_generated/server";
+import { api, internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { ConvexError } from "convex/values";
+
+const http = httpRouter();
+
+function json(data: unknown, status = 200) {
+  return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", "access-control-allow-origin": "*" } });
+}
+
+function authorized(req: Request): boolean {
+  const expected = process.env.EVAL_KEY ?? "dev";
+  if (!process.env.EVAL_KEY) console.warn("[eval] EVAL_KEY unset; using 'dev'");
+  return req.headers.get("x-eval-key") === expected;
+}
+
+async function body(req: Request): Promise<Record<string, unknown>> {
+  try {
+    return (await req.json()) as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+}
+
+function errorPayload(e: unknown) {
+  if (e instanceof ConvexError) return e.data;
+  return { message: String((e as Error)?.message ?? e) };
+}
+
+const evalPost = (handler: (req: Request, b: Record<string, unknown>) => Promise<Response>) =>
+  httpAction(async (_ctx, req) => {
+    if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+    try {
+      return await handler(req, await body(req));
+    } catch (e) {
+      return json({ ok: false, error: errorPayload(e) }, 400);
+    }
+  });
+
+http.route({ path: "/eval/reset", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const res = await ctx.runAction(internal.seed.reseedInternal, { which: (b.which as "minimal" | "full" | undefined) ?? "full" });
+  return json({ ok: true, ...res });
+}) });
+
+http.route({ path: "/eval/inject", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const m = (b.message ?? b) as Record<string, unknown>;
+  try {
+    const messageId = await ctx.runMutation(internal.messages.insertInternal, {
+      from: String(m.from),
+      to: m.to ? String(m.to) : undefined,
+      subject: String(m.subject ?? ""),
+      body: String(m.body ?? ""),
+      threadId: m.threadId ? String(m.threadId) : undefined,
+      vendorId: m.vendorId ? (m.vendorId as Id<"vendors">) : undefined,
+      dmarc: typeof m.dmarc === "boolean" ? m.dmarc : undefined,
+      attachmentText: m.attachmentText ? String(m.attachmentText) : undefined,
+      invoice: m.invoice as { number: string; amountCents: number; dueInDays?: number } | undefined,
+    });
+    return json({ ok: true, messageId });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/advance", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const res = await ctx.runMutation(api.clock.advance, { ms: Number(b.ms ?? 0) });
+  return json({ ok: true, ...res });
+}) });
+
+http.route({ path: "/eval/advanceTo", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const res = await ctx.runMutation(api.clock.advanceTo, { at: Number(b.at) });
+  return json({ ok: true, ...res });
+}) });
+
+http.route({ path: "/eval/tick", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const res = await ctx.runMutation(internal.timers.tick, {});
+  return json({ ok: true, ...res });
+}) });
+
+http.route({ path: "/eval/vendorStatement", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    const res = await ctx.runMutation(internal.channels.simVoice.answerInternal, {
+      caseId: b.caseId as Id<"cases">,
+      statedAmountCents: typeof b.statedAmountCents === "number" ? b.statedAmountCents : null,
+      outcome: b.outcome as "stated" | "nothing_arrived" | "no_answer" | undefined,
+      mode: b.mode as "probe" | "landing" | undefined,
+    });
+    return json({ ok: true, ...res });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/manualEdit", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    const res = await ctx.runAction(api.bankAccounts.manualEdit, { vendorId: b.vendorId as Id<"vendors">, routing: String(b.routing), accountNumber: String(b.accountNumber), replacesAccountId: b.replacesAccountId ? (b.replacesAccountId as Id<"bankAccounts">) : undefined });
+    return json({ ok: true, ...res });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/pay", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    const res = await ctx.runMutation(api.payments.send, { invoiceId: b.invoiceId as Id<"invoices">, initiatedBy: String(b.initiatedBy ?? "eval"), rail: (b.rail as "ach" | "wire" | undefined) ?? "ach" });
+    return json({ ok: true, ...res });
+  } catch (e) {
+    const data = errorPayload(e) as { reason?: string; message?: string };
+    return json({ ok: false, reason: data.reason ?? data.message ?? "error", error: data }, 200);
+  }
+}) });
+
+http.route({ path: "/eval/setting", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  await ctx.runMutation(internal.settingsInternal.setInternal, { key: String(b.key), value: String(b.value) });
+  return json({ ok: true });
+}) });
+
+http.route({ path: "/eval/report", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const n = await ctx.runMutation(internal.evalQueries.reportRun, { results: (b.results as unknown[]) ?? [] });
+  return json({ ok: true, count: n });
+}) });
+
+http.route({ path: "/eval/exceptionalRelease", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    await ctx.runMutation(api.cases.exceptionalRelease, { caseId: b.caseId as Id<"cases">, approverA: String(b.approverA), approverB: String(b.approverB), reason: String(b.reason) });
+    return json({ ok: true });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/portalLogin", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    const res = await ctx.runAction(api.portalAuth.login, { username: String(b.username), password: String(b.password) });
+    return json({ ok: true, ...res });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/portalRequests", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  const res = await ctx.runQuery(api.channels.portal.openRequestsForSession, { sessionToken: String(b.sessionToken) });
+  return json({ ok: true, ...res });
+}) });
+
+http.route({ path: "/eval/portalConfirm", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    const res = await ctx.runMutation(internal.channels.portal.confirmInternal, { sessionToken: String(b.sessionToken), token: String(b.token), statedAmountCents: typeof b.statedAmountCents === "number" ? b.statedAmountCents : null });
+    return json(res);
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ path: "/eval/overview", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  return json(await ctx.runQuery(internal.evalQueries.overview, {}));
+}) });
+
+http.route({ pathPrefix: "/eval/case/", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const id = new URL(req.url).pathname.split("/").pop()!;
+  try {
+    const res = await ctx.runQuery(internal.evalQueries.caseView, { caseId: id as Id<"cases"> });
+    return res ? json(res) : json({ error: "not_found" }, 404);
+  } catch (e) {
+    return json({ error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ pathPrefix: "/eval/vendor/", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const parts = new URL(req.url).pathname.split("/").filter(Boolean);
+  // /eval/vendor/{id}  or  /eval/vendor/slug/{slug}
+  if (parts[2] === "slug") {
+    const vnd = await ctx.runQuery(internal.evalQueries.vendorBySlug, { slug: parts[3] });
+    if (!vnd) return json({ error: "not_found" }, 404);
+    return json(await ctx.runQuery(internal.evalQueries.vendorView, { vendorId: vnd._id }));
+  }
+  try {
+    const res = await ctx.runQuery(internal.evalQueries.vendorView, { vendorId: parts[2] as Id<"vendors"> });
+    return res ? json(res) : json({ error: "not_found" }, 404);
+  } catch (e) {
+    return json({ error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ pathPrefix: "/eval/invoice/", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const number = decodeURIComponent(new URL(req.url).pathname.split("/").pop()!);
+  const inv = await ctx.runQuery(internal.evalQueries.invoiceByNumber, { number });
+  return inv ? json(inv) : json({ error: "not_found" }, 404);
+}) });
+
+// TEST-ONLY: exposes the probe amount so the eval harness can script a "correct" vendor statement.
+// Guarded by EVAL_KEY. Documented in README/STATUS. Never used by the UI.
+http.route({ pathPrefix: "/eval/probeAmount/", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const id = new URL(req.url).pathname.split("/").pop()!;
+  try {
+    const amountCents = await ctx.runQuery(internal.probes.amountForTest, { caseId: id as Id<"cases"> });
+    return json({ amountCents, testOnly: true });
+  } catch (e) {
+    return json({ error: errorPayload(e) }, 400);
+  }
+}) });
+
+// ---- Vapi webhook (section 6.12). Implemented in Tier 3; records the payload shape until then. ----
+http.route({ path: "/vapi/webhook", method: "POST", handler: httpAction(async (ctx, req) => {
+  const b = await body(req);
+  await ctx.runAction(internal.channels.vapiWebhook.handle, { payload: b });
+  return json({ ok: true });
+}) });
+
+// ---- Vendor portal (Next.js route handlers call these) ----
+http.route({ path: "/portal/login", method: "POST", handler: httpAction(async (ctx, req) => {
+  const b = await body(req);
+  try {
+    const res = await ctx.runAction(api.portalAuth.login, { username: String(b.username ?? ""), password: String(b.password ?? "") });
+    return json({ ok: true, ...res });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 401);
+  }
+}) });
+
+http.route({ path: "/portal/confirm", method: "POST", handler: httpAction(async (ctx, req) => {
+  const b = await body(req);
+  try {
+    const res = await ctx.runMutation(internal.channels.portal.confirmInternal, { sessionToken: String(b.sessionToken ?? ""), token: String(b.token ?? ""), statedAmountCents: typeof b.statedAmountCents === "number" ? b.statedAmountCents : null });
+    return json(res);
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
+export default http;

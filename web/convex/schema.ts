@@ -34,6 +34,8 @@ export default defineSchema({
     name: v.string(),
     domain: v.string(),
     timezone: v.string(), // "America/Los_Angeles"
+    bankRouting: v.optional(v.string()),
+    bankLast4: v.optional(v.string()),
   }),
 
   clock: defineTable({

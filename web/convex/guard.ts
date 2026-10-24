@@ -29,7 +29,9 @@ export function canPay(args: {
 }): PayDecision {
   const { invoice, destination, currentVersionForIdentity } = args;
   if (!invoice) return { ok: false, reason: "invoice_missing" };
-  if (invoice.status !== "open") return { ok: false, reason: "invoice_not_open" };
+  // "held" invoices are open invoices whose destination is pending verification; the destination checks
+  // below produce the precise reason. Only "paid" is not payable here.
+  if (invoice.status !== "open" && invoice.status !== "held") return { ok: false, reason: "invoice_not_open" };
   if (!destination) return { ok: false, reason: "destination_missing" };
   if (destination.vendorId !== invoice.vendorId)
     return { ok: false, reason: "destination_vendor_mismatch" };
