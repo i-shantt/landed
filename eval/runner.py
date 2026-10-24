@@ -309,6 +309,32 @@ class Scenario:
             time.sleep(2)
         self.failures.append("expect_package: no package generated within 90s")
 
+    def step_expect_payment_run(self, a):
+        pr = self.c.get("/eval/paymentRun")
+        t = pr["totals"]
+        for k in ("payable", "blocked"):
+            if k in a and t[k] != a[k]:
+                self.failures.append(f"expect_payment_run {k}={a[k]} got={t[k]}")
+        if "blockedCents" in a and t["blockedCents"] != a["blockedCents"]:
+            self.failures.append(f"expect_payment_run blockedCents={a['blockedCents']} got={t['blockedCents']}")
+        self.note(f"payment run: payable {t['payable']} (${t['payableCents']/100:,.0f}) blocked {t['blocked']} (${t['blockedCents']/100:,.0f})")
+
+    def step_run_payable(self, a):
+        """Pay every payable line (what the /payment-run button does), sequentially, through the same guarded mutation."""
+        pr = self.c.get("/eval/paymentRun")
+        paid = refused = 0
+        for line in pr["lines"]:
+            if not line["decision"]["ok"]:
+                continue
+            r = self.c.post("/eval/pay", {"invoiceId": line["invoiceId"], "initiatedBy": "payment-run", "rail": "ach"})
+            if r.get("ok"):
+                paid += 1
+            else:
+                refused += 1
+        self.note(f"run payable -> paid {paid}, refused {refused}")
+        if "expect_paid" in a and paid != a["expect_paid"]:
+            self.failures.append(f"run_payable expect_paid={a['expect_paid']} got={paid}")
+
     def step_set_setting(self, a):
         self.c.post("/eval/setting", a)
 

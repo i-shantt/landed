@@ -232,6 +232,11 @@ http.route({ path: "/eval/portalConfirm", method: "POST", handler: httpAction(as
   }
 }) });
 
+http.route({ path: "/eval/paymentRun", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  return json(await ctx.runQuery(api.paymentRun.preview, {}));
+}) });
+
 http.route({ path: "/eval/overview", method: "GET", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   return json(await ctx.runQuery(internal.evalQueries.overview, {}));

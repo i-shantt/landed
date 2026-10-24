@@ -1,0 +1,40 @@
+id: paymentrun_01_held_line_blocked
+family: paymentrun
+vendor: cleanco
+extractor: rules
+description: 'The weekly payment run with one bank-change request pending: the batch shows CleanCo''s $42,000 line blocked and every other open invoice payable; running the batch pays only the payable lines.'
+steps:
+- expect_payment_run:
+    blocked: 0
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Updated banking details
+    body: 'We have changed banks. Please update our remittance details:
+
+      Routing (ABA): 011000015
+
+      Account number: 900012345678
+
+      Thanks, Dana'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- expect_case:
+    state: PROBE_SENT
+- expect_payment_run:
+    blocked: 1
+    blockedCents: 4200000
+- run_payable: {}
+- expect_payment_run:
+    blocked: 1
+    payable: 0
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: PROBE_SENT
+  payments_to_new_destination: 0
+off_mode: false

@@ -1,0 +1,38 @@
+id: paymentrun_02_verified_then_payable
+family: paymentrun
+vendor: cleanco
+extractor: rules
+description: 'Same batch after the vendor of record confirms the probe: the CleanCo line flips to payable and the run pays it.'
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: New bank account
+    body: 'CleanCo has moved to a new bank. Please update our remittance details:
+
+      Routing (ABA): 031000503
+
+      Account number: 55501234567
+
+      Thanks, Dana Whitfield, CleanCo Facilities'
+    account:
+      routing: '031000503'
+      accountNumber: '55501234567'
+- expect_payment_run:
+    blocked: 1
+- advance_to: availability
+- vendor_statement: correct
+- expect_case:
+    state: VERIFIED
+- expect_payment_run:
+    blocked: 0
+- run_payable: {}
+- expect_case:
+    state: PAID
+- expect_payment_run:
+    payable: 0
+    blocked: 0
+expect:
+  final_state: PAID
+  human_actions: 0
+off_mode: false
