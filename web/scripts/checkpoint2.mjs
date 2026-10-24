@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 const env = Object.fromEntries(readFileSync(".env.local", "utf8").split("\n").filter((l) => l.includes("=") && !l.startsWith("#")).map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim().split(" #")[0].trim()]; }));
 const URL = env.NEXT_PUBLIC_CONVEX_URL;
 const SITE = env.NEXT_PUBLIC_CONVEX_SITE_URL;
+const EVAL_KEY = env.EVAL_KEY || "dev";
 const client = new ConvexHttpClient(URL);
 const api = anyApi;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -18,11 +19,11 @@ function check(cond, label, extra = "") {
   if (!cond) failures++;
 }
 async function evalPost(path, body) {
-  const r = await fetch(`${SITE}${path}`, { method: "POST", headers: { "x-eval-key": "dev", "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
+  const r = await fetch(`${SITE}${path}`, { method: "POST", headers: { "x-eval-key": EVAL_KEY, "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
   return r.json();
 }
 async function evalGet(path) {
-  const r = await fetch(`${SITE}${path}`, { headers: { "x-eval-key": "dev" } });
+  const r = await fetch(`${SITE}${path}`, { headers: { "x-eval-key": EVAL_KEY } });
   return r.json();
 }
 const ATT = { routing: "011000015", accountNumber: "900012345678" };
