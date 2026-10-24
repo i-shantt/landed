@@ -16,7 +16,10 @@ export function FastForward({ caseId, state }: { caseId: Id<"cases">; state: str
   const fastForward = useFastForward();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  if (!ACTIVE.has(state) || next === undefined || next === null) return result ? <p className="text-xs text-muted-foreground" role="status">{result}</p> : null;
+  // Only offer the bank steps (probe availability, landing check). Once the case is waiting on the vendor, the
+  // next timer is the SLA expiry, and a judge should not fast-forward into an escalation by accident.
+  const bankStep = next && (next.kind === "probe_available" || next.kind === "landing_check");
+  if (!ACTIVE.has(state) || !bankStep) return result ? <p className="text-xs text-muted-foreground" role="status">{result}</p> : null;
   return (
     <div className="space-y-1.5">
       <Button

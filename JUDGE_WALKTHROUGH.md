@@ -55,3 +55,15 @@ Driven in Chrome at 1440×813 against https://landed-blue.vercel.app from a clea
 | FIX-9 | "Where Claude could go wrong" on `/about` | `/about` | S |
 | FIX-10 | "Built on Convex" line on `/about` | `/about` | S |
 | FIX-11 | Runbook step for showing Nessie | `RUNBOOK.md` | S |
+
+## Second pass (final build on production, 2026-10-24 ~04:45 PT)
+
+Fresh seed, 1440×813, as a stranger.
+
+- **First screen** now answers "who is this for" in two sentences with hover definitions, and shows three pre-run demo cases (legit landed / fraud with package / bank+phone → human) above an empty live queue. Amount blocked and needing-a-human stats are non-zero. Fixed: FIX-1, FIX-5, FIX-4.
+- **Mailbox → Send** opens a case in ~2 s with the Claude extractor on prod. Thread history no longer shows future dates (fixture clamp redeployed).
+- **Case page**: one-click **Fast-forward the bank → Probe available to the vendor** sits in the Probe card with a one-line explanation of what it does; the right rail reads Destination → Probe → Validation → Actions, and the simulated-answer box appears only when it applies. Pay is below the Probe card at this height; still one short scroll. FIX-2, FIX-3, FIX-7 verified.
+- **Payment run**: the held CleanCo line is red with the plain-English refusal and the enum token; totals split payable vs blocked; "Run payable" never touches the blocked line.
+- **Judge**: judge scenarios first with full descriptions and an "Outcome:" line; judge_01…05 all pass on prod (validated by the eval runner locally and by judge mode on prod).
+- **About**: "Where Claude could go wrong" and "Built on Convex" present; `/about#permissions` reachable from every case's Actions footer.
+- **Still open (acceptable for Sunday)**: the demo clock reads Monday afternoon after a reset (explained in RUNBOOK); the pitch deck uses the browser's serif for headings; portal pages poll rather than subscribe.

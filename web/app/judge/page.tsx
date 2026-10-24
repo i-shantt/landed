@@ -13,8 +13,8 @@ import { stateLabel } from "@/lib/labels";
 import { absTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const FAMILY_LABELS: Record<string, string> = { judge: "Judge scenarios (try these)", custom: "Custom templates", compromised_inbox: "Compromised inbox", lookalike: "Lookalike sender", misdirection: "Misdirection", legit: "Legitimate change", recovery: "Recovery" };
-const FAMILY_ORDER = ["judge", "custom", "compromised_inbox", "lookalike", "misdirection", "legit", "recovery"];
+const FAMILY_LABELS: Record<string, string> = { judge: "Judge scenarios (try these)", custom: "Custom templates", compromised_inbox: "Compromised inbox", lookalike: "Lookalike sender", misdirection: "Misdirection", legit: "Legitimate change", recovery: "Recovery", paymentrun: "Payment run" };
+const FAMILY_ORDER = ["judge", "custom", "compromised_inbox", "lookalike", "misdirection", "legit", "recovery", "paymentrun"];
 const FAMILY_HINTS: Record<string, string> = { judge: "What a finance judge is likely to ask for. Each ends with an outcome the pitch explains in one sentence." };
 
 function outcomeLine(expect: Record<string, unknown>): string {
@@ -63,7 +63,8 @@ function JudgeView() {
   if (scenarios === undefined) return <Loading />;
   const families = new Map<string, typeof scenarios>();
   for (const s of scenarios) families.set(s.family, [...(families.get(s.family) ?? []), s]);
-  const ordered = Array.from(families.entries()).sort((a, b) => FAMILY_ORDER.indexOf(a[0]) - FAMILY_ORDER.indexOf(b[0]));
+  const rank = (f: string) => { const i = FAMILY_ORDER.indexOf(f); return i === -1 ? 999 : i; };
+  const ordered = Array.from(families.entries()).sort((a, b) => rank(a[0]) - rank(b[0]));
 
   async function start(id: string) {
     setBusy(id); setErr(null);
