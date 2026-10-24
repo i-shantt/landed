@@ -119,6 +119,67 @@ Setup: `npx convex env set VAPI_API_KEY … VAPI_PHONE_NUMBER_ID … CARTESIA_VO
 
 Trouvé (SteelHacks, September 2026) does hold-by-policy plus an automated call to the number on file with a yes/no transcript judge. Landed adds the number-answer challenge, the database-enforced release gate bound to vendor and account, the landing check, the recovery package, and an eval that includes the legitimate path.
 
+## Architecture
+
+Case state machine (every edge is an audited transition; the only paths into `VERIFIED` are a bound confirmation or a two-person exceptional release):
+
+```mermaid
+stateDiagram-v2
+    [*] --> HELD: bank-change request (intake or manual edit)
+    HELD --> PROBE_SENT: probe queued (same transaction)
+    HELD --> NEEDS_HUMAN: contact and bank changed together
+    PROBE_SENT --> AWAITING_CONFIRMATION: probe_available timer
+    PROBE_SENT --> NEEDS_HUMAN
+    AWAITING_CONFIRMATION --> VERIFIED: bound confirmation (canRelease ok)
+    AWAITING_CONFIRMATION --> NEEDS_HUMAN: wrong amount / nothing arrived / SLA expired / portal attempts exhausted
+    NEEDS_HUMAN --> VERIFIED: exceptional release (two approvers)
+    NEEDS_HUMAN --> RECOVERY: mark fraud
+    NEEDS_HUMAN --> CLOSED: reject change
+    VERIFIED --> PAID: payments.send (guard ok)
+    PAID --> LANDED: contact of record confirms the full amount
+    PAID --> UNCONFIRMED: landing deadline passed
+    UNCONFIRMED --> RECOVERY: package generated
+    LANDED --> CLOSED
+    RECOVERY --> CLOSED
+```
+
+Components:
+
+```mermaid
+flowchart LR
+    subgraph Inputs
+        MB[Mailbox / email] --> IN[intake action
+(rules or Claude extractor)]
+        VP[Vendor page: manual edit] --> BA
+    end
+    IN --> BA[bankAccounts.createUnverified
+new version, unverified]
+    BA --> CASE[cases.open → HELD/PROBE_SENT
+invoices re-pointed and held]
+    CASE --> PR[probes.create
+random 11–99¢, ACCTVERIFY]
+    PR --> RAIL[(Rail: Sim / Nessie)]
+    CLK[Clock + timers.tick
+(demo or live)] --> PR
+    CLK --> CH[channels.initiate
+SimVoice / Vapi+Cartesia / portal]
+    CH --> CF[confirmations.recordFromChannel
+email → rejected]
+    CF --> GATE{cases.tryRelease
+canRelease: 16 bound checks}
+    GATE -->|ok, atomic| VER[account verified
+invoices reopen]
+    GATE -->|refuse| NH[NEEDS_HUMAN]
+    VER --> PAY{payments.send
+canPay, fail closed}
+    PAY --> RAIL
+    PAY --> LAND[landing check → LANDED
+or deadline → RECOVERY]
+    LAND --> PKG[package: deterministic fields
++ Claude prose, number-checked]
+    EV[(events: append-only, redacted)] -.- CASE & PR & CF & GATE & PAY & PKG
+```
+
 ## Layout
 
 `web/` Next.js 16 + Convex (engine in `web/convex/`, tests in `web/tests/`), `eval/` Python runner and scenarios, `fixtures/` deterministic seed data.
