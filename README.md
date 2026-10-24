@@ -57,7 +57,7 @@ When it asks for a human: wrong or missing vendor statement (`NEEDS_HUMAN`), ban
 
 ## Measured (results, not targets)
 
-From `eval/RESULTS.md` (30 scripted runs: 20 scenarios, fraud ones run with the extractor on and off): fraud and misdirection scenarios blocked before payment 15/15; blocked with the extractor off 9/9; false releases 0; legitimate changes landed with zero human actions other than Pay 5/5; missed instruction changes by the extractor 0; time to hold median ~0.5 s wall-clock. The rules and Claude extractors each scored precision 1.00 and recall 1.00 on a 10-message hand-written set that includes an account hidden in a PDF footer. These are results on scripted cases; they do not establish effectiveness against real-world fraud.
+From `eval/RESULTS.md` (30 scripted runs: 20 scenarios, fraud ones run with the extractor on and off): fraud and misdirection scenarios blocked before payment 15/15; blocked with the extractor off 9/9; false releases 0; legitimate changes landed with zero human actions other than Pay 5/5; missed instruction changes by the extractor 0; time to hold median ~0.5 s wall-clock. The rules and Claude extractors each scored precision 1.00 and recall 1.00 on a 10-message hand-written set that includes an account hidden in a PDF footer. The whole suite was also run with the Claude extractor on every intake step (`eval/RESULTS-claude-extractor.md`): 21/21 scenario runs passed, including the real PDF-footer scenario. These are results on scripted cases; they do not establish effectiveness against real-world fraud.
 
 ## Path from prototype to production
 
