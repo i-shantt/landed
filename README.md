@@ -15,6 +15,10 @@ See `DEMO.md` for the click-by-click script, `STATUS.md` for what works and how 
 
 "Vendor-bound account verification through a trusted contact and a transaction challenge." It proves that a contact already trusted for this vendor, reached on the established channel, can state the amount credited to the new account. It proves **control**, not legal ownership. A sub-dollar ACH credit used for account validation is a Nacha "Micro-Entry" (under $1, `ACCTVERIFY` in the company entry description, originator subject to fraud-monitoring requirements); Landed follows this as a sanctioned pattern.
 
+## How a bank-change request is handled
+
+A bank-change request (from intake or a clerk's manual edit) creates a new **unverified** account version and opens a case. The vendor's **open invoices follow the request**: they are re-pointed to the requested account and are **blocked** until that account is verified or a human rejects the change (`Reject change` restores the previous account). Intake can re-point an invoice; it can never make an account payable. Only a bound confirmation from the contact of record, or a two-person exceptional release, flips an account to `verified`.
+
 ## Invariants (enforced in code, each with a test)
 
 - **I1 Payment boundary.** `payments.send` is the only function that inserts a payment. It refuses unless the destination exists, belongs to the invoice's vendor, is `verified`, and is the current version of that account identity. Fail closed.

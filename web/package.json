@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify": "bash ../scripts/verify.sh",
+    "test": "vitest run",
+    "eval": "cd ../eval && .venv/bin/python runner.py"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.3.0",

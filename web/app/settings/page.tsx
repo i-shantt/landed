@@ -15,6 +15,7 @@ export default function SettingsPage() {
   const clock = useQuery(api.clock.get, {});
   const settings = useQuery(api.settings.all, {});
   const nextDue = useQuery(api.timers.nextDue, {});
+  const nextByKind = useQuery(api.timerQueries.nextByKind, {});
   const seedStatus = useQuery(api.seed.status, {});
   const advance = useMutation(api.clock.advance);
   const advanceTo = useMutation(api.clock.advanceTo);
@@ -25,14 +26,17 @@ export default function SettingsPage() {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // "ACH window" = the next probe settlement; "availability" = the next probe_available (funds visible to the vendor).
+  // Other timer kinds (landing_check, landing_deadline, confirmation_sla) are reachable with "+1 hour" / "+1 business day".
   async function jump(kind: "ach" | "avail") {
-    if (!nextDue) {
-      setMsg("No pending timer.");
+    const timerKind = kind === "ach" ? "probe_settle" : "probe_available";
+    const target = nextByKind?.[timerKind];
+    if (!target) {
+      setMsg(`No pending ${timerKind} timer.`);
       return;
     }
-    const target = kind === "ach" ? nextDue : nextDue;
     const r = await advanceTo({ at: target.dueAt + 1000 });
-    setMsg(`Advanced to ${absTime(r.now)}; fired ${r.fired} timer(s) (${target.kind}).`);
+    setMsg(`Advanced to ${absTime(r.now)}; fired ${r.fired} timer(s) (${timerKind}).`);
   }
 
   return (
@@ -63,15 +67,15 @@ export default function SettingsPage() {
             <Button variant="outline" onClick={async () => { const r = await advance({ ms: 24 * HOUR }); setMsg(`+1 business day (24h) → ${absTime(r.now)}; fired ${r.fired}`); }}>
               +1 business day (24h)
             </Button>
-            <Button variant="outline" disabled={!nextDue} onClick={() => jump("ach")}>
+            <Button variant="outline" disabled={!nextByKind?.probe_settle} onClick={() => jump("ach")}>
               Jump to next ACH window
             </Button>
-            <Button variant="outline" disabled={!nextDue} onClick={() => jump("avail")}>
+            <Button variant="outline" disabled={!nextByKind?.probe_available} onClick={() => jump("avail")}>
               Jump to availability
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Next pending timer: {nextDue ? `${nextDue.kind} at ${absTime(nextDue.dueAt)}` : "none"}. Both jump buttons advance to the next pending timer; press again for the one after.
+            Next pending timer: {nextDue ? `${nextDue.kind} at ${absTime(nextDue.dueAt)}` : "none"}. &quot;Jump to next ACH window&quot; fires the next probe settlement; &quot;Jump to availability&quot; fires the next funds-available timer. Landing and SLA timers: use +1 hour / +1 business day.
           </p>
           {msg && <p className="text-sm">{msg}</p>}
         </CardContent>

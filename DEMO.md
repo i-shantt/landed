@@ -4,6 +4,8 @@ Two terminals: `cd web && npx convex dev` and `cd web && npm run dev`. Open http
 
 Before the demo: **Settings → Re-seed fixtures → confirm**. This wipes all tables and reloads 20 vendors. Set **Extractor** to `claude` (if the key is on the deployment) or `rules`.
 
+How holds work (say this once): a bank-change request re-points the vendor's open invoices to the requested account, which is blocked until it is verified or a human rejects the change. Intake can re-point an invoice but can never make an account payable.
+
 Demo vendor: **CleanCo Facilities** (`cleanco.example`), one verified account, open invoice **CC-2026-0412 for $42,000.00** due in 6 days, phone of record `+1 555 010 0000`, portal login `cleanco` / `landed-demo`.
 
 Time: every wait is a button. Settings has **+1h**, **+1 business day**, **Jump to next ACH window** and **Jump to availability** (both advance to the next pending timer; press again for the one after). The clock jump fires the due timers immediately; the timeline fills in as if the bank had settled the probe.

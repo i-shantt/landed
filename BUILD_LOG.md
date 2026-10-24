@@ -25,3 +25,4 @@ One line per completed step, with time (Pacific).
 - 2026-10-24 01:22 Suppressed probe timeline events on closed cases. vitest 68/68. `next build` ok (14 routes). Final full eval 30/30 (RESULTS.md regenerated, posted to /eval).
 - 2026-10-24 01:23 CHECKPOINT 3 PASSED. STATUS.md, DEMO.md, OPEN_QUESTIONS.md, README.md written. Deployment reseeded with the full fixture for the morning. Stopping here; see STATUS.md "What I would do next".
 - 2026-10-24 01:45 Browser click-through (Chrome, user-approved) of DEMO.md A–E plus the portal: all paths behave as scripted. Fixes from the click-through: Base UI `nativeButton={false}` on link-rendered Buttons (dev overlay warning); rejected/disputed account versions keep their status when re-entered; `/eval/reset` no longer wipes `evalRuns`; Eval page renders the metrics as a list and trims the Actual column; Mailbox defaults to CleanCo.
+- 2026-10-24 02:18 RUN 2 START. Phase A begins (verify, harden, secrets).
