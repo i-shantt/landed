@@ -50,7 +50,7 @@ export const openPortalPath = internalMutation({
 });
 
 function pickVoice(ctx: ActionCtx, voice: string): ConfirmationChannel {
-  if (voice === "vapi" && process.env.VAPI_API_KEY) return new VapiVoice(ctx);
+  if (voice === "vapi" && (process.env.VAPI_API_KEY || process.env.VAPI_DRY_RUN === "1")) return new VapiVoice(ctx);
   return new SimVoice(ctx);
 }
 

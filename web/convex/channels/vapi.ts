@@ -78,6 +78,16 @@ export class VapiVoice implements ConfirmationChannel {
     const apiKey = process.env.VAPI_API_KEY;
     const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
     const siteUrl = process.env.CONVEX_SITE_URL;
+    const dryRun = process.env.VAPI_DRY_RUN === "1";
+    if (dryRun) {
+      // Build the exact request, redact it, record it, do not dial. Flip VAPI_DRY_RUN off to go live.
+      const info = await this.ctx.runQuery(internal.channels.vapiMutations.names, { caseId });
+      const assistant = buildAssistant({ companyName: info?.companyName ?? "the company", vendorName: info?.vendorName ?? "the vendor", mode: args.mode, expectedPaymentAmountCents: args.mode === "landing" ? args.expectedPaymentAmountCents : undefined, serverUrl: `${siteUrl ?? "https://<convex-site>"}/vapi/webhook` });
+      const leak = args.mode === "probe" && /\$?\d+\.\d{2}/.test(JSON.stringify(assistant));
+      const request = { phoneNumberId: phoneNumberId ? "<set>" : "<unset>", customer: { number: args.contact.value.replace(/\d(?=\d{4})/g, "*") }, assistant: { ...assistant, model: { ...(assistant.model as object), messages: "[system prompt, " + JSON.stringify((assistant.model as { messages: { content: string }[] }).messages[0].content).length + " chars]" } }, metadata: { caseId, contactId: args.contact._id, mode: args.mode } };
+      await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_dry_run", payload: { request, assistantContainsAmount: leak, apiKeyPresent: !!apiKey, note: "VAPI_DRY_RUN=1: request built and logged, nothing dialed" } });
+      return;
+    }
     if (!apiKey || !phoneNumberId || !siteUrl) {
       await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_refused", payload: { reason: "vapi_env_missing", contactId: args.contact._id } });
       return;
