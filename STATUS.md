@@ -1,6 +1,6 @@
 # STATUS.md — overnight run 3
 
-Stop time: see the last `BUILD_LOG.md` line (target ~10:00 PT). Final tag `v2-overnight-3`.
+Stopped 2026-10-24 04:45 PT. Phases D–G done; the Phase G list is exhausted except the two items skipped with reasons. Final tag `v2-overnight-3`.
 
 ## Morning items (human only)
 
@@ -15,7 +15,7 @@ Stop time: see the last `BUILD_LOG.md` line (target ~10:00 PT). Final tag `v2-ov
 
 - Vercel known-good before run 3: `dpl_BqExTbLvAaYDGC8GvY441xR2GqVR` → `cd web && npx vercel rollback dpl_BqExTbLvAaYDGC8GvY441xR2GqVR`.
 - Convex functions known-good before run 3: git `aec7deb` (`v1-overnight-2`) → `git checkout v1-overnight-2 -- web/convex && (cd web && npx convex deploy -y) && git checkout main -- web/convex`.
-- The run-3 deployments were each smoke-tested with `node scripts/checkpoint2.mjs --prod` after deploy; current production ids are in `BUILD_LOG.md`.
+- **Live now:** Vercel `dpl_TZ8bL7cqb7NgEZYrzuWKPjivYbNS` (https://landed-9e0lo9gb6-i-shantts-projects.vercel.app → https://landed-blue.vercel.app) and Convex prod functions at git tag `v2-overnight-3`. Each run-3 deploy was built from a clean git worktree of the committed tree, gated by `scripts/verify.sh`, and smoke-tested with `node scripts/checkpoint2.mjs --prod` after deploy; prod was reseeded with the demo cases afterwards.
 
 ## What is live
 
