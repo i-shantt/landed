@@ -1,6 +1,6 @@
 # Eval results
 
-Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:17 PDT.
+Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:27 PDT.
 
 | scenario | family | expected | actual | passed |
 |---|---|---|---|---|
@@ -44,8 +44,8 @@ Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:17 PDT.
 - Missed instruction changes by the extractor: **0**
 - Unresolved by non-response (SLA expired or vendor reports nothing arrived): **20**
 - Manual interventions per scenario: mean 0.00, max 0
-- Time to hold (wall-clock, from inject/edit to case): median 525 ms, max 542 ms
-- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 58.3 h
-- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 58.2 h
+- Time to hold (wall-clock, from inject/edit to case): median 523 ms, max 537 ms
+- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 58.1 h
+- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 58.1 h
 
 These are results on these 30 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
