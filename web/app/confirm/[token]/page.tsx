@@ -7,23 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Section, Loading } from "@/components/landed/primitives";
 import { PortalFrame } from "@/components/landed/PortalFrame";
-import { errorMessage } from "@/components/landed/ReasonDialog";
-import { usePortalToken, usePortalActions } from "@/lib/hooks";
-import { usePortalSession } from "@/lib/use-portal-session";
+import { portalConfirm, portalErrorText } from "@/lib/portal-session";
+import { usePortalToken } from "@/lib/use-portal-session";
 import { stateLabel } from "@/lib/labels";
 
 export default function ConfirmPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
-  const session = usePortalSession();
-  const info = usePortalToken(session, token);
-  const { confirm } = usePortalActions();
+  const { loading, data: info, error, signedIn, refresh } = usePortalToken(token);
   const [dollars, setDollars] = useState("");
   const [nothing, setNothing] = useState(false);
   const [result, setResult] = useState<{ kind: "ok" | "wrong" | "error"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (session === undefined) return null;
-  if (!session || (info && info.error === "not_logged_in")) {
+  if (loading && signedIn === undefined) return <Loading />;
+  if (signedIn === false) {
     return (
       <PortalFrame vendorName="Vendor">
         <p className="text-sm">Please sign in to the vendor portal first.</p>
@@ -31,8 +28,14 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
       </PortalFrame>
     );
   }
-  if (!info) return <Loading />;
-  if (info.error) return <PortalFrame vendorName="Vendor"><p className="text-sm text-red-700" role="alert">This confirmation request was not found for your account.</p></PortalFrame>;
+  if (!info) {
+    return (
+      <PortalFrame vendorName="Vendor">
+        <p className="text-sm text-red-700" role="alert">{portalErrorText(error) || "This confirmation request was not found for your account."}</p>
+        <Link href="/portal" className="text-sm text-muted-foreground hover:underline">← all requests</Link>
+      </PortalFrame>
+    );
+  }
 
   const done = info.usedAt !== null || info.caseState !== "AWAITING_CONFIRMATION";
   const verified = ["VERIFIED", "PAID", "LANDED", "CLOSED"].includes(info.caseState ?? "");
@@ -45,16 +48,26 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
             <AlertDescription>{info.caseState === "NEEDS_HUMAN" ? "The request has been escalated to a human at the paying company." : `Case status: ${stateLabel(info.caseState ?? "")}.`}</AlertDescription>
           </Alert>
         ) : (
-          <form className="space-y-3" onSubmit={async (e) => {
-            e.preventDefault(); setBusy(true); setResult(null);
-            try {
-              const cents = nothing ? null : Math.round(parseFloat(dollars) * 100);
-              const r = await confirm({ sessionToken: session, token, statedAmountCents: cents });
-              if (r.verified) setResult({ kind: "ok", text: "Thank you. The account is now verified for payments." });
-              else setResult({ kind: "wrong", text: r.attemptsLeft > 0 ? `That did not match. ${r.attemptsLeft} attempt(s) left.` : "No attempts left. The request has been escalated to a human." });
-            } catch (er) { setResult({ kind: "error", text: errorMessage(er) }); }
-            finally { setBusy(false); }
-          }}>
+          <form
+            className="space-y-3"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              setResult(null);
+              try {
+                const cents = nothing ? null : Math.round(parseFloat(dollars) * 100);
+                const r = await portalConfirm(token, cents);
+                if (r.error) setResult({ kind: "error", text: portalErrorText(r.error) });
+                else if (r.data?.verified) setResult({ kind: "ok", text: "Thank you. The account is now verified for payments." });
+                else setResult({ kind: "wrong", text: (r.data?.attemptsLeft ?? 0) > 0 ? `That did not match. ${r.data?.attemptsLeft} attempt(s) left.` : "No attempts left. The request has been escalated to a human." });
+                await refresh();
+              } catch (er) {
+                setResult({ kind: "error", text: String((er as Error)?.message ?? er) });
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
             <div className="space-y-1">
               <Label htmlFor="cf-amount">Amount (USD)</Label>
               <Input id="cf-amount" value={dollars} onChange={(e) => setDollars(e.target.value)} placeholder="0.37" className="font-mono" disabled={nothing} inputMode="decimal" />
