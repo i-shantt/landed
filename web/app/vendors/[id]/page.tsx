@@ -13,7 +13,7 @@ import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { CaseStatusBadge, AccountStatusBadge, InvoiceStatusBadge } from "@/components/landed/badges";
 import { ContactList } from "@/components/landed/ContactList";
 import { ReasonDialog, errorMessage } from "@/components/landed/ReasonDialog";
-import { useVendor, useVendorActions } from "@/lib/hooks";
+import { useVendor, useVendorActions, useEnvPresence, useDevTools } from "@/lib/hooks";
 import { usd, absDate, absTime } from "@/lib/format";
 import { triggerLabel, CONTACT_KIND_LABELS } from "@/lib/labels";
 
@@ -24,6 +24,8 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
   const { supersede, addRecord, manualEdit, discover } = useVendorActions();
   const [discovering, setDiscovering] = useState(false);
   const [discoverMsg, setDiscoverMsg] = useState<string | null>(null);
+  const envPresence = useEnvPresence();
+  const { simulateDiscovery } = useDevTools();
   const [editing, setEditing] = useState<{ accountId: Id<"bankAccounts">; last4: string } | null>(null);
   const [routing, setRouting] = useState("");
   const [account, setAccount] = useState("");
@@ -61,10 +63,21 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
             <Button size="sm" variant="outline" disabled={discovering} onClick={async () => { setDiscovering(true); try { const r = await discover({ vendorId }); setDiscoverMsg(r.ok ? `Discovered ${r.phones?.length ?? 0} phone number(s) from the website (cross-check only).` : `Discovery skipped: ${r.reason}`); } catch (e) { setDiscoverMsg(errorMessage(e)); } finally { setDiscovering(false); } }}>
               Discover from website (Apify)
             </Button>
+            {envPresence && !envPresence.APIFY_TOKEN && (
+              <>
+                <Button size="sm" variant="outline" onClick={async () => { try { const r = await simulateDiscovery({ vendorId, matchesRecord: true }); setDiscoverMsg(r.mismatch ? "Simulated discovery: the discovered phone differs from the phone of record." : "Simulated discovery: the discovered phone matches the phone of record."); } catch (e) { setDiscoverMsg(errorMessage(e)); } }} title="Dev control: stands in for the Apify crawl when no token is set">
+                  Simulate discovery (match)
+                </Button>
+                <Button size="sm" variant="outline" onClick={async () => { try { const r = await simulateDiscovery({ vendorId, matchesRecord: false }); setDiscoverMsg(r.mismatch ? "Simulated discovery: the discovered phone differs from the phone of record (event logged)." : "Simulated discovery recorded."); } catch (e) { setDiscoverMsg(errorMessage(e)); } }} title="Dev control: stands in for the Apify crawl when no token is set">
+                  Simulate discovery (mismatch)
+                </Button>
+              </>
+            )}
             <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>Add contact of record</Button>
           </>
         }
       >
+        <CrossCheck contacts={v.contacts} />
         <ContactList contacts={v.contacts} onSupersede={(id) => setSupersedeId(id as Id<"contacts">)} />
       </Section>
 
@@ -213,5 +226,21 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+
+/** Discovered-vs-record cross-check summary: shown only when both kinds of phone exist. */
+function CrossCheck({ contacts }: { contacts: { kind: string; value: string; trustLevel: string; supersededAt?: number }[] }) {
+  const record = contacts.filter((c) => c.kind === "phone" && c.trustLevel === "record" && !c.supersededAt).map((c) => c.value);
+  const discovered = contacts.filter((c) => c.kind === "phone" && c.trustLevel === "discovered").map((c) => c.value);
+  if (record.length === 0 || discovered.length === 0) return null;
+  const mismatches = discovered.filter((d) => !record.includes(d));
+  return (
+    <p className={`mb-2 rounded border px-2 py-1 text-xs ${mismatches.length ? "border-amber-200 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50 text-emerald-800"}`} role="status">
+      {mismatches.length
+        ? `Cross-check: ${mismatches.length} discovered phone number(s) differ from the phone of record. Discovered contacts are cross-check only; they never confirm anything.`
+        : "Cross-check: the discovered phone matches the phone of record."}
+    </p>
   );
 }
