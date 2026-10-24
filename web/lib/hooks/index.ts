@@ -94,3 +94,29 @@ export function useMailboxActions() {
 export function usePortalActions() {
   return { login: useAction(api.portalAuth.login), confirm: useMutation(api.channels.portal.confirm) };
 }
+
+// ---- Phase C additions ----
+export function useJudgeScenarios() {
+  return useQuery(api.judge.scenarios, {});
+}
+export function useJudgeRun(runId: string | null) {
+  return useQuery(api.judge.get, runId ? { runId } : "skip");
+}
+export function useJudgeRecent() {
+  return useQuery(api.judge.recent, {});
+}
+export function useJudgeActions() {
+  return { run: useAction(api.judge.run) };
+}
+export function useExplain() {
+  return useAction(api.explain.narrate);
+}
+export function useCaseExport(caseId: Id<"cases">, enabled = true) {
+  return useQuery(api.exportCase.caseExport, enabled ? { caseId } : "skip");
+}
+export function useNessieTransfers() {
+  return useAction(api.nessieViewer.transfers);
+}
+export function useDevTools() {
+  return { simulateDiscovery: useMutation(api.devTools.simulateDiscovery) };
+}
