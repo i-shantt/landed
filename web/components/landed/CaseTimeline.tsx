@@ -48,6 +48,14 @@ function chipText(type: string, k: string, v: unknown): string | null {
   return `${payloadLabel(k)}: ${String(v)}`;
 }
 
+/** Compact plain-English chips for an event payload (shared by the timeline and the audit view). */
+export function payloadChips(type: string, payload: unknown): { chips: string[]; transition: string | null; note: string | null } {
+  const p = (payload && typeof payload === "object" ? payload : {}) as Record<string, unknown>;
+  const chips = Object.entries(p).filter(([k]) => !SKIP.has(k)).map(([k, v]) => chipText(type, k, v)).filter((x): x is string => !!x);
+  const transition = typeof p.from === "string" && typeof p.to === "string" ? `${stateLabel(p.from)} → ${stateLabel(p.to)}` : null;
+  return { chips, transition, note: typeof p.note === "string" ? p.note : null };
+}
+
 export function EventRow({ e, now }: { e: TimelineEvent; now: number }) {
   const Icon = ICONS[e.actor] ?? Cog;
   const p = (e.payload && typeof e.payload === "object" ? e.payload : {}) as Record<string, unknown>;

@@ -10,7 +10,7 @@ import { NativeSelect } from "@/components/native-select";
 import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { AuthBadge } from "@/components/landed/badges";
 import { errorMessage } from "@/components/landed/ReasonDialog";
-import { useVendors, useMessages, useMailboxActions } from "@/lib/hooks";
+import { useVendors, useMessages, useMailboxActions, useEmlIngest } from "@/lib/hooks";
 import { absTime } from "@/lib/format";
 import { INTAKE_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,29 @@ export default function MailboxPage() {
   const [note, setNote] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [selectedThread, setSelectedThread] = useState<string | null>(null);
+  const ingestEml = useEmlIngest();
+  const [emlFile, setEmlFile] = useState<File | null>(null);
+  const [emlVendorId, setEmlVendorId] = useState("");
+  const [emlBusy, setEmlBusy] = useState(false);
+  const [emlResult, setEmlResult] = useState<{ from: string; subject: string; auth: { spf: boolean | null; dkim: boolean | null; dmarc: boolean | null; present: boolean }; attachments: number; threadId: string | null; messageId: string } | null>(null);
+  const [emlError, setEmlError] = useState<string | null>(null);
+
+  async function ingestRaw(raw: string, fileName: string) {
+    setEmlBusy(true); setEmlError(null); setEmlResult(null);
+    try {
+      const r = await ingestEml({ raw, vendorId: emlVendorId ? (emlVendorId as Id<"vendors">) : undefined, fileName });
+      setEmlResult(r);
+    } catch (e) {
+      setEmlError(errorMessage(e));
+    } finally {
+      setEmlBusy(false);
+    }
+  }
+  async function ingestSample(name: string) {
+    const res = await fetch(`/samples/${name}`);
+    if (!res.ok) { setEmlError(`sample ${name} not found`); return; }
+    await ingestRaw(await res.text(), name);
+  }
 
   const vendor = vendors?.find((v) => v._id === vendorId) ?? vendors?.find((v) => v.slug === "cleanco") ?? vendors?.[0];
   const slug = vendor?.slug ?? vendor?.domain.split(".")[0] ?? "vendor";
@@ -201,6 +224,55 @@ export default function MailboxPage() {
                 <Button disabled={busy || !from || !subject} onClick={send}>Send to AP</Button>
               </div>
               {note && <p className="text-sm" role="status">{note}</p>}
+            </div>
+          </Section>
+        )}
+        {!current && (
+          <Section className="lg:col-start-2" title="Upload a real email (.eml)" description="Headers are parsed as-is: From, Reply-To, Authentication-Results (SPF/DKIM/DMARC), threading, body and attachments. Missing authentication headers are shown as missing, never assumed to pass.">
+            <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Label htmlFor="eml-file">.eml file</Label>
+                  <Input id="eml-file" type="file" accept=".eml,message/rfc822" onChange={(e) => setEmlFile(e.target.files?.[0] ?? null)} />
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="eml-vendor">Vendor (optional)</Label>
+                  <NativeSelect id="eml-vendor" value={emlVendorId} onChange={(e) => setEmlVendorId(e.target.value)}>
+                    <option value="">Resolve by sender domain</option>
+                    {(vendors ?? []).map((v) => <option key={v._id} value={v._id}>{v.name} ({v.domain})</option>)}
+                  </NativeSelect>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button disabled={emlBusy || !emlFile} onClick={async () => { if (emlFile) await ingestRaw(await emlFile.text(), emlFile.name); }}>Ingest .eml</Button>
+                <Button variant="outline" disabled={emlBusy} onClick={() => ingestSample("cleanco_bank_change_dmarc_pass.eml")}>Load sample: CleanCo (DMARC pass)</Button>
+                <Button variant="outline" disabled={emlBusy} onClick={() => ingestSample("lookalike_bank_change_no_auth.eml")}>Load sample: lookalike (no auth)</Button>
+                {emlBusy && <span className="text-xs text-muted-foreground" role="status">Parsing and running intake…</span>}
+              </div>
+              {emlError && <p className="text-sm text-red-800" role="alert">{emlError}</p>}
+              {emlResult && (
+                <div className="space-y-1.5 rounded-md border bg-muted/40 px-3 py-2 text-sm" role="status">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-mono text-xs">{emlResult.from}</span>
+                    <span className="text-muted-foreground">·</span>
+                    <span>{emlResult.subject}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    {emlResult.auth.present ? (
+                      <>
+                        {(["spf", "dkim", "dmarc"] as const).map((k) => {
+                          const v = emlResult.auth[k];
+                          return <span key={k} className={v ? "rounded border border-emerald-200 bg-emerald-50 px-1.5 text-emerald-900" : "rounded border border-red-200 bg-red-50 px-1.5 text-red-900"}>{k.toUpperCase()} {v ? "pass" : v === false ? "fail" : "none"}</span>;
+                        })}
+                      </>
+                    ) : (
+                      <span className="rounded border border-amber-200 bg-amber-50 px-1.5 text-amber-900">no authentication results in headers</span>
+                    )}
+                    <span className="rounded border px-1.5">{emlResult.attachments} attachment{emlResult.attachments === 1 ? "" : "s"}</span>
+                    <button type="button" className="underline" onClick={() => setSelectedThread(emlResult.threadId ? `eml-${emlResult.threadId}` : null)} disabled={!emlResult.threadId}>Open the thread →</button>
+                  </div>
+                </div>
+              )}
             </div>
           </Section>
         )}

@@ -1,0 +1,29 @@
+Return-Path: <ap@cleanco.example>
+Received: from mail.cleanco.example (mail.cleanco.example [203.0.113.10])
+	by mx.meridianoutdoor.example with ESMTPS id 4XyZ1; Fri, 23 Oct 2026 16:02:11 -0700
+Authentication-Results: mx.meridianoutdoor.example;
+	spf=pass smtp.mailfrom=cleanco.example;
+	dkim=pass header.d=cleanco.example header.s=sel1;
+	dmarc=pass (p=reject) header.from=cleanco.example
+From: Dana Whitfield <ap@cleanco.example>
+To: Accounts Payable <ap@meridianoutdoor.example>
+Subject: Re: Invoice CC-2026-0412 - updated banking details
+Date: Fri, 23 Oct 2026 16:01:58 -0700
+Message-ID: <a1b2c3@cleanco.example>
+In-Reply-To: <inv0412@meridianoutdoor.example>
+References: <inv0412-thread@cleanco.example> <inv0412@meridianoutdoor.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hi Marisol,
+
+Following up on CC-2026-0412: we have changed banks effective this month.
+Please update our remittance details for this and all future invoices:
+
+Bank: First Harbor Bank
+Routing (ABA): 011000015
+Account number: 900012345678
+
+Thanks,
+Dana Whitfield
+Accounts Receivable, CleanCo Facilities

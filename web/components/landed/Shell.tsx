@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen, Gavel, Info, Presentation } from "lucide-react";
+import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen, Gavel, Info, Presentation, Banknote, ScrollText } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,8 @@ const NAV = [
   { href: "/cases", label: "Cases", icon: FolderKanban },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
+  { href: "/payment-run", label: "Payment run", icon: Banknote },
+  { href: "/audit", label: "Audit", icon: ScrollText },
   { href: "/eval", label: "Eval", icon: FlaskConical },
   { href: "/judge", label: "Judge", icon: Gavel },
   { href: "/about", label: "About", icon: Info },

@@ -130,3 +130,20 @@ export function useDemoNextStep(caseId: Id<"cases">) {
 export function useFastForward() {
   return useMutation(api.demoControls.fastForward);
 }
+
+// ---- run 3, Phase G ----
+export function usePaymentRun() {
+  return useQuery(api.paymentRun.preview, {});
+}
+export function useSendPayment() {
+  return useMutation(api.payments.send);
+}
+export function useAuditEvents(args: { vendorId?: Id<"vendors">; caseId?: Id<"cases">; actor?: string; type?: string; from?: number; to?: number; limit?: number }) {
+  return useQuery(api.audit.events, args);
+}
+export function useAuditChain() {
+  return useAction(api.audit.chain);
+}
+export function useEmlIngest() {
+  return useAction(api.emlIntake.ingest);
+}
