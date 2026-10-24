@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen, Gavel, Info } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,8 @@ const NAV = [
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
   { href: "/eval", label: "Eval", icon: FlaskConical },
+  { href: "/judge", label: "Judge", icon: Gavel },
+  { href: "/about", label: "About", icon: Info },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
