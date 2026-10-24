@@ -1,0 +1,143 @@
+[
+  {
+    "slug": "cleanco",
+    "name": "CleanCo Facilities",
+    "domain": "cleanco.example",
+    "onboardedAt": 1743700680000,
+    "hasPortalLogin": true,
+    "notes": "Demo vendor: open $42,000 invoice due in 6 days."
+  },
+  {
+    "slug": "northpeak",
+    "name": "NorthPeak Logistics",
+    "domain": "northpeak.example",
+    "onboardedAt": 1728407280000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "graniteridge",
+    "name": "Granite Ridge Packaging",
+    "domain": "graniteridge.example",
+    "onboardedAt": 1770658800000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "bluewatertextiles",
+    "name": "Bluewater Textiles",
+    "domain": "bluewatertextiles.example",
+    "onboardedAt": 1718732640000,
+    "hasPortalLogin": true
+  },
+  {
+    "slug": "summitprint",
+    "name": "Summit Print Works",
+    "domain": "summitprint.example",
+    "onboardedAt": 1719424080000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "riverbendit",
+    "name": "Riverbend IT Services",
+    "domain": "riverbendit.example",
+    "onboardedAt": 1764349680000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "alderfinch",
+    "name": "Alder & Finch Legal",
+    "domain": "alderfinch.example",
+    "onboardedAt": 1750355640000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "cascadefleet",
+    "name": "Cascade Fleet Maintenance",
+    "domain": "cascadefleet.example",
+    "onboardedAt": 1717176180000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "pinecreststaffing",
+    "name": "Pinecrest Staffing",
+    "domain": "pinecreststaffing.example",
+    "onboardedAt": 1741801080000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "harborline",
+    "name": "Harborline Freight",
+    "domain": "harborline.example",
+    "onboardedAt": 1743184620000,
+    "hasPortalLogin": true
+  },
+  {
+    "slug": "timberlinedisplays",
+    "name": "Timberline Displays",
+    "domain": "timberlinedisplays.example",
+    "onboardedAt": 1770486660000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "westforksecurity",
+    "name": "Westfork Security",
+    "domain": "westforksecurity.example",
+    "onboardedAt": 1770225900000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "junipercreative",
+    "name": "Juniper Creative Studio",
+    "domain": "junipercreative.example",
+    "onboardedAt": 1758734100000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "redstonemetal",
+    "name": "Redstone Metal Fabrication",
+    "domain": "redstonemetal.example",
+    "onboardedAt": 1741974420000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "lakeviewcatering",
+    "name": "Lakeview Catering",
+    "domain": "lakeviewcatering.example",
+    "onboardedAt": 1735666500000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "sierrauniform",
+    "name": "Sierra Uniform Supply",
+    "domain": "sierrauniform.example",
+    "onboardedAt": 1732035780000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "ironwoodtooling",
+    "name": "Ironwood Tooling",
+    "domain": "ironwoodtooling.example",
+    "onboardedAt": 1757955780000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "clearwaterjan",
+    "name": "Clearwater Janitorial",
+    "domain": "clearwaterjan.example",
+    "onboardedAt": 1745774640000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "basecampanalytics",
+    "name": "Basecamp Analytics",
+    "domain": "basecampanalytics.example",
+    "onboardedAt": 1762017000000,
+    "hasPortalLogin": false
+  },
+  {
+    "slug": "trailheadmedia",
+    "name": "Trailhead Media",
+    "domain": "trailheadmedia.example",
+    "onboardedAt": 1729703040000,
+    "hasPortalLogin": false
+  }
+]

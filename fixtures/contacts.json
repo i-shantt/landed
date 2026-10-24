@@ -1,0 +1,346 @@
+[
+  {
+    "vendorSlug": "cleanco",
+    "kind": "phone",
+    "value": "+15550100000",
+    "trustLevel": "record",
+    "establishedAt": 1743700680000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "cleanco",
+    "kind": "email",
+    "value": "ap@cleanco.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1743700680000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "cleanco",
+    "kind": "portal",
+    "value": "cleanco",
+    "trustLevel": "record",
+    "establishedAt": 1743700680000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "northpeak",
+    "kind": "phone",
+    "value": "+15550100001",
+    "trustLevel": "record",
+    "establishedAt": 1728407280000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "northpeak",
+    "kind": "email",
+    "value": "ap@northpeak.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1728407280000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "kind": "phone",
+    "value": "+15550100002",
+    "trustLevel": "record",
+    "establishedAt": 1770658800000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "kind": "email",
+    "value": "ap@graniteridge.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1770658800000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "kind": "phone",
+    "value": "+15550100003",
+    "trustLevel": "record",
+    "establishedAt": 1718732640000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "kind": "email",
+    "value": "ap@bluewatertextiles.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1718732640000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "kind": "portal",
+    "value": "bluewatertextiles",
+    "trustLevel": "record",
+    "establishedAt": 1718732640000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "summitprint",
+    "kind": "phone",
+    "value": "+15550100004",
+    "trustLevel": "record",
+    "establishedAt": 1719424080000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "summitprint",
+    "kind": "email",
+    "value": "ap@summitprint.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1719424080000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "kind": "phone",
+    "value": "+15550100005",
+    "trustLevel": "record",
+    "establishedAt": 1764349680000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "kind": "email",
+    "value": "ap@riverbendit.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1764349680000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "kind": "phone",
+    "value": "+15550100006",
+    "trustLevel": "record",
+    "establishedAt": 1750355640000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "kind": "email",
+    "value": "ap@alderfinch.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1750355640000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "kind": "phone",
+    "value": "+15550100007",
+    "trustLevel": "record",
+    "establishedAt": 1717176180000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "kind": "email",
+    "value": "ap@cascadefleet.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1717176180000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "kind": "phone",
+    "value": "+15550100008",
+    "trustLevel": "record",
+    "establishedAt": 1741801080000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "kind": "email",
+    "value": "ap@pinecreststaffing.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1741801080000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "harborline",
+    "kind": "phone",
+    "value": "+15550100009",
+    "trustLevel": "record",
+    "establishedAt": 1743184620000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "harborline",
+    "kind": "email",
+    "value": "ap@harborline.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1743184620000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "harborline",
+    "kind": "portal",
+    "value": "harborline",
+    "trustLevel": "record",
+    "establishedAt": 1743184620000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "kind": "phone",
+    "value": "+15550100010",
+    "trustLevel": "record",
+    "establishedAt": 1770486660000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "kind": "email",
+    "value": "ap@timberlinedisplays.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1770486660000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "kind": "phone",
+    "value": "+15550100011",
+    "trustLevel": "record",
+    "establishedAt": 1770225900000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "kind": "email",
+    "value": "ap@westforksecurity.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1770225900000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "kind": "phone",
+    "value": "+15550100012",
+    "trustLevel": "record",
+    "establishedAt": 1758734100000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "kind": "email",
+    "value": "ap@junipercreative.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1758734100000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "kind": "phone",
+    "value": "+15550100013",
+    "trustLevel": "record",
+    "establishedAt": 1741974420000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "kind": "email",
+    "value": "ap@redstonemetal.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1741974420000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "kind": "phone",
+    "value": "+15550100014",
+    "trustLevel": "record",
+    "establishedAt": 1735666500000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "kind": "email",
+    "value": "ap@lakeviewcatering.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1735666500000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "kind": "phone",
+    "value": "+15550100015",
+    "trustLevel": "record",
+    "establishedAt": 1732035780000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "kind": "email",
+    "value": "ap@sierrauniform.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1732035780000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "kind": "phone",
+    "value": "+15550100016",
+    "trustLevel": "record",
+    "establishedAt": 1757955780000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "kind": "email",
+    "value": "ap@ironwoodtooling.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1757955780000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "kind": "phone",
+    "value": "+15550100017",
+    "trustLevel": "record",
+    "establishedAt": 1745774640000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "kind": "email",
+    "value": "ap@clearwaterjan.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1745774640000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "kind": "phone",
+    "value": "+15550100018",
+    "trustLevel": "record",
+    "establishedAt": 1762017000000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "kind": "email",
+    "value": "ap@basecampanalytics.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1762017000000,
+    "establishedVia": "onboarding_form"
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "kind": "phone",
+    "value": "+15550100019",
+    "trustLevel": "record",
+    "establishedAt": 1729703040000,
+    "establishedVia": "onboarding_form_and_verified_call"
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "kind": "email",
+    "value": "ap@trailheadmedia.example",
+    "trustLevel": "discovered",
+    "establishedAt": 1729703040000,
+    "establishedVia": "onboarding_form"
+  }
+]

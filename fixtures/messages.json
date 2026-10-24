@@ -1,0 +1,1552 @@
+[
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0100",
+    "from": "ap@cleanco.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0100",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0100 for $20,257.00, due September 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, CleanCo Facilities",
+    "sentAt": 1785949980000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0100",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CF-2026-0100",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786122780000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0101",
+    "from": "ap@cleanco.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0101",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0101 for $15,735.00, due October 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, CleanCo Facilities",
+    "sentAt": 1788368640000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0101",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CF-2026-0101",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788455040000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0101",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CF-2026-0101",
+    "body": "Payment for CF-2026-0101 was sent by ACH today. Trace ACH-6255345896.",
+    "sentAt": 1789664640000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0102",
+    "from": "ap@cleanco.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0102",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0102 for $20,143.00, due October 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, CleanCo Facilities",
+    "sentAt": 1790790900000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0102",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CF-2026-0102",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1790963700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CF-2026-0102",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CF-2026-0102",
+    "body": "Payment for CF-2026-0102 was sent by ACH today. Trace ACH-5434276172.",
+    "sentAt": 1792432500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CC-2026-0412",
+    "from": "ap@cleanco.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CC-2026-0412 - October facilities services",
+    "body": "Hello,\n\nAttached is invoice CC-2026-0412 for $42,000.00 covering October facilities services across the three Meridian sites. Due in 14 days. Remit to our account on file.\n\nThanks,\nDana Whitfield\nAccounts Receivable, CleanCo Facilities",
+    "sentAt": 1792170060000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cleanco",
+    "threadId": "cleanco-CC-2026-0412",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cleanco.example",
+    "subject": "Re: Invoice CC-2026-0412 - October facilities services",
+    "body": "Thanks Dana, received and approved. It is in the queue for our payment run.\n\nMarisol, AP",
+    "sentAt": 1792256460000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0110",
+    "from": "ap@northpeak.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice NL-2026-0110",
+    "body": "Hello,\n\nPlease find invoice NL-2026-0110 for $35,445.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "sentAt": 1786122540000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0110",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0110",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786208940000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0110",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0110",
+    "body": "Payment for NL-2026-0110 was sent by ACH today. Trace ACH-6241428839.",
+    "sentAt": 1787245740000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0111",
+    "from": "ap@northpeak.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice NL-2026-0111",
+    "body": "Hello,\n\nPlease find invoice NL-2026-0111 for $34,961.00, due September 24. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "sentAt": 1787678100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0111",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0111",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787764500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0111",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0111",
+    "body": "Payment for NL-2026-0111 was sent by ACH today. Trace ACH-3348912430.",
+    "sentAt": 1789578900000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0112",
+    "from": "ap@northpeak.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice NL-2026-0112",
+    "body": "Hello,\n\nPlease find invoice NL-2026-0112 for $26,673.00, due October 16. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "sentAt": 1789580280000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0112",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0112",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789666680000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0112",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0112",
+    "body": "Payment for NL-2026-0112 was sent by ACH today. Trace ACH-7042258835.",
+    "sentAt": 1791653880000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0113",
+    "from": "ap@northpeak.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice NL-2026-0113",
+    "body": "Hello,\n\nPlease find invoice NL-2026-0113 for $30,397.00, due November 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, NorthPeak Logistics",
+    "sentAt": 1791220920000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "northpeak",
+    "threadId": "northpeak-NL-2026-0113",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@northpeak.example",
+    "subject": "Re: Invoice NL-2026-0113",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791307320000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0120",
+    "from": "ap@graniteridge.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice GR-2026-0120",
+    "body": "Hello,\n\nPlease find invoice GR-2026-0120 for $19,387.00, due September 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "sentAt": 1785779400000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0120",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0120",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785865800000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0121",
+    "from": "ap@graniteridge.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice GR-2026-0121",
+    "body": "Hello,\n\nPlease find invoice GR-2026-0121 for $29,046.00, due September 25. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "sentAt": 1787766360000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0121",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0121",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787852760000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0121",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0121",
+    "body": "Payment for GR-2026-0121 was sent by ACH today. Trace ACH-6884746860.",
+    "sentAt": 1789235160000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0122",
+    "from": "ap@graniteridge.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice GR-2026-0122",
+    "body": "Hello,\n\nPlease find invoice GR-2026-0122 for $33,652.00, due October 11. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "sentAt": 1789149240000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0122",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0122",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789235640000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0122",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0122",
+    "body": "Payment for GR-2026-0122 was sent by ACH today. Trace ACH-8308754194.",
+    "sentAt": 1791482040000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0123",
+    "from": "ap@graniteridge.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice GR-2026-0123",
+    "body": "Hello,\n\nPlease find invoice GR-2026-0123 for $29,018.00, due November 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Granite Ridge Packaging",
+    "sentAt": 1791394500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0123",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0123",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791567300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "threadId": "graniteridge-GR-2026-0123",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@graniteridge.example",
+    "subject": "Re: Invoice GR-2026-0123",
+    "body": "Payment for GR-2026-0123 was sent by ACH today. Trace ACH-9635002239.",
+    "sentAt": 1792949700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0130",
+    "from": "ap@bluewatertextiles.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BT-2026-0130",
+    "body": "Hello,\n\nPlease find invoice BT-2026-0130 for $16,291.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "sentAt": 1786124820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0130",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0130",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786297620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0131",
+    "from": "ap@bluewatertextiles.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BT-2026-0131",
+    "body": "Hello,\n\nPlease find invoice BT-2026-0131 for $31,765.00, due September 26. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "sentAt": 1787852820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0131",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0131",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788025620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0131",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0131",
+    "body": "Payment for BT-2026-0131 was sent by ACH today. Trace ACH-6794838868.",
+    "sentAt": 1789667220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0132",
+    "from": "ap@bluewatertextiles.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BT-2026-0132",
+    "body": "Hello,\n\nPlease find invoice BT-2026-0132 for $13,796.00, due October 15. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "sentAt": 1789494900000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0132",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0132",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789581300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0133",
+    "from": "ap@bluewatertextiles.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BT-2026-0133",
+    "body": "Hello,\n\nPlease find invoice BT-2026-0133 for $28,638.00, due November 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Bluewater Textiles",
+    "sentAt": 1791048720000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0133",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0133",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791135120000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "threadId": "bluewatertextiles-BT-2026-0133",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@bluewatertextiles.example",
+    "subject": "Re: Invoice BT-2026-0133",
+    "body": "Payment for BT-2026-0133 was sent by ACH today. Trace ACH-1492260562.",
+    "sentAt": 1792344720000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0140",
+    "from": "ap@summitprint.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SP-2026-0140",
+    "body": "Hello,\n\nPlease find invoice SP-2026-0140 for $23,638.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Summit Print Works",
+    "sentAt": 1786122600000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0140",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@summitprint.example",
+    "subject": "Re: Invoice SP-2026-0140",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786209000000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0140",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@summitprint.example",
+    "subject": "Re: Invoice SP-2026-0140",
+    "body": "Payment for SP-2026-0140 was sent by ACH today. Trace ACH-2578149223.",
+    "sentAt": 1788109800000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0141",
+    "from": "ap@summitprint.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SP-2026-0141",
+    "body": "Hello,\n\nPlease find invoice SP-2026-0141 for $15,703.00, due September 21. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Summit Print Works",
+    "sentAt": 1787419680000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0141",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@summitprint.example",
+    "subject": "Re: Invoice SP-2026-0141",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787592480000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0142",
+    "from": "ap@summitprint.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SP-2026-0142",
+    "body": "Hello,\n\nPlease find invoice SP-2026-0142 for $10,821.00, due October 15. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Summit Print Works",
+    "sentAt": 1789493580000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0142",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@summitprint.example",
+    "subject": "Re: Invoice SP-2026-0142",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789579980000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0143",
+    "from": "ap@summitprint.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SP-2026-0143",
+    "body": "Hello,\n\nPlease find invoice SP-2026-0143 for $29,411.00, due November 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Summit Print Works",
+    "sentAt": 1791223140000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "summitprint",
+    "threadId": "summitprint-SP-2026-0143",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@summitprint.example",
+    "subject": "Re: Invoice SP-2026-0143",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791395940000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0150",
+    "from": "ap@riverbendit.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RI-2026-0150",
+    "body": "Hello,\n\nPlease find invoice RI-2026-0150 for $19,700.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Riverbend IT Services",
+    "sentAt": 1785693300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0150",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@riverbendit.example",
+    "subject": "Re: Invoice RI-2026-0150",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785779700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0150",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@riverbendit.example",
+    "subject": "Re: Invoice RI-2026-0150",
+    "body": "Payment for RI-2026-0150 was sent by ACH today. Trace ACH-3169211529.",
+    "sentAt": 1787507700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0151",
+    "from": "ap@riverbendit.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RI-2026-0151",
+    "body": "Hello,\n\nPlease find invoice RI-2026-0151 for $2,745.00, due September 29. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Riverbend IT Services",
+    "sentAt": 1788112260000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0151",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@riverbendit.example",
+    "subject": "Re: Invoice RI-2026-0151",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788198660000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0151",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@riverbendit.example",
+    "subject": "Re: Invoice RI-2026-0151",
+    "body": "Payment for RI-2026-0151 was sent by ACH today. Trace ACH-7002708769.",
+    "sentAt": 1790099460000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0152",
+    "from": "ap@riverbendit.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RI-2026-0152",
+    "body": "Hello,\n\nPlease find invoice RI-2026-0152 for $22,798.00, due November 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Riverbend IT Services",
+    "sentAt": 1790963700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "threadId": "riverbendit-RI-2026-0152",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@riverbendit.example",
+    "subject": "Re: Invoice RI-2026-0152",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791136500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0160",
+    "from": "ap@alderfinch.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice A&-2026-0160",
+    "body": "Hello,\n\nPlease find invoice A&-2026-0160 for $34,811.00, due September 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Alder & Finch Legal",
+    "sentAt": 1785950220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0160",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@alderfinch.example",
+    "subject": "Re: Invoice A&-2026-0160",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786036620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0161",
+    "from": "ap@alderfinch.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice A&-2026-0161",
+    "body": "Hello,\n\nPlease find invoice A&-2026-0161 for $23,000.00, due September 23. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Alder & Finch Legal",
+    "sentAt": 1787591520000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0161",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@alderfinch.example",
+    "subject": "Re: Invoice A&-2026-0161",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787764320000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0162",
+    "from": "ap@alderfinch.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice A&-2026-0162",
+    "body": "Hello,\n\nPlease find invoice A&-2026-0162 for $5,793.00, due October 14. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Alder & Finch Legal",
+    "sentAt": 1789406220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0162",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@alderfinch.example",
+    "subject": "Re: Invoice A&-2026-0162",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789492620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0163",
+    "from": "ap@alderfinch.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice A&-2026-0163",
+    "body": "Hello,\n\nPlease find invoice A&-2026-0163 for $18,701.00, due November 07. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Alder & Finch Legal",
+    "sentAt": 1791480780000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0163",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@alderfinch.example",
+    "subject": "Re: Invoice A&-2026-0163",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791653580000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "threadId": "alderfinch-A&-2026-0163",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@alderfinch.example",
+    "subject": "Re: Invoice A&-2026-0163",
+    "body": "Payment for A&-2026-0163 was sent by ACH today. Trace ACH-3190485240.",
+    "sentAt": 1792776780000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0170",
+    "from": "ap@cascadefleet.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0170",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0170 for $17,558.00, due August 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "sentAt": 1785518460000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0170",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cascadefleet.example",
+    "subject": "Re: Invoice CF-2026-0170",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785691260000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0170",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cascadefleet.example",
+    "subject": "Re: Invoice CF-2026-0170",
+    "body": "Payment for CF-2026-0170 was sent by ACH today. Trace ACH-2434007565.",
+    "sentAt": 1787419260000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0171",
+    "from": "ap@cascadefleet.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0171",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0171 for $4,948.00, due September 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "sentAt": 1788195900000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0171",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cascadefleet.example",
+    "subject": "Re: Invoice CF-2026-0171",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788368700000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0171",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cascadefleet.example",
+    "subject": "Re: Invoice CF-2026-0171",
+    "body": "Payment for CF-2026-0171 was sent by ACH today. Trace ACH-1380232793.",
+    "sentAt": 1790183100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0172",
+    "from": "ap@cascadefleet.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CF-2026-0172",
+    "body": "Hello,\n\nPlease find invoice CF-2026-0172 for $7,896.00, due November 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Cascade Fleet Maintenance",
+    "sentAt": 1790960820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "threadId": "cascadefleet-CF-2026-0172",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@cascadefleet.example",
+    "subject": "Re: Invoice CF-2026-0172",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791047220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "threadId": "pinecreststaffing-PS-2026-0180",
+    "from": "ap@pinecreststaffing.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice PS-2026-0180",
+    "body": "Hello,\n\nPlease find invoice PS-2026-0180 for $3,440.00, due August 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Pinecrest Staffing",
+    "sentAt": 1785519900000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "threadId": "pinecreststaffing-PS-2026-0180",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@pinecreststaffing.example",
+    "subject": "Re: Invoice PS-2026-0180",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785606300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "threadId": "pinecreststaffing-PS-2026-0181",
+    "from": "ap@pinecreststaffing.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice PS-2026-0181",
+    "body": "Hello,\n\nPlease find invoice PS-2026-0181 for $22,577.00, due October 13. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Pinecrest Staffing",
+    "sentAt": 1789319220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "threadId": "pinecreststaffing-PS-2026-0181",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@pinecreststaffing.example",
+    "subject": "Re: Invoice PS-2026-0181",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789492020000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "threadId": "pinecreststaffing-PS-2026-0181",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@pinecreststaffing.example",
+    "subject": "Re: Invoice PS-2026-0181",
+    "body": "Payment for PS-2026-0181 was sent by ACH today. Trace ACH-4790153296.",
+    "sentAt": 1790960820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0190",
+    "from": "ap@harborline.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice HF-2026-0190",
+    "body": "Hello,\n\nPlease find invoice HF-2026-0190 for $21,237.00, due August 31. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Harborline Freight",
+    "sentAt": 1785604620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0190",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@harborline.example",
+    "subject": "Re: Invoice HF-2026-0190",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785777420000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0191",
+    "from": "ap@harborline.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice HF-2026-0191",
+    "body": "Hello,\n\nPlease find invoice HF-2026-0191 for $7,490.00, due September 21. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Harborline Freight",
+    "sentAt": 1787418480000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0191",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@harborline.example",
+    "subject": "Re: Invoice HF-2026-0191",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787504880000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0192",
+    "from": "ap@harborline.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice HF-2026-0192",
+    "body": "Hello,\n\nPlease find invoice HF-2026-0192 for $31,381.00, due October 11. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Harborline Freight",
+    "sentAt": 1789147860000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0192",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@harborline.example",
+    "subject": "Re: Invoice HF-2026-0192",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789234260000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0193",
+    "from": "ap@harborline.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice HF-2026-0193",
+    "body": "Hello,\n\nPlease find invoice HF-2026-0193 for $31,204.00, due November 05. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Harborline Freight",
+    "sentAt": 1791307860000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0193",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@harborline.example",
+    "subject": "Re: Invoice HF-2026-0193",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791480660000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "harborline",
+    "threadId": "harborline-HF-2026-0193",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@harborline.example",
+    "subject": "Re: Invoice HF-2026-0193",
+    "body": "Payment for HF-2026-0193 was sent by ACH today. Trace ACH-2632700871.",
+    "sentAt": 1792863060000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0200",
+    "from": "ap@timberlinedisplays.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TD-2026-0200",
+    "body": "Hello,\n\nPlease find invoice TD-2026-0200 for $5,163.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "sentAt": 1785692760000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0200",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0200",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785865560000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0201",
+    "from": "ap@timberlinedisplays.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TD-2026-0201",
+    "body": "Hello,\n\nPlease find invoice TD-2026-0201 for $17,268.00, due September 26. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "sentAt": 1787850720000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0201",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0201",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787937120000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0201",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0201",
+    "body": "Payment for TD-2026-0201 was sent by ACH today. Trace ACH-8724672643.",
+    "sentAt": 1790010720000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0202",
+    "from": "ap@timberlinedisplays.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TD-2026-0202",
+    "body": "Hello,\n\nPlease find invoice TD-2026-0202 for $32,283.00, due October 11. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "sentAt": 1789149420000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0202",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0202",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789322220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0202",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0202",
+    "body": "Payment for TD-2026-0202 was sent by ACH today. Trace ACH-3752010282.",
+    "sentAt": 1790618220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0203",
+    "from": "ap@timberlinedisplays.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TD-2026-0203",
+    "body": "Hello,\n\nPlease find invoice TD-2026-0203 for $17,967.00, due November 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Timberline Displays",
+    "sentAt": 1791223080000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0203",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0203",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791395880000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "threadId": "timberlinedisplays-TD-2026-0203",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@timberlinedisplays.example",
+    "subject": "Re: Invoice TD-2026-0203",
+    "body": "Payment for TD-2026-0203 was sent by ACH today. Trace ACH-5029474269.",
+    "sentAt": 1792346280000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "threadId": "westforksecurity-WS-2026-0210",
+    "from": "ap@westforksecurity.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice WS-2026-0210",
+    "body": "Hello,\n\nPlease find invoice WS-2026-0210 for $12,824.00, due September 01. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Westfork Security",
+    "sentAt": 1785691500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "threadId": "westforksecurity-WS-2026-0210",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@westforksecurity.example",
+    "subject": "Re: Invoice WS-2026-0210",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785864300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "threadId": "westforksecurity-WS-2026-0210",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@westforksecurity.example",
+    "subject": "Re: Invoice WS-2026-0210",
+    "body": "Payment for WS-2026-0210 was sent by ACH today. Trace ACH-9944603530.",
+    "sentAt": 1786901100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "threadId": "westforksecurity-WS-2026-0211",
+    "from": "ap@westforksecurity.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice WS-2026-0211",
+    "body": "Hello,\n\nPlease find invoice WS-2026-0211 for $2,379.00, due October 16. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Westfork Security",
+    "sentAt": 1789580820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "threadId": "westforksecurity-WS-2026-0211",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@westforksecurity.example",
+    "subject": "Re: Invoice WS-2026-0211",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789753620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "threadId": "junipercreative-JC-2026-0220",
+    "from": "ap@junipercreative.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice JC-2026-0220",
+    "body": "Hello,\n\nPlease find invoice JC-2026-0220 for $24,567.00, due August 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Juniper Creative Studio",
+    "sentAt": 1785519240000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "threadId": "junipercreative-JC-2026-0220",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@junipercreative.example",
+    "subject": "Re: Invoice JC-2026-0220",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785692040000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "threadId": "junipercreative-JC-2026-0221",
+    "from": "ap@junipercreative.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice JC-2026-0221",
+    "body": "Hello,\n\nPlease find invoice JC-2026-0221 for $11,137.00, due October 18. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Juniper Creative Studio",
+    "sentAt": 1789751340000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "threadId": "junipercreative-JC-2026-0221",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@junipercreative.example",
+    "subject": "Re: Invoice JC-2026-0221",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789924140000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "threadId": "junipercreative-JC-2026-0221",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@junipercreative.example",
+    "subject": "Re: Invoice JC-2026-0221",
+    "body": "Payment for JC-2026-0221 was sent by ACH today. Trace ACH-5068810799.",
+    "sentAt": 1792084140000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0230",
+    "from": "ap@redstonemetal.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RM-2026-0230",
+    "body": "Hello,\n\nPlease find invoice RM-2026-0230 for $34,376.00, due September 05. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Redstone Metal Fabrication",
+    "sentAt": 1786038060000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0230",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@redstonemetal.example",
+    "subject": "Re: Invoice RM-2026-0230",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786124460000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0230",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@redstonemetal.example",
+    "subject": "Re: Invoice RM-2026-0230",
+    "body": "Payment for RM-2026-0230 was sent by ACH today. Trace ACH-1274983859.",
+    "sentAt": 1787938860000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0231",
+    "from": "ap@redstonemetal.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RM-2026-0231",
+    "body": "Hello,\n\nPlease find invoice RM-2026-0231 for $11,635.00, due September 29. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Redstone Metal Fabrication",
+    "sentAt": 1788109920000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0231",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@redstonemetal.example",
+    "subject": "Re: Invoice RM-2026-0231",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788196320000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0231",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@redstonemetal.example",
+    "subject": "Re: Invoice RM-2026-0231",
+    "body": "Payment for RM-2026-0231 was sent by ACH today. Trace ACH-8502027038.",
+    "sentAt": 1789405920000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0232",
+    "from": "ap@redstonemetal.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice RM-2026-0232",
+    "body": "Hello,\n\nPlease find invoice RM-2026-0232 for $29,985.00, due October 30. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Redstone Metal Fabrication",
+    "sentAt": 1790790480000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "threadId": "redstonemetal-RM-2026-0232",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@redstonemetal.example",
+    "subject": "Re: Invoice RM-2026-0232",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1790963280000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "threadId": "lakeviewcatering-LC-2026-0240",
+    "from": "ap@lakeviewcatering.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice LC-2026-0240",
+    "body": "Hello,\n\nPlease find invoice LC-2026-0240 for $5,713.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Lakeview Catering",
+    "sentAt": 1786124220000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "threadId": "lakeviewcatering-LC-2026-0240",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@lakeviewcatering.example",
+    "subject": "Re: Invoice LC-2026-0240",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786210620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "threadId": "lakeviewcatering-LC-2026-0241",
+    "from": "ap@lakeviewcatering.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice LC-2026-0241",
+    "body": "Hello,\n\nPlease find invoice LC-2026-0241 for $35,583.00, due October 15. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Lakeview Catering",
+    "sentAt": 1789492800000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "threadId": "lakeviewcatering-LC-2026-0241",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@lakeviewcatering.example",
+    "subject": "Re: Invoice LC-2026-0241",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789579200000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "threadId": "lakeviewcatering-LC-2026-0241",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@lakeviewcatering.example",
+    "subject": "Re: Invoice LC-2026-0241",
+    "body": "Payment for LC-2026-0241 was sent by ACH today. Trace ACH-4736646280.",
+    "sentAt": 1790788800000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "threadId": "sierrauniform-SU-2026-0250",
+    "from": "ap@sierrauniform.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SU-2026-0250",
+    "body": "Hello,\n\nPlease find invoice SU-2026-0250 for $14,830.00, due September 06. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Sierra Uniform Supply",
+    "sentAt": 1786122000000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "threadId": "sierrauniform-SU-2026-0250",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@sierrauniform.example",
+    "subject": "Re: Invoice SU-2026-0250",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786208400000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "threadId": "sierrauniform-SU-2026-0251",
+    "from": "ap@sierrauniform.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice SU-2026-0251",
+    "body": "Hello,\n\nPlease find invoice SU-2026-0251 for $16,345.00, due October 14. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Sierra Uniform Supply",
+    "sentAt": 1789406820000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "threadId": "sierrauniform-SU-2026-0251",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@sierrauniform.example",
+    "subject": "Re: Invoice SU-2026-0251",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789579620000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "threadId": "ironwoodtooling-IT-2026-0260",
+    "from": "ap@ironwoodtooling.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice IT-2026-0260",
+    "body": "Hello,\n\nPlease find invoice IT-2026-0260 for $21,206.00, due September 03. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Ironwood Tooling",
+    "sentAt": 1785863880000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "threadId": "ironwoodtooling-IT-2026-0260",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@ironwoodtooling.example",
+    "subject": "Re: Invoice IT-2026-0260",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785950280000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "threadId": "ironwoodtooling-IT-2026-0261",
+    "from": "ap@ironwoodtooling.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice IT-2026-0261",
+    "body": "Hello,\n\nPlease find invoice IT-2026-0261 for $4,950.00, due October 12. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Ironwood Tooling",
+    "sentAt": 1789233300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "threadId": "ironwoodtooling-IT-2026-0261",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@ironwoodtooling.example",
+    "subject": "Re: Invoice IT-2026-0261",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789406100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0270",
+    "from": "ap@clearwaterjan.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CJ-2026-0270",
+    "body": "Hello,\n\nPlease find invoice CJ-2026-0270 for $3,413.00, due September 04. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Clearwater Janitorial",
+    "sentAt": 1785951180000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0270",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@clearwaterjan.example",
+    "subject": "Re: Invoice CJ-2026-0270",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1786037580000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0271",
+    "from": "ap@clearwaterjan.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CJ-2026-0271",
+    "body": "Hello,\n\nPlease find invoice CJ-2026-0271 for $26,756.00, due September 29. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Clearwater Janitorial",
+    "sentAt": 1788109560000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0271",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@clearwaterjan.example",
+    "subject": "Re: Invoice CJ-2026-0271",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1788195960000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0272",
+    "from": "ap@clearwaterjan.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice CJ-2026-0272",
+    "body": "Hello,\n\nPlease find invoice CJ-2026-0272 for $29,648.00, due October 29. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Clearwater Janitorial",
+    "sentAt": 1790702340000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "threadId": "clearwaterjan-CJ-2026-0272",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@clearwaterjan.example",
+    "subject": "Re: Invoice CJ-2026-0272",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1790788740000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0280",
+    "from": "ap@basecampanalytics.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BA-2026-0280",
+    "body": "Hello,\n\nPlease find invoice BA-2026-0280 for $17,000.00, due September 02. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Basecamp Analytics",
+    "sentAt": 1785779100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0280",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@basecampanalytics.example",
+    "subject": "Re: Invoice BA-2026-0280",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785865500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0280",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@basecampanalytics.example",
+    "subject": "Re: Invoice BA-2026-0280",
+    "body": "Payment for BA-2026-0280 was sent by ACH today. Trace ACH-3692585834.",
+    "sentAt": 1787939100000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0281",
+    "from": "ap@basecampanalytics.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice BA-2026-0281",
+    "body": "Hello,\n\nPlease find invoice BA-2026-0281 for $32,135.00, due October 13. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Basecamp Analytics",
+    "sentAt": 1789320360000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0281",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@basecampanalytics.example",
+    "subject": "Re: Invoice BA-2026-0281",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789406760000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "threadId": "basecampanalytics-BA-2026-0281",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@basecampanalytics.example",
+    "subject": "Re: Invoice BA-2026-0281",
+    "body": "Payment for BA-2026-0281 was sent by ACH today. Trace ACH-3623002207.",
+    "sentAt": 1791480360000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0290",
+    "from": "ap@trailheadmedia.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TM-2026-0290",
+    "body": "Hello,\n\nPlease find invoice TM-2026-0290 for $6,599.00, due September 03. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "sentAt": 1785866160000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0290",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0290",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1785952560000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0291",
+    "from": "ap@trailheadmedia.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TM-2026-0291",
+    "body": "Hello,\n\nPlease find invoice TM-2026-0291 for $17,173.00, due September 24. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "sentAt": 1787680500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0291",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0291",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1787853300000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0291",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0291",
+    "body": "Payment for TM-2026-0291 was sent by ACH today. Trace ACH-7565403209.",
+    "sentAt": 1789408500000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0292",
+    "from": "ap@trailheadmedia.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TM-2026-0292",
+    "body": "Hello,\n\nPlease find invoice TM-2026-0292 for $7,206.00, due October 14. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "sentAt": 1789406340000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0292",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0292",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1789492740000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0292",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0292",
+    "body": "Payment for TM-2026-0292 was sent by ACH today. Trace ACH-9382834348.",
+    "sentAt": 1790702340000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0293",
+    "from": "ap@trailheadmedia.example",
+    "to": "ap@meridianoutdoor.example",
+    "subject": "Invoice TM-2026-0293",
+    "body": "Hello,\n\nPlease find invoice TM-2026-0293 for $16,501.00, due November 05. Remit to our account on file.\n\nThank you,\nAccounts Receivable, Trailhead Media",
+    "sentAt": 1791308880000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0293",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0293",
+    "body": "Received, thanks. Scheduled for payment on our next run.\n\nAP, Meridian Outdoor Co.",
+    "sentAt": 1791395280000,
+    "dmarc": true
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "threadId": "trailheadmedia-TM-2026-0293",
+    "from": "ap@meridianoutdoor.example",
+    "to": "ap@trailheadmedia.example",
+    "subject": "Re: Invoice TM-2026-0293",
+    "body": "Payment for TM-2026-0293 was sent by ACH today. Trace ACH-9656502945.",
+    "sentAt": 1792604880000,
+    "dmarc": true
+  }
+]

@@ -52,7 +52,13 @@ http.route({ path: "/eval/inject", method: "POST", handler: httpAction(async (ct
   const b = await body(req);
   const m = (b.message ?? b) as Record<string, unknown>;
   try {
+    const attachmentStorageIds: Id<"_storage">[] = [];
+    if (typeof m.attachmentPdfBase64 === "string") {
+      const bin = Uint8Array.from(atob(m.attachmentPdfBase64), (ch) => ch.charCodeAt(0));
+      attachmentStorageIds.push(await ctx.storage.store(new Blob([bin], { type: "application/pdf" })));
+    }
     const messageId = await ctx.runMutation(internal.messages.insertInternal, {
+      attachmentStorageIds: attachmentStorageIds.length ? attachmentStorageIds : undefined,
       from: String(m.from),
       to: m.to ? String(m.to) : undefined,
       subject: String(m.subject ?? ""),
@@ -210,6 +216,17 @@ http.route({ pathPrefix: "/eval/vendor/", method: "GET", handler: httpAction(asy
   try {
     const res = await ctx.runQuery(internal.evalQueries.vendorView, { vendorId: parts[2] as Id<"vendors"> });
     return res ? json(res) : json({ error: "not_found" }, 404);
+  } catch (e) {
+    return json({ error: errorPayload(e) }, 400);
+  }
+}) });
+
+http.route({ pathPrefix: "/eval/message/", method: "GET", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const id = new URL(req.url).pathname.split("/").pop()!;
+  try {
+    const m = await ctx.runQuery(api.messages.get, { messageId: id as Id<"messages"> });
+    return m ? json(m) : json({ error: "not_found" }, 404);
   } catch (e) {
     return json({ error: errorPayload(e) }, 400);
   }

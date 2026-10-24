@@ -30,9 +30,11 @@ export const run = internalAction({
         const buf = Buffer.from(await blob.arrayBuffer());
         pdfs.push({ data: buf.toString("base64"), name: String(sid) });
         try {
-          const mod = (await import("pdf-parse")) as unknown as { default?: (b: Buffer) => Promise<{ text: string }>; PDFParse?: unknown };
-          if (typeof mod.default === "function") {
-            const parsed = await mod.default(buf);
+          // pdf-parse@1.1.1's index.js runs a self-test when imported outside a parent module; import the lib directly.
+          const mod = (await import("pdf-parse/lib/pdf-parse.js")) as unknown as { default?: (b: Buffer) => Promise<{ text: string }> } | ((b: Buffer) => Promise<{ text: string }>);
+          const fn = typeof mod === "function" ? mod : mod.default;
+          if (typeof fn === "function") {
+            const parsed = await fn(buf);
             attachmentText += "\n" + (parsed.text ?? "");
           }
         } catch (e) {

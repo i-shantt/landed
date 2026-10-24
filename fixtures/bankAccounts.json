@@ -1,0 +1,162 @@
+[
+  {
+    "vendorSlug": "cleanco",
+    "key": "cleanco_main",
+    "routing": "210905610",
+    "accountNumber": "9246425950",
+    "status": "verified",
+    "firstPaidAt": 1778693580000
+  },
+  {
+    "vendorSlug": "northpeak",
+    "key": "northpeak_main",
+    "routing": "244999838",
+    "accountNumber": "25467154615",
+    "status": "verified",
+    "firstPaidAt": 1782926880000
+  },
+  {
+    "vendorSlug": "graniteridge",
+    "key": "graniteridge_main",
+    "routing": "253366232",
+    "accountNumber": "477040422",
+    "status": "verified",
+    "firstPaidAt": 1784048520000
+  },
+  {
+    "vendorSlug": "bluewatertextiles",
+    "key": "bluewatertextiles_main",
+    "routing": "233419785",
+    "accountNumber": "730695806",
+    "status": "verified",
+    "firstPaidAt": 1782839220000
+  },
+  {
+    "vendorSlug": "summitprint",
+    "key": "summitprint_main",
+    "routing": "252159796",
+    "accountNumber": "59778016",
+    "status": "verified",
+    "firstPaidAt": 1781372580000
+  },
+  {
+    "vendorSlug": "riverbendit",
+    "key": "riverbendit_main",
+    "routing": "304402647",
+    "accountNumber": "6080877294",
+    "status": "verified",
+    "firstPaidAt": 1780336140000
+  },
+  {
+    "vendorSlug": "alderfinch",
+    "key": "alderfinch_main",
+    "routing": "236133916",
+    "accountNumber": "40499440",
+    "status": "verified",
+    "firstPaidAt": 1781544060000
+  },
+  {
+    "vendorSlug": "cascadefleet",
+    "key": "cascadefleet_main",
+    "routing": "111245000",
+    "accountNumber": "53668246",
+    "status": "verified",
+    "firstPaidAt": 1779039660000
+  },
+  {
+    "vendorSlug": "pinecreststaffing",
+    "key": "pinecreststaffing_main",
+    "routing": "290697126",
+    "accountNumber": "37551175652",
+    "status": "verified",
+    "firstPaidAt": 1780161840000
+  },
+  {
+    "vendorSlug": "harborline",
+    "key": "harborline_main",
+    "routing": "323076452",
+    "accountNumber": "563603381362",
+    "status": "verified",
+    "firstPaidAt": 1778002140000
+  },
+  {
+    "vendorSlug": "timberlinedisplays",
+    "key": "timberlinedisplays_main",
+    "routing": "129793780",
+    "accountNumber": "687434645",
+    "status": "verified",
+    "firstPaidAt": 1783705260000
+  },
+  {
+    "vendorSlug": "westforksecurity",
+    "key": "westforksecurity_main",
+    "routing": "027881639",
+    "accountNumber": "1087437961",
+    "status": "verified",
+    "firstPaidAt": 1781459940000
+  },
+  {
+    "vendorSlug": "junipercreative",
+    "key": "junipercreative_main",
+    "routing": "126566318",
+    "accountNumber": "16988295",
+    "status": "verified",
+    "firstPaidAt": 1778260080000
+  },
+  {
+    "vendorSlug": "redstonemetal",
+    "key": "redstonemetal_main",
+    "routing": "065687264",
+    "accountNumber": "656277081192",
+    "status": "verified",
+    "firstPaidAt": 1778175840000
+  },
+  {
+    "vendorSlug": "lakeviewcatering",
+    "key": "lakeviewcatering_main",
+    "routing": "259374781",
+    "accountNumber": "368377830204",
+    "status": "verified",
+    "firstPaidAt": 1779125580000
+  },
+  {
+    "vendorSlug": "sierrauniform",
+    "key": "sierrauniform_main",
+    "routing": "068779849",
+    "accountNumber": "6418510769",
+    "status": "verified",
+    "firstPaidAt": 1777742760000
+  },
+  {
+    "vendorSlug": "ironwoodtooling",
+    "key": "ironwoodtooling_main",
+    "routing": "055423399",
+    "accountNumber": "625799390770",
+    "status": "verified",
+    "firstPaidAt": 1778780460000
+  },
+  {
+    "vendorSlug": "clearwaterjan",
+    "key": "clearwaterjan_main",
+    "routing": "315403745",
+    "accountNumber": "6359485317",
+    "status": "verified",
+    "firstPaidAt": 1778522100000
+  },
+  {
+    "vendorSlug": "basecampanalytics",
+    "key": "basecampanalytics_main",
+    "routing": "078755950",
+    "accountNumber": "36933344",
+    "status": "verified",
+    "firstPaidAt": 1778001600000
+  },
+  {
+    "vendorSlug": "trailheadmedia",
+    "key": "trailheadmedia_main",
+    "routing": "282177230",
+    "accountNumber": "18745312",
+    "status": "verified",
+    "firstPaidAt": 1778953500000
+  }
+]
