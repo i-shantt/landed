@@ -176,13 +176,16 @@ async function prepare(fixture: Fixture): Promise<Prepared> {
 
 /** Internal: reset + seed. which = "minimal" | "full". */
 export const reseedInternal = internalAction({
-  args: { which: v.optional(v.union(v.literal("minimal"), v.literal("full"))) },
-  handler: async (ctx, { which }): Promise<{ deleted: number; vendors: Record<string, string>; accounts: Record<string, string>; invoices: Record<string, string> }> => {
+  args: { which: v.optional(v.union(v.literal("minimal"), v.literal("full"))), demo: v.optional(v.boolean()) },
+  handler: async (ctx, { which, demo }): Promise<{ deleted: number; vendors: Record<string, string>; accounts: Record<string, string>; invoices: Record<string, string>; demoCases?: { caseId: string; label: string }[] }> => {
     const deleted: number = await ctx.runMutation(internal.seed.reset, {});
     const fixture: Fixture = which === "minimal" ? minimalFixture(Date.now()) : rebase(fixtureData as unknown as Fixture, Date.now());
     const prepared = await prepare(fixture);
     const ids: { vendors: Record<string, string>; accounts: Record<string, string>; invoices: Record<string, string> } = await ctx.runMutation(internal.seed.insert, { prepared });
-    return { deleted, ...ids };
+    // Opt-in pre-run demo cases (Settings re-seed and prod-seed pass demo:true; eval/judge do not).
+    let demoCases: { caseId: string; label: string }[] | undefined;
+    if (demo && which !== "minimal") demoCases = await ctx.runAction(internal.seedDemo.createDemoCases, {});
+    return { deleted, ...ids, demoCases };
   },
 });
 
@@ -207,7 +210,7 @@ export function rebase(fx: Fixture & { generatedAt?: number }, now: number): Fix
 export const reseed = action({
   args: {},
   handler: async (ctx): Promise<{ deleted: number }> => {
-    const res = await ctx.runAction(internal.seed.reseedInternal, { which: "full" });
+    const res = await ctx.runAction(internal.seed.reseedInternal, { which: "full", demo: true });
     return { deleted: res.deleted };
   },
 });

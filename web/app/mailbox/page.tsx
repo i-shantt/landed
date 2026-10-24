@@ -14,6 +14,7 @@ import { useVendors, useMessages, useMailboxActions } from "@/lib/hooks";
 import { absTime } from "@/lib/format";
 import { INTAKE_STATUS_LABELS } from "@/lib/labels";
 import { cn } from "@/lib/utils";
+import { Term } from "@/components/landed/Term";
 
 const TEMPLATES: Record<string, { label: string; subject: string; body: string }> = {
   change: { label: "Bank change request", subject: "Updated banking details", body: "Hi, we have changed banks effective this month. Please update our remittance details for all open and future invoices:\nBank: First Harbor Bank\nRouting (ABA): 011000015\nAccount number: 900012345678\nThanks,\nDana, Accounts Receivable" },
@@ -91,7 +92,7 @@ export default function MailboxPage() {
           {messages === undefined ? <Loading /> : threads.length === 0 ? <p className="text-sm text-muted-foreground">No messages.</p> : (
             <ul className="-mx-4 -my-3 max-h-[70vh] divide-y overflow-y-auto">
               <li>
-                <button type="button" onClick={() => setSelectedThread(null)} className={cn("w-full px-4 py-2 text-left text-sm hover:bg-muted", selectedThread === null && "bg-accent")} aria-pressed={selectedThread === null}>
+                <button type="button" onClick={() => setSelectedThread(null)} className={cn("w-full px-4 py-2 text-left text-sm hover:bg-muted", selectedThread === null && "bg-accent")} aria-pressed={selectedThread === null} aria-label="Compose a new message">
                   <span className="font-medium">Compose</span>
                   <span className="block text-xs text-muted-foreground">as the vendor, or as an attacker</span>
                 </button>
@@ -101,7 +102,7 @@ export default function MailboxPage() {
                 const r = (last.intakeResult ?? {}) as Record<string, unknown>;
                 return (
                   <li key={t.id}>
-                    <button type="button" onClick={() => setSelectedThread(t.id)} className={cn("w-full px-4 py-2 text-left text-sm hover:bg-muted", selectedThread === t.id && "bg-accent")} aria-pressed={selectedThread === t.id}>
+                    <button type="button" onClick={() => setSelectedThread(t.id)} className={cn("w-full px-4 py-2 text-left text-sm hover:bg-muted", selectedThread === t.id && "bg-accent")} aria-pressed={selectedThread === t.id} aria-label={`${last.subject}, from ${last.from}`}>
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate font-medium text-slate-900">{last.subject}</span>
                         <span className="shrink-0 font-mono text-[10px] tabular-nums text-muted-foreground">{absTime(last.sentAt)}</span>
@@ -195,7 +196,7 @@ export default function MailboxPage() {
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={dmarc} onChange={(e) => setDmarc(e.target.checked)} />
-                  SPF/DKIM/DMARC pass
+                  <span><Term k="spf_dkim">SPF/DKIM</Term>/<Term k="dmarc">DMARC</Term> pass</span>
                 </label>
                 <Button disabled={busy || !from || !subject} onClick={send}>Send to AP</Button>
               </div>

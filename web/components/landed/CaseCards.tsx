@@ -3,12 +3,14 @@ import { ProbeStateBadge, AccountStatusBadge, ChannelBadge, TrustBadge, LandingB
 import { Section, KV } from "./primitives";
 import { absTime, usd } from "@/lib/format";
 import { rejectLabel } from "@/lib/labels";
+import { Term } from "./Term";
+import type { ReactNode } from "react";
 
 type Probe = { state: string; submittedAt: number; settledAt?: number; availableAt?: number; railRef?: string } | null | undefined;
 
-export function ProbeCard({ probe }: { probe: Probe }) {
+export function ProbeCard({ probe, children }: { probe: Probe; children?: ReactNode }) {
   return (
-    <Section title="Probe deposit" description="Randomized sub-dollar credit, memo ACCTVERIFY. Amount withheld.">
+    <Section title="Probe deposit" description={<>A randomized sub-dollar <Term k="probe">probe</Term> sent over <Term k="ach">ACH</Term>, memo ACCTVERIFY. Only the <Term k="contact_of_record">contact of record</Term> can state the amount; it is withheld here.</>}>
       {probe === undefined ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : probe === null ? (
@@ -23,6 +25,7 @@ export function ProbeCard({ probe }: { probe: Probe }) {
           <KV k="Amount" v={<span className="text-muted-foreground">withheld — only the server compares it</span>} />
         </dl>
       )}
+      {children && <div className="mt-3 border-t pt-3">{children}</div>}
     </Section>
   );
 }
@@ -67,7 +70,7 @@ export type Confirmation = {
 
 export function ConfirmationList({ confirmations }: { confirmations: Confirmation[] | undefined }) {
   return (
-    <Section title="Confirmations" description="Every stated amount that reached us. Only a bound, accepted statement from the contact of record can verify.">
+    <Section title="Confirmations" description={<>Every stated amount that reached us. Only a bound, accepted statement from the <Term k="contact_of_record">contact of record</Term> can verify; email never can.</>}>
       {!confirmations ? (
         <p className="text-sm text-muted-foreground">Loading…</p>
       ) : confirmations.length === 0 ? (
@@ -100,11 +103,11 @@ export function ConfirmationList({ confirmations }: { confirmations: Confirmatio
 
 type Payment = { amountCents: number; rail: string; railRef?: string; sentAt: number; landingState: string; landingDeadlineAt: number; initiatedBy: string } | null | undefined;
 
-export function PaymentCard({ payment, now }: { payment: Payment; now: number }) {
+export function PaymentCard({ payment, now, children }: { payment: Payment; now: number; children?: ReactNode }) {
   if (!payment) return null;
   const left = payment.landingDeadlineAt - now;
   return (
-    <Section title="Payment">
+    <Section title="Payment" description={<>Sent to the verified account. <Term k="landing">Landing</Term> is confirmed by the contact of record or the deadline starts recovery.</>}>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
         <KV k="Amount" v={<span className="font-mono tabular-nums">{usd(payment.amountCents)} · {payment.rail.toUpperCase()}</span>} />
         <KV k="Landing" v={<LandingBadge state={payment.landingState} />} />
@@ -112,6 +115,7 @@ export function PaymentCard({ payment, now }: { payment: Payment; now: number })
         <KV k="Deadline" v={`${absTime(payment.landingDeadlineAt)}${payment.landingState === "pending" && now ? (left > 0 ? ` (${Math.floor(left / 3_600_000)}h ${Math.floor((left % 3_600_000) / 60_000)}m left)` : " (passed)") : ""}`} mono />
         <KV k="Rail ref" v={<span className="break-all">{payment.railRef ?? "pending"}</span>} mono />
       </dl>
+      {children && <div className="mt-3 border-t pt-3">{children}</div>}
     </Section>
   );
 }

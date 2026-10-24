@@ -43,7 +43,7 @@ const evalPost = (handler: (req: Request, b: Record<string, unknown>) => Promise
 http.route({ path: "/eval/reset", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const b = await body(req);
-  const res = await ctx.runAction(internal.seed.reseedInternal, { which: (b.which as "minimal" | "full" | undefined) ?? "full" });
+  const res = await ctx.runAction(internal.seed.reseedInternal, { which: (b.which as "minimal" | "full" | undefined) ?? "full", demo: b.demo === true });
   return json({ ok: true, ...res });
 }) });
 
@@ -274,7 +274,14 @@ http.route({ pathPrefix: "/eval/invoice/", method: "GET", handler: httpAction(as
 
 // TEST-ONLY: exposes the probe amount so the eval harness can script a "correct" vendor statement.
 // Guarded by EVAL_KEY. Documented in README/STATUS. Never used by the UI.
+http.route({ path: "/health", method: "GET", handler: httpAction(async (ctx) => {
+  const s = await ctx.runQuery(api.health.status, {});
+  return json({ ok: true, ...s });
+}) });
+
 http.route({ pathPrefix: "/eval/probeAmount/", method: "GET", handler: httpAction(async (ctx, req) => {
+  // TEST-ONLY. Exists only when EVAL_PROBE_AMOUNT_ENDPOINT=1 is set on the deployment (dev); 404 on prod.
+  if (process.env.EVAL_PROBE_AMOUNT_ENDPOINT !== "1") return json({ error: "not_found" }, 404);
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const id = new URL(req.url).pathname.split("/").pop()!;
   try {

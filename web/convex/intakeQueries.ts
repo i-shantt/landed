@@ -81,6 +81,15 @@ export const flagCaseSenderMismatch = internalMutation({
   },
 });
 
+/** Attachments are evidence for the audit log, never verification: a bank letter proves nothing about control. */
+export const noteAttachments = internalMutation({
+  args: { messageId: v.id("messages"), count: v.number(), textChars: v.number() },
+  handler: async (ctx, { messageId, count, textChars }) => {
+    const m = await ctx.db.get(messageId);
+    await append(ctx, { actor: "agent", type: "attachment_received", payload: { messageId, from: m?.from ?? null, attachments: count, textChars, note: "documents are read for account numbers only; a letter or form never verifies an account" } });
+  },
+});
+
 export const noteUnknownVendor = internalMutation({
   args: { messageId: v.id("messages"), from: v.string(), evidence: v.array(v.string()) },
   handler: async (ctx, { messageId, from, evidence }) => {

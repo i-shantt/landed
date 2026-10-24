@@ -52,6 +52,9 @@ export const run = internalAction({
       }
     }
 
+    if (info.attachmentStorageIds.length) {
+      await ctx.runMutation(internal.intakeQueries.noteAttachments, { messageId, count: info.attachmentStorageIds.length, textChars: attachmentText.length });
+    }
     const fullText = `${info.subject}\n${info.body}\n${attachmentText}`;
     let extraction: Extraction;
     if (mode === "claude" && process.env.ANTHROPIC_API_KEY) {

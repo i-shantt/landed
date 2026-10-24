@@ -77,6 +77,9 @@ export function CaseActions({ caseId, state, openInvoices }: { caseId: Id<"cases
             <Button variant="outline" size="sm" nativeButton={false} render={<Link href={`/cases/${caseId}/package`} />}>Recovery package →</Button>
           )}
         </div>
+        <p className="border-t pt-2 text-xs text-muted-foreground">
+          The agent cannot verify, pay, release, or edit contacts. <Link href="/about#permissions" className="underline">What the agent cannot do →</Link>
+        </p>
       </div>
       <ReasonDialog open={dlg === "review"} onOpenChange={(o) => !o && setDlg(null)} title="Request human review" confirmLabel="Escalate" onConfirm={async (reason) => { await requestReview({ caseId, reason }); }} />
       <ReasonDialog open={dlg === "fraud"} onOpenChange={(o) => !o && setDlg(null)} title="Mark fraud" description="Marks the destination disputed, moves the case to Recovery, and prepares the response package." confirmLabel="Mark fraud" destructive onConfirm={async (reason) => { await markFraud({ caseId, reason }); }} />
@@ -94,7 +97,8 @@ export function SimulateVendorAnswer({ caseId, state }: { caseId: Id<"cases">; s
   const [busy, setBusy] = useState(false);
   if (!settings || (settings.voice ?? "sim") !== "sim") return null;
   const landing = state === "PAID";
-  if (!["AWAITING_CONFIRMATION", "PAID", "PROBE_SENT", "HELD"].includes(state)) return null;
+  // Only meaningful once the vendor can see the probe (AWAITING_CONFIRMATION) or the payment (PAID).
+  if (!["AWAITING_CONFIRMATION", "PAID"].includes(state)) return null;
   return (
     <Section
       className="border-amber-300 bg-amber-50/40"

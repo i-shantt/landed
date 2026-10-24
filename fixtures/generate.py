@@ -113,7 +113,7 @@ for i, (name, domain) in enumerate(VENDOR_NAMES):
     n_inv = rng.randrange(2, 5)
     prefix = "".join(w[0] for w in name.split()[:2]).upper()
     for k in range(n_inv):
-        days_ago = 85 - k * (85 // n_inv) - rng.randrange(0, 8)
+        days_ago = max(12, 85 - k * (85 // n_inv) - rng.randrange(0, 8))  # never in the future relative to seed time
         amount = rng.randrange(180_000, 3_600_000) // 100 * 100
         number = f"{prefix}-2026-{(i * 10 + k + 100):04d}"
         issued = ms(days_ago)

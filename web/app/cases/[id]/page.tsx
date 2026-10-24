@@ -13,6 +13,8 @@ import { CaseActions, SimulateVendorAnswer } from "@/components/landed/CaseActio
 import { ExplainPanel } from "@/components/landed/ExplainPanel";
 import { NessiePanel } from "@/components/landed/NessiePanel";
 import { ExportButton } from "@/components/landed/ExportButton";
+import { FastForward } from "@/components/landed/FastForward";
+import { Term } from "@/components/landed/Term";
 import { captionFor } from "@/lib/captions";
 import { useCase, useCaseEvents, useProbe, useConfirmations, useNow } from "@/lib/hooks";
 import { absTime, countdown } from "@/lib/format";
@@ -69,7 +71,9 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
           )
         }
       >
-        <p className="max-w-3xl text-sm text-slate-800">{caseSummary(c.state, c.humanReason)}</p>
+        <p className="max-w-3xl text-sm text-slate-800">
+          <SummaryWithTerms text={caseSummary(c.state, c.humanReason)} />
+        </p>
         {c.humanReason && c.state === "NEEDS_HUMAN" && (
           <p className="text-sm text-amber-900">Needs a human: <span className="font-medium">{humanReasonLabel(c.humanReason)}</span></p>
         )}
@@ -86,16 +90,16 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
 
         <div className="space-y-4">
           <AccountTable newAccount={c.newAccount} oldAccount={c.oldAccount} amountAtStakeCents={c.amountAtStakeCents} />
-          <ProbeCard probe={probe} />
+          <ProbeCard probe={probe}>{!replay && c.state !== "PAID" ? <FastForward caseId={caseId} state={c.state} /> : null}</ProbeCard>
           <div className="rounded-md border bg-card px-4 py-2.5 text-xs text-slate-700">
             Validation provider: <span className="font-medium">{c.validationProviderResult === "no_coverage" ? "no coverage → probe" : c.validationProviderResult ?? "not consulted (escalated first)"}</span>
           </div>
-          <PaymentCard payment={c.payment} now={now} />
+          <PaymentCard payment={c.payment} now={now}>{!replay && c.state === "PAID" ? <FastForward caseId={caseId} state={c.state} /> : null}</PaymentCard>
+          {!replay && <CaseActions caseId={caseId} state={c.state} openInvoices={c.openInvoices} />}
           <ConfirmationList confirmations={confirmations} />
           {!replay && (
             <>
               <SimulateVendorAnswer caseId={caseId} state={c.state} />
-              <CaseActions caseId={caseId} state={c.state} openInvoices={c.openInvoices} />
               <ExplainPanel caseId={caseId} />
               <NessiePanel caseId={caseId} />
             </>
@@ -104,6 +108,24 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
       </div>
     </div>
   );
+}
+
+/** Wraps the first occurrence of a few jargon words in the summary with hover definitions. */
+function SummaryWithTerms({ text }: { text: string }) {
+  const keys: [RegExp, Parameters<typeof Term>[0]["k"]][] = [[/\bprobe\b/i, "probe"], [/\bcontact of record\b/i, "contact_of_record"], [/\bSLA\b/, "sla"], [/\bACH\b/, "ach"], [/\blanding\b/i, "landing"]];
+  for (const [re, k] of keys) {
+    const m = text.match(re);
+    if (m && m.index !== undefined) {
+      return (
+        <>
+          {text.slice(0, m.index)}
+          <Term k={k}>{m[0]}</Term>
+          {text.slice(m.index + m[0].length)}
+        </>
+      );
+    }
+  }
+  return <>{text}</>;
 }
 
 /** Reads the events once, freezes them, and plays them back at 10x (no live subscription afterwards). */

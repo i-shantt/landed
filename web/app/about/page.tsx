@@ -1,21 +1,10 @@
 "use client";
 import Link from "next/link";
 import { PageHeader, Section } from "@/components/landed/primitives";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PermissionsTable } from "@/components/landed/PermissionsTable";
 import { useEvalRuns } from "@/lib/hooks";
+import { Term } from "@/components/landed/Term";
 
-const PERMISSIONS: [string, string, string, string][] = [
-  ["Read a vendor email and PDF, extract a requested account", "yes", "yes (manual edit)", "every new account starts unverified and opens a case (I2)"],
-  ["Open a case and queue the probe deposit", "yes (via bankAccounts.createUnverified)", "yes", "same"],
-  ["Re-point open invoices to the requested account (held)", "yes", "yes", "invoices follow the request; nothing is payable until verified"],
-  ["Record a stated amount", "only trusted channels (voice of record, portal login); email is stored rejected", "\"Simulate vendor answer\" in sim mode, labeled", "I4"],
-  ["Verify an account (markVerified)", "no", "no (only the bound confirmation does, atomically)", "I3"],
-  ["Pay", "no", "yes, and only to a verified current-version account of that vendor", "I1, fail closed"],
-  ["Exceptional release", "no", "two distinct named approvers + written reason, from NEEDS_HUMAN only", "logged with both names"],
-  ["Edit contacts or account status", "no", "supersede contact; add human-attested record contact", "I5"],
-  ["Draft the recovery package prose", "yes, from deterministic fields; every number verified", "reviews, signs, calls", "fallback to templates"],
-  ["Know the probe amount", "no (not in prompts, tools, events, or public queries)", "no (operator reads the bank statement; test-only endpoint is key-gated)", "I7"],
-];
 
 const REAL = [
   "the Convex engine and the eight invariants (serializable mutations make the release gate and idempotency atomic)",
@@ -54,33 +43,33 @@ export default function AboutPage() {
         <p className="text-sm italic text-slate-800">Fills the payment-verification clerk seat and the first hour of the fraud-response coordinator seat; a human still releases money.</p>
       </PageHeader>
 
+      <div id="permissions" className="scroll-mt-20">
       <Section title="What the agent can and cannot do" description="Permissions as enforced in the database, not as prompt instructions.">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Capability</TableHead>
-                <TableHead>Agent (LLM / intake / package actions)</TableHead>
-                <TableHead>Human (dashboard)</TableHead>
-                <TableHead>Database rule</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {PERMISSIONS.map(([cap, agent, human, rule]) => (
-                <TableRow key={cap}>
-                  <TableCell className="text-sm">{cap}</TableCell>
-                  <TableCell className={agent.startsWith("no") ? "text-sm font-semibold text-red-800" : "text-sm"}>{agent}</TableCell>
-                  <TableCell className="text-sm">{human}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">{rule}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <PermissionsTable />
         <p className="mt-3 text-xs text-muted-foreground">
-          When it asks for a human: wrong or missing vendor statement, bank and contact changed in the same request, SLA expiry with no statement, portal attempts exhausted, validation-provider mismatch, and any landing deadline that passes without the vendor confirming.
+          When it asks for a human: wrong or missing vendor statement, bank and contact changed in the same request, <Term k="sla">SLA</Term> expiry with no statement, portal attempts exhausted, validation-provider mismatch, and any <Term k="landing">landing</Term> deadline that passes without the vendor confirming.
         </p>
       </Section>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Section title="Where Claude could go wrong, and what catches it">
+          <ul className="list-disc space-y-1 pl-5 text-sm">
+            <li>It misses an implicit change buried in a PDF, so the deterministic guard still blocks any unverified destination.</li>
+            <li>It drafts package prose with a wrong number, so every number is checked against the deterministic fields and templates are the fallback.</li>
+            <li>It over-flags a benign email, so a human can reject the change and restore the prior account.</li>
+            <li>It cannot verify anything, because it has no release path: the release gate and the payment guard are database mutations with no LLM input.</li>
+          </ul>
+        </Section>
+        <Section title="How contacts of record are established" description="The one thing the attacker does not control.">
+          <p className="text-sm">
+            A <Term k="contact_of_record">contact of record</Term> is a phone number or portal login captured at onboarding and confirmed by a call placed to a number from the signed contract, never to a number from a request email. Changing it is a separate human-attested step with a written reason; a request that changes the bank account and the contact together goes straight to a human.
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            Built on Convex: schema and indexes, transactional mutations as the security boundary, actions for LLM/rails/channels, scheduler as dispatch, crons for tick, HTTP actions, file storage, real-time subscriptions, convex-test.
+          </p>
+        </Section>
+      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title="What is real">

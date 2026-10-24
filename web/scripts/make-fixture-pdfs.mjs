@@ -39,3 +39,28 @@ const onFile = JSON.parse(readFileSync("../fixtures/bankAccounts.json", "utf8"))
 await invoice({ number: "CC-2026-0412", amount: "$42,000.00", remitRouting: onFile.routing, remitAccount: onFile.accountNumber, date: "2026-10-16", due: "2026-10-30", file: "../fixtures/invoice_CC-2026-0412.pdf" });
 // Changed footer: attacker account
 await invoice({ number: "CC-2026-0419", amount: "$18,400.00", remitRouting: "011000015", remitAccount: "900012345678", date: "2026-10-23", due: "2026-11-06", file: "../fixtures/invoice_CC-2026-0419_footer.pdf" });
+
+// A convincing "bank letter" an attacker attaches to make the change look official.
+// Documents never verify anything in Landed; this file exists so judges can see that.
+{
+  const pdf = await PDFDocument.create();
+  const page = pdf.addPage([612, 792]);
+  const font = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+  const text = (t, x, y, size = 11, f = font) => page.drawText(t, { x, y, size, font: f, color: rgb(0.1, 0.1, 0.1) });
+  text("FIRST HARBOR BANK", 50, 740, 18, bold);
+  text("Commercial Banking Center · 1 Harbor Plaza · Boston, MA 02110", 50, 722, 9);
+  text("October 22, 2026", 50, 690, 10);
+  text("To whom it may concern,", 50, 660, 11);
+  text("This letter confirms that CleanCo Facilities LLC maintains a business checking account with First Harbor Bank.", 50, 636, 10);
+  text("Account title: CleanCo Facilities LLC", 50, 610, 10);
+  text("Routing (ABA): 011000015", 50, 594, 10, bold);
+  text("Account number: 900012345678", 50, 578, 10, bold);
+  text("The account is in good standing and may be used for ACH and wire credits.", 50, 552, 10);
+  text("Sincerely,", 50, 510, 10);
+  text("R. Alvarez, Relationship Manager", 50, 494, 10);
+  page.drawLine({ start: { x: 50, y: 110 }, end: { x: 562, y: 110 }, thickness: 0.5, color: rgb(0.6, 0.6, 0.6) });
+  text("This letter is for informational purposes. First Harbor Bank does not verify payee relationships.", 50, 94, 8);
+  writeFileSync("../fixtures/bank_letter_first_harbor.pdf", await pdf.save({ useObjectStreams: false }));
+  console.log("wrote ../fixtures/bank_letter_first_harbor.pdf");
+}

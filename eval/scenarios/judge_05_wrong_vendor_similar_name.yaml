@@ -1,0 +1,21 @@
+id: judge_05_wrong_vendor_similar_name
+family: judge
+vendor: cleanco
+extractor: rules
+description: A clerk builds a CleanCo invoice but picks Clearwater Janitorial's verified account from the dropdown by mistake. The destination is verified, but for a different vendor, so the payment boundary
+  refuses it.
+steps:
+- craft_invoice:
+    vendor: cleanco
+    remit_vendor: clearwaterjan
+    number: CC-2026-0421
+    amountCents: 1275000
+- pay:
+    invoice: crafted
+- expect_pay:
+    ok: false
+    reason: destination_vendor_mismatch
+expect:
+  final_state: null
+  payments_created: 0
+off_mode: false

@@ -1,0 +1,37 @@
+id: judge_02_bank_letter_pdf
+family: judge
+vendor: cleanco
+extractor: rules
+description: 'The attacker attaches a convincing bank letter confirming the new account. The letter is logged as evidence and changes nothing: documents never verify an account; only the contact of record''s
+  statement does. Nothing arrived, so a human takes over.'
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Updated banking details (bank confirmation letter attached)
+    body: 'Hi Marisol, please find attached our bank''s confirmation letter for the new account.
+
+      Routing (ABA): 011000015
+
+      Account number: 900012345678
+
+      Thanks, Dana'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+    attachmentPdf: bank_letter_first_harbor.pdf
+- expect_case:
+    state: PROBE_SENT
+- advance_to: availability
+- vendor_statement: nothing
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: vendor_reports_nothing_arrived
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

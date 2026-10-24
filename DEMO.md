@@ -77,3 +77,46 @@ Demo vendor: **CleanCo Facilities** (`cleanco.example`), one verified account, o
 ## Portal path (optional, instead of the simulated call)
 
 Settings → **Portal demo: open as vendor** opens `/portal/login` in a second tab. Log in `cleanco` / `landed-demo`. `/portal` lists the open confirmation request for the account ending in the new last four. Click it → "Enter the exact amount Meridian Outdoor Co. deposited to your account ending ... today." Three attempts; a wrong amount from the contact of record escalates the case to NEEDS_HUMAN; the right amount verifies it. The token is never emailed and never shown in the AP dashboard.
+
+---
+
+## Pitches (timed at ~6 s per click plus speech)
+
+### The 2-minute table pitch (target 1:40, 20 s slack)
+
+Tabs: A `/cases` (demo cases visible), B `/judge`. Start on tab A.
+
+| t | Say | Do |
+|---|---|---|
+| 0:00 | "Companies pay vendors to whatever bank account sits in the vendor record. The most expensive AP fraud is a real email, from a real vendor address, saying 'we switched banks.' Landed makes that change unpayable until the vendor's own contact of record reads back a test deposit." | Point at the two-sentence explainer on `/cases`. |
+| 0:15 | "Here is the attack." | Click **Mailbox**. The composer is pre-filled: CleanCo, real address, DMARC pass, bank change. Click **Send to AP**. |
+| 0:25 | "Intake read it, opened a case, re-pointed the $42,000 invoice to the new account, and sent a randomized sub-dollar probe. Watch what happens if the clerk pays now." | Click **Cases** → the CleanCo row. Click **Pay**. Red: *Destination account is not verified for this vendor*. |
+| 0:45 | "Two days pass at the bank." | Click **Fast-forward the bank** in the Probe card. State becomes *Awaiting vendor*; a simulated call is placed to the phone of record. |
+| 0:55 | "The attacker, who is reading the inbox, replies 'we received your deposit.' Email cannot confirm anything." | Tab A → **Mailbox**, template *We received your deposit*, **Send to AP**. Back on the case: Confirmations shows the email as *Ignored: untrusted channel*. |
+| 1:10 | "The real vendor, on the number we verified at onboarding, says nothing arrived." | Simulated vendor answer → *Nothing arrived* → **Submit**. State: *Needs a human*. **Pay** again: refused. |
+| 1:25 | "Now switch the AI off and let a fooled clerk type the account by hand." | Open the Demo cases group: the *Bank and phone changed together* case (no probe, straight to a human), then **Vendors → CleanCo → Edit account**, type 011000015 / 900012345678, **Save**, **Pay**: refused by the database. |
+| 1:40 | "And the honest case: the vendor read the amount back, the invoice was paid, the money landed, closed with no human step." | Demo cases → *Legitimate change: verified, paid, landed*. |
+| 1:50 | "Everything the agent can and cannot call is enforced in the database. Want to try your own scenario?" | **About** (permissions table) or tab B **Judge**. |
+
+If the judge is clearly in a hurry, stop after 1:25 and jump to the last row.
+
+### The 60-second version
+
+| t | Say | Do |
+|---|---|---|
+| 0:00 | "A real email from a real vendor says 'we switched banks.' Landed makes the new account unpayable until the vendor's contact of record reads back a test deposit." | Tab A, demo case *Fraud: nothing arrived, recovery package* already open. |
+| 0:10 | "Here the vendor of record said nothing arrived; the attacker's 'we received it' email was ignored; the clerk's Pay was refused by the server." | Point at the three timeline rows and the red refusal. |
+| 0:30 | "With the AI off, a clerk typing the account by hand gets the same refusal. The honest change goes through with no human step." | Demo cases → *Legitimate change: verified, paid, landed*. |
+| 0:45 | "What the agent can never call is enforced in the database. Run your own scenario on the Judge page." | **About** or **Judge**. |
+
+### The 4-minute version (engaged judge)
+
+The 2-minute pitch, then:
+
+| t | Say | Do |
+|---|---|---|
+| 2:00 | "When the money is already gone, Landed assembles the response in minutes: bank fraud-line script, indemnification letter, IC3 narrative, Kill Chain eligibility, evidence checklist. Claude drafts the prose; every number is checked against the facts." | Demo cases → *Fraud: nothing arrived, recovery package* → **Recovery package →**. |
+| 2:40 | "We measure it. Twenty scripted scenarios, run with the extractor on, off, and through Claude: zero false releases, every fraud blocked, every legitimate change landed." | **Eval**: metrics and the bars. Read the disclaimer sentence aloud. |
+| 3:10 | "Three sentences from the audit log, grounded: nothing in the narration that is not in the events." | Case page → **Explain**. |
+| 3:30 | "Real: the engine, the invariants, the extractors, the portal, the audit log, the eval. Simulated: the bank, time, the vendor's answer, email auth results. Each simulation is labeled where it appears." | **About** → What is real / simulated. |
+| 3:50 | "Your scenario?" | **Judge** → *judge_01 … judge_05*. |

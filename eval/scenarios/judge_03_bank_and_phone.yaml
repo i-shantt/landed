@@ -1,0 +1,27 @@
+id: judge_03_bank_and_phone
+family: judge
+vendor: cleanco
+extractor: rules
+description: The email changes the bank account AND offers a new phone number for verification. That is the classic setup for a fake callback, so the case goes straight to a human with no probe and the
+  invoice stays held.
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Banking and contact update
+    body: 'We have updated our bank: routing 011000015, account 900012345678. Also, I have a new direct phone number, please call me at (415) 555-0199 for any verification instead of the main line. Dana'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: contact_and_bank_changed_together
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0
+off_mode: false

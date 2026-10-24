@@ -1,0 +1,49 @@
+id: judge_01_legit_insistent
+family: judge
+vendor: cleanco
+extractor: rules
+description: 'The vendor is genuinely moving banks and is insistent: ''our old account is closed, pay the new one today.'' Landed still probes; the contact of record reads the amount back the same day;
+  verified and paid with no human step.'
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: 'URGENT: old account closed - please pay the new account today'
+    body: 'Hi Marisol,
+
+
+      Our old account is CLOSED as of today and CC-2026-0412 must go to the new account or it will bounce:
+
+      Routing (ABA): 031000503
+
+      Account number: 55501234567
+
+      Please process today.
+
+
+      Dana Whitfield, CleanCo Facilities'
+    account:
+      routing: '031000503'
+      accountNumber: '55501234567'
+- expect_case:
+    state: PROBE_SENT
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+- advance_to: availability
+- vendor_statement: correct
+- expect_case:
+    state: VERIFIED
+    accountStatus: verified
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: true
+- expect_case:
+    state: PAID
+expect:
+  final_state: PAID
+  payments_created: 1
+  human_actions: 0

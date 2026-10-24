@@ -14,6 +14,9 @@ export function useNow(): number {
 export function useSettings() {
   return useQuery(api.settings.all, {});
 }
+export function useHealth() {
+  return useQuery(api.health.status, {});
+}
 export function useEnvPresence() {
   return useQuery(api.env.presence, {});
 }
@@ -119,4 +122,11 @@ export function useNessieTransfers() {
 }
 export function useDevTools() {
   return { simulateDiscovery: useMutation(api.devTools.simulateDiscovery) };
+}
+
+export function useDemoNextStep(caseId: Id<"cases">) {
+  return useQuery(api.demoControls.nextStep, { caseId });
+}
+export function useFastForward() {
+  return useMutation(api.demoControls.fastForward);
 }

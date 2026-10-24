@@ -1,0 +1,37 @@
+id: judge_04_vendor_silent_two_days
+family: judge
+vendor: cleanco
+extractor: rules
+description: The probe lands but the vendor does not answer for two days. The confirmation window expires, the case goes to a human, the invoice stays held, and nothing is lost.
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Updated banking details
+    body: 'We have changed banks. Please update our remittance details:
+
+      Routing (ABA): 011000015
+
+      Account number: 900012345678
+
+      Thanks, Dana'
+    account:
+      routing: '011000015'
+      accountNumber: '900012345678'
+- advance_to: availability
+- vendor_statement: voicemail
+- expect_case:
+    state: AWAITING_CONFIRMATION
+- advance:
+    hours: 49
+- expect_case:
+    state: NEEDS_HUMAN
+    humanReason: sla_expired
+- pay:
+    invoice: cleanco_open
+- expect_pay:
+    ok: false
+    reason: destination_not_verified
+expect:
+  final_state: NEEDS_HUMAN
+  payments_created: 0

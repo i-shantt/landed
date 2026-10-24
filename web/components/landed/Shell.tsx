@@ -2,7 +2,7 @@
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen, Gavel, Info } from "lucide-react";
+import { FolderKanban, Building2, Inbox, FlaskConical, Settings, Menu, PanelLeftClose, PanelLeftOpen, Gavel, Info, Presentation } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const NAV = [
   { href: "/eval", label: "Eval", icon: FlaskConical },
   { href: "/judge", label: "Judge", icon: Gavel },
   { href: "/about", label: "About", icon: Info },
+  { href: "/pitch", label: "Pitch", icon: Presentation },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -31,6 +32,7 @@ function NavLinks({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?:
             href={href}
             onClick={onNavigate}
             aria-current={active ? "page" : undefined}
+            aria-label={label}
             title={collapsed ? label : undefined}
             className={cn(
               "flex h-8 items-center gap-2 rounded-md px-2 text-sm text-slate-700 hover:bg-muted",
@@ -116,6 +118,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [menu, setMenu] = useState(false);
   if (path?.startsWith("/portal") || path?.startsWith("/confirm")) return <PortalShell>{children}</PortalShell>;
+  // The pitch deck owns the whole viewport (keyboard slides, fullscreen, print one slide per page).
+  if (path?.startsWith("/pitch")) return <TooltipProvider delay={200}>{children}</TooltipProvider>;
   return (
     <TooltipProvider delay={200}>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded focus:bg-card focus:px-2 focus:py-1 focus:text-sm">
