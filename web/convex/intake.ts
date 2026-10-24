@@ -30,12 +30,19 @@ export const run = internalAction({
         const buf = Buffer.from(await blob.arrayBuffer());
         pdfs.push({ data: buf.toString("base64"), name: String(sid) });
         try {
-          // pdf-parse@1.1.1's index.js runs a self-test when imported outside a parent module; import the lib directly.
-          const mod = (await import("pdf-parse/lib/pdf-parse.js")) as unknown as { default?: (b: Buffer) => Promise<{ text: string }> } | ((b: Buffer) => Promise<{ text: string }>);
-          const fn = typeof mod === "function" ? mod : mod.default;
-          if (typeof fn === "function") {
-            const parsed = await fn(buf);
+          // pdf-parse v2 (pdfjs-dist): reads pdf-lib and cupsfilter output alike.
+          // Convex's Node runtime has no DOM globals; pdfjs-dist touches these at import time.
+          const g = globalThis as unknown as Record<string, unknown>;
+          if (!g.DOMMatrix) g.DOMMatrix = class DOMMatrix { a = 1; b = 0; c = 0; d = 1; e = 0; f = 0; constructor(init?: number[]) { if (Array.isArray(init) && init.length >= 6) [this.a, this.b, this.c, this.d, this.e, this.f] = init as [number, number, number, number, number, number]; } };
+          if (!g.ImageData) g.ImageData = class ImageData { constructor(public data: Uint8ClampedArray, public width: number, public height: number) {} };
+          if (!g.Path2D) g.Path2D = class Path2D { addPath() {} moveTo() {} lineTo() {} closePath() {} };
+          const { PDFParse } = await import("pdf-parse");
+          const parser = new PDFParse({ data: buf });
+          try {
+            const parsed = await parser.getText();
             attachmentText += "\n" + (parsed.text ?? "");
+          } finally {
+            await parser.destroy();
           }
         } catch (e) {
           console.warn("[intake] pdf parse failed; skipping attachment text", String(e));

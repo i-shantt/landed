@@ -52,6 +52,9 @@ export function extractWithRules(text: string, opts: { currentRouting?: string; 
     if (digits.length < 5 || digits.length > 17) continue;
     if (routingCands.includes(digits)) continue;
     if (digits.length === 10 && /^\d{10}$/.test(digits) && /(?:\+?1[\s.-]?)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/.test(m[0])) continue; // formatted phone
+    // "(555) 010-0000": the run "010-0000" is the tail of a phone number, not an account.
+    const before = t.slice(Math.max(0, m.index! - 8), m.index!);
+    if (/^\d{3}[\s.-]\d{4}$/.test(m[0]) || /\(\d{3}\)\s?$/.test(before) || /\d{3}[\s.-]$/.test(before)) continue;
     const ctx = t.slice(Math.max(0, m.index! - 200), m.index! + m[0].length + 200);
     if (!/\b(account|acct|a\/c|acc(?:ount)?\s*(?:no|#|number)|beneficiary)\b/i.test(ctx)) continue;
     acctCands.push(digits);
