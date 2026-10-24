@@ -187,6 +187,10 @@ or deadline → RECOVERY]
 
 Redeploy: `cd web && npx convex deploy -y && npx vercel --prod --yes`. Prod env vars: `cd web && node scripts/sync-env.mjs --prod` (reads `.env.local`; `PROD_*` keys are the prod secrets). Re-seed prod: `cd web && node scripts/prod-seed.mjs` (POST `/eval/reset` with the prod `EVAL_KEY`). Smoke test prod: `cd web && node scripts/checkpoint2.mjs --prod`.
 
+## Pages
+
+`/cases` (demo cases + live queue), `/cases/[id]` (timeline, fast-forward, explain, export, replay/autoplay), `/vendors` and `/vendors/[id]`, `/vendors/new` (onboarding with a human-attested contact of record), `/mailbox` (composer, `.eml` upload), `/payment-run` (the week's batch with the guard's decision per line), `/audit` (every event, export, hash chain), `/judge` (run any scenario), `/eval`, `/about` (permissions, real vs simulated), `/pitch` (deck), `/health`, `/settings`, vendor portal (`/portal/login`, `/portal`, `/confirm/[token]`).
+
 ## Layout
 
 `web/` Next.js 16 + Convex (engine in `web/convex/`, tests in `web/tests/`), `eval/` Python runner and scenarios, `fixtures/` deterministic seed data.

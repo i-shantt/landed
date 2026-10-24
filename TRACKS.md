@@ -20,7 +20,7 @@ Status legend: `met` (opened the page or ran the command), `met with caveat`, `g
 
 | Requirement | Where | Status | Notes |
 |---|---|---|---|
-| "Is it real enough? Realistic data, a messy problem, and proof that it works." | `fixtures/` (20 vendors, 62 invoices, 155 thread messages, DMARC results, a real PDF with a footer change); `eval/RESULTS.md`; `/eval` page | met | |
+| "Is it real enough? Realistic data, a messy problem, and proof that it works." | `fixtures/` (20 vendors, 62 invoices, 155 thread messages, DMARC results, real PDFs incl. a bank letter and a footer change, two `.eml` files); `/payment-run` (the week's batch with the guard's decision per line); `/mailbox` accepts a real `.eml`; `eval/RESULTS.md`; `/eval` | met | |
 | "Would you hire it? For which seats… limited access, a clean record of its work, and knowing when to ask?" | Seat line in `README.md`, `DEVPOST.md`, `/about`, `/pitch`; permissions table on `/about#permissions` (linked from every case's Actions card) and slide 5 of `/pitch`; audit timeline + Export on every case; NEEDS_HUMAN paths and SLA expiry (judge_03, judge_04) | met | |
 | "Did we see something new?" | `README.md` → "Prior art and what Landed adds" | met | |
 | "The moment." | Demo A step 8–9 (`DEMO.md`), video 0:00–0:15 in `DEVPOST.md` | met | |
@@ -81,7 +81,8 @@ Status legend: `met` (opened the page or ran the command), `met with caveat`, `g
 
 ## Added in run 3
 
-- Security: `SECURITY.md` (public surface), static tests, portal login lockout, httpOnly/secure/sameSite session cookie, probe-amount endpoint 404 on prod, `/health`.
+- Security: `SECURITY.md` (public surface), static tests, portal login lockout, httpOnly/secure/sameSite session cookie, probe-amount endpoint 404 on prod, `/health`, per-client rate limits on public HTTP actions.
+- Scope: `/payment-run`, `/audit` (hash chain), `.eml` upload, `/vendors/new` onboarding, two payment-run eval scenarios (28 scenarios total).
 - Assets: `assets/screenshots/`, `assets/video/landed-raw.webm`, `assets/video/judge-run.webm`, `assets/pitch.pdf`, `/pitch` in-app deck, `RUNBOOK.md`, `TEAM_ONBOARDING.md`, `JUDGE_QA.md`, `JUDGE_WALKTHROUGH.md`.
 
 ## For the morning (human-only items)

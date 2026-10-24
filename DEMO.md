@@ -120,3 +120,5 @@ The 2-minute pitch, then:
 | 3:10 | "Three sentences from the audit log, grounded: nothing in the narration that is not in the events." | Case page → **Explain**. |
 | 3:30 | "Real: the engine, the invariants, the extractors, the portal, the audit log, the eval. Simulated: the bank, time, the vendor's answer, email auth results. Each simulation is labeled where it appears." | **About** → What is real / simulated. |
 | 3:50 | "Your scenario?" | **Judge** → *judge_01 … judge_05*. |
+
+Optional screens for an engaged judge: **Payment run** (the week's batch with the guard's decision per line; "Run payable" pays only verified lines), **Audit** (every event with filters, CSV/JSON export, hash-chain check), **Mailbox → Upload a real email (.eml)** (bring your own email; auth results come from the headers or say "no authentication results in headers"), **Vendors → Onboard a vendor** (how a contact of record is established).

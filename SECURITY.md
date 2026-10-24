@@ -44,6 +44,18 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 | `judge.run` | runs a scenario (re-seeds first) | demo tool; flag `judgeMode=off` disables |
 | `explain.narrate`, `nessieViewer.transfers`, `discovery.discoverFromWebsite`, `devTools.simulateDiscovery` | read-only / discovered contacts only | discovered contacts can never confirm (I4) |
 
+## Added in run 3 (public)
+
+| Function | Changes | Why safe |
+|---|---|---|
+| `paymentRun.preview` (query) | nothing | read-only `canPay` evaluation; the page's "Run payable" still goes through `payments.send` per line |
+| `audit.events` (query), `audit.chain` (action) | nothing | read-only; the chain is recomputed, never stored |
+| `emlIntake.ingest` (action) | inserts a message and dispatches intake | same path as the Mailbox; auth results are taken from headers or reported absent, never assumed |
+| `onboarding.createVendor`, `attestRecordContact`, `addFirstAccount`, `issuePortalCredential` | vendor, a human-attested record contact (reason ≥ 15 chars, attester named, logged), first account (unverified + case), portal credential (bcrypt) | these are the onboarding steps a human performs; none touches verification or payments |
+| `health.status` (query) / `GET /health` | nothing | key presence as booleans only |
+| `demoControls.fastForward` (mutation) | demo clock | demo-only |
+| Rate limits | `rateLimit.take` (internal) backs `/portal/login` (10/min per client), `/portal/confirm` (30/min), `/eval/inject|pay|manualEdit` (300/min) | token buckets in `settings` (`rl:*`, hidden from `settings.all`) |
+
 ## HTTP actions
 
 `/eval/*` (key-gated): reset, inject, advance, tick, vendorStatement, manualEdit, pay, setting, craftInvoice, createVendor, report, exceptionalRelease, markFraud, portalLogin/Requests/Confirm, overview, case/*, vendor/*, message/*, invoice/*, probeAmount/* (dev only). `/health` (public, no secrets). `/portal/login`, `/portal/confirm` (same rules as the portal mutations). `/vapi/webhook` (records the payload; a statement is accepted only with the case metadata and after the leak check; no key present tonight so nothing can reach it).
