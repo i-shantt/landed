@@ -33,6 +33,7 @@ class Client:
             raise EvalError(f"GET {path} -> {r.status_code} {r.text[:300]}")
         return r.json()
 
+EXTRACTOR_OVERRIDE = None
 HUMAN_ACTIONS = {"exceptional_release", "human_review_requested", "fraud_reported", "change_rejected"}
 
 class Scenario:
@@ -328,7 +329,7 @@ class Scenario:
     def run(self):
         c = self.c
         c.post("/eval/reset", {"which": "full"})
-        c.post("/eval/setting", {"key": "extractorMode", "value": "off" if self.extractor_off else self.spec.get("extractor", "rules")})
+        c.post("/eval/setting", {"key": "extractorMode", "value": "off" if self.extractor_off else (EXTRACTOR_OVERRIDE or self.spec.get("extractor", "rules"))})
         self.vendor = self.resolve_vendor()
         for step in self.spec["steps"]:
             (name, arg), = step.items()
@@ -449,7 +450,10 @@ def main():
     ap.add_argument("--only", nargs="*")
     ap.add_argument("--skip-off", action="store_true", help="skip the extractor-off re-run of fraud scenarios")
     ap.add_argument("--no-report", action="store_true")
+    ap.add_argument("--extractor", choices=["rules", "claude"], help="override every scenario's extractor (e.g. run the suite through Claude)")
     args = ap.parse_args()
+    global EXTRACTOR_OVERRIDE
+    EXTRACTOR_OVERRIDE = args.extractor
     c = Client(args.base, args.key)
     results = []
     for spec in load_scenarios(args.only):
