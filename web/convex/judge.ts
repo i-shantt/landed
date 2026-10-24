@@ -166,7 +166,12 @@ export const run = action({
               await sleep(1500);
               break;
             }
-            const messageId = await ctx.runMutation(internal.messages.insertInternal, { from: String(arg.from), subject: String(arg.subject ?? ""), body: String(arg.body ?? ""), dmarc: arg.dmarc as boolean | undefined, attachmentText: arg.attachmentText as string | undefined, invoice: arg.invoice as { number: string; amountCents: number; dueInDays?: number } | undefined });
+            const attachmentStorageIds: Id<"_storage">[] = [];
+            if (typeof arg.attachmentPdfBase64 === "string") {
+              const bin = Uint8Array.from(atob(arg.attachmentPdfBase64), (ch) => ch.charCodeAt(0));
+              attachmentStorageIds.push(await ctx.storage.store(new Blob([bin], { type: "application/pdf" })));
+            }
+            const messageId = await ctx.runMutation(internal.messages.insertInternal, { from: String(arg.from), subject: String(arg.subject ?? ""), body: String(arg.body ?? ""), dmarc: arg.dmarc as boolean | undefined, attachmentText: arg.attachmentText as string | undefined, attachmentStorageIds: attachmentStorageIds.length ? attachmentStorageIds : undefined, invoice: arg.invoice as { number: string; amountCents: number; dueInDays?: number } | undefined });
             let res: Record<string, unknown> = {};
             for (let k = 0; k < 120; k++) {
               const m = await ctx.runQuery(internal.judge.messageStatus, { messageId });
