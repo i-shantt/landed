@@ -30,10 +30,12 @@ describe("security surface", () => {
     // the public projection never carries the amount
     expect(src["probes.ts"]).toMatch(/getPublic = query[\s\S]*return \{ state: p\.state, submittedAt: p\.submittedAt, settledAt: p\.settledAt, availableAt: p\.availableAt, railRef: p\.railRef \}/);
   });
-  it("trust level 'record' is only written by seed and the human addRecordContact", () => {
+  it("trust level 'record' is only written by seed and the human-attested paths (addRecordContact, onboarding)", () => {
     const hits = Object.entries(src).filter(([, s]) => /trustLevel:\s*"record"/.test(s)).map(([f]) => f).sort();
-    expect(hits).toEqual(["contacts.ts", "seed.ts"]);
+    expect(hits).toEqual(["contacts.ts", "onboarding.ts", "onboardingMutations.ts", "seed.ts"]);
     expect(src["contacts.ts"]).toMatch(/export const addRecordContact = mutation/);
+    // onboarding requires a written reason from a named human
+    expect(src["onboarding.ts"]).toMatch(/reason\.trim\(\)\.length < 15/);
   });
   it("no public mutation patches account status directly outside the documented human actions", () => {
     // files that patch bankAccounts status

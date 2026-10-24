@@ -1,4 +1,4 @@
-# TRACKS.md — compliance audit (2026-10-24, run 2)
+# TRACKS.md — compliance audit (2026-10-24, run 2; updated run 3)
 
 Status legend: `met` (opened the page or ran the command), `met with caveat`, `gap`. Paths are repo-relative; pages are on the deployed app or `http://localhost:3000`.
 
@@ -6,10 +6,10 @@ Status legend: `met` (opened the page or ran the command), `met with caveat`, `g
 
 | Requirement | Where | Status | Notes |
 |---|---|---|---|
-| "Include an image of your project and GitHub repository for any code to be considered." | `DEVPOST.md` lists the three screenshots; repo is this one | met with caveat | Human pushes the repo public and uploads screenshots Saturday. No secrets in git (`.env.local`, `.vercel/` ignored). |
+| "Include an image of your project and GitHub repository for any code to be considered." | `assets/screenshots/*.png` (1600×1000) referenced from `DEVPOST.md`; repo is this one | met with caveat | Human pushes the repo public and uploads. No secrets in git (scan in run 2; `.env.local`, `.vercel/`, `.convex/` ignored). |
 | "All work must be done during the hackathon." | git history starts 2026-10-23 23:5x PT | met | |
 | "three minutes to pitch and two minutes for judges to ask questions" / "prepare a two-minute pitch" | `DEMO.md` (A, B are the pitch), `DEVPOST.md` video structure | met with caveat | Live pitch is a human task. |
-| "You must have a pre-recorded or live demonstration." | `DEMO.md`; replay mode `?replay=1` works offline; deployed app | met | Video to be recorded Saturday (structure in `DEVPOST.md`). |
+| "You must have a pre-recorded or live demonstration." | `assets/video/landed-raw.webm` (raw, no narration) + `assets/video/NARRATION.md`; replay/autoplay works offline; deployed app; `/pitch` deck + `assets/pitch.pdf` | met with caveat | Human records narration or re-records live. |
 | Application: who/what/why | `README.md` → "Who it is for" | met | |
 | Intentionality: intuitive experience, first principles | Phase B redesign; `README.md` invariants | met | |
 | Functionality: live demo free of major bugs; video | Checkpoint 2 click-through (`BUILD_LOG.md` 01:45), `scripts/verify.sh` green | met with caveat | Video pending. |
@@ -21,11 +21,11 @@ Status legend: `met` (opened the page or ran the command), `met with caveat`, `g
 | Requirement | Where | Status | Notes |
 |---|---|---|---|
 | "Is it real enough? Realistic data, a messy problem, and proof that it works." | `fixtures/` (20 vendors, 62 invoices, 155 thread messages, DMARC results, a real PDF with a footer change); `eval/RESULTS.md`; `/eval` page | met | |
-| "Would you hire it? For which seats… limited access, a clean record of its work, and knowing when to ask?" | Seat line in `README.md` and `DEVPOST.md`; permissions table in `README.md` → "What the agent can and cannot do"; in-app on `/about` (Phase C front item); audit timeline on every case; NEEDS_HUMAN paths and SLA expiry | met with caveat | `/about` page is being added tonight (front of Phase C). |
+| "Would you hire it? For which seats… limited access, a clean record of its work, and knowing when to ask?" | Seat line in `README.md`, `DEVPOST.md`, `/about`, `/pitch`; permissions table on `/about#permissions` (linked from every case's Actions card) and slide 5 of `/pitch`; audit timeline + Export on every case; NEEDS_HUMAN paths and SLA expiry (judge_03, judge_04) | met | |
 | "Did we see something new?" | `README.md` → "Prior art and what Landed adds" | met | |
 | "The moment." | Demo A step 8–9 (`DEMO.md`), video 0:00–0:15 in `DEVPOST.md` | met | |
-| "a demo video that opens with their moment" | `DEVPOST.md` video structure | met with caveat | Human records it. |
-| "a live demo at judging (we may ask them to try a scenario of our own)" | Mailbox + Settings clock on the deployed app; `/judge` page (Phase C item 1) | met with caveat | `/judge` one-click runner is Phase C item 1. |
+| "a demo video that opens with their moment" | `assets/video/landed-raw.webm` opens with the captioned autoplay of the fraud case; `NARRATION.md` | met with caveat | Narration pending. |
+| "a live demo at judging (we may ask them to try a scenario of our own)" | `/judge` (26 scenarios incl. five judge scenarios: insistent legit vendor, bank-letter PDF, bank+phone, two-day silence, wrong vendor), Mailbox for free-form emails, one-click Fast-forward on the case page | met | Validated on prod; `RUNBOOK.md` covers the flow. |
 | "one line on the seats their system fills" | `README.md`, `DEVPOST.md` | met | |
 | "proof it works: what's real, what's simulated, and how they know" | `README.md` → "What is real vs. simulated"; Settings page "What is real vs. simulated"; `DEVPOST.md`; `eval/RESULTS.md` | met | |
 
@@ -78,6 +78,11 @@ Status legend: `met` (opened the page or ran the command), `met with caveat`, `g
 | A real problem (lived or talked to someone) | — | gap (human) | Talk to one AP practitioner Saturday (a sponsor-booth finance person counts) and quote them in `DEVPOST.md`. |
 | It works | Checkpoint 2, deployed app | met | |
 | Thoughtful use of Claude; where it could go wrong | `README.md` → "Responsible design" (Where Claude could go wrong); intake extraction from threads and PDFs; package prose with grounding check | met | |
+
+## Added in run 3
+
+- Security: `SECURITY.md` (public surface), static tests, portal login lockout, httpOnly/secure/sameSite session cookie, probe-amount endpoint 404 on prod, `/health`.
+- Assets: `assets/screenshots/`, `assets/video/landed-raw.webm`, `assets/video/judge-run.webm`, `assets/pitch.pdf`, `/pitch` in-app deck, `RUNBOOK.md`, `TEAM_ONBOARDING.md`, `JUDGE_QA.md`, `JUDGE_WALKTHROUGH.md`.
 
 ## For the morning (human-only items)
 

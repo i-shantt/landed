@@ -53,7 +53,18 @@ Wire the voice channel to a real test number and record one call; replace SimRai
 
 ---
 
-## Screenshots to take
+## Screenshots (in `assets/screenshots/`, 1600×1000, taken on production)
+
+- `00-cases-demo-group.png` — `/cases` with the three pre-run demo cases above the live queue.
+- `01-fraud-case-needs-human.png` — the compromised-inbox case in NEEDS_HUMAN: attacker email ignored, nothing arrived, Pay refused.
+- `02-ai-off-pay-refused.png` — extractor off, clerk-entered account, Pay refused by the server.
+- `03-legit-case-landed.png` — the legitimate case: VERIFIED → PAID → LANDED → CLOSED.
+- `04-judge-mid-run.png` — `/judge` running a scenario with the live step list.
+- `05-permissions.png` — `/about#permissions`, what the agent can and cannot call.
+
+Video: `assets/video/landed-raw.webm` (raw take, 1280×800) with `assets/video/NARRATION.md`; `assets/video/judge-run.webm` (20 s of judge mode). Deck: `/pitch` in the app and `assets/pitch.pdf`.
+
+## Screenshots to take (original list)
 
 1. `/cases/[id]` on the compromised-inbox case in state NEEDS_HUMAN: timeline showing the attacker's email "Ignored: came through the untrusted email channel", the "nothing arrived" statement, and the Pay refusal.
 2. `/vendors/[id]` for CleanCo after the AI-off manual edit: new row `probing` v2, edited row `superseded`, invoice `held`, with the case link.

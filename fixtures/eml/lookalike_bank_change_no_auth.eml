@@ -1,0 +1,24 @@
+Return-Path: <billing@c1eanco.example>
+Received: from mail.c1eanco.example (unknown [198.51.100.77])
+	by mx.meridianoutdoor.example with ESMTP id 9QwE2; Fri, 23 Oct 2026 16:40:03 -0700
+From: CleanCo Facilities AR <billing@c1eanco.example>
+Reply-To: billing@c1eanco.example
+To: ap@meridianoutdoor.example
+Subject: URGENT: new remittance account for CleanCo Facilities
+Date: Fri, 23 Oct 2026 16:39:40 -0700
+Message-ID: <f9e8d7@c1eanco.example>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hello,
+
+CleanCo Facilities has moved to a new banking partner. Please remit CC-2026-0412
+and all open invoices to:
+
+Routing (ABA): 026009593
+Account number: 4471100239
+
+This must be processed today to avoid service interruption.
+
+Regards,
+Billing, CleanCo Facilities

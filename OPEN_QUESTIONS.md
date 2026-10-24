@@ -32,3 +32,13 @@ Assumptions made and integrations not completed, with the reason.
 - **Judge mode:** `convex/judge.ts` re-implements the eval runner's steps server-side and streams progress through an `evalRuns` row (no new table; schema frozen). Each run re-seeds the database first, like the CLI runner. Validated on custom and bundled scenarios (see BUILD_LOG).
 - **Explain panel:** Claude narration with `max_tokens: 3000` and `effort: low` (thinking tokens count against `max_tokens` on claude-sonnet-5-5; 400 produced an empty text block). Grounding check skips sentence-initial capitalized words; numbers and mid-sentence proper nouns must appear in the facts.
 - **Vercel deployment protection:** preview deployment URLs require Vercel login; the production alias `https://landed-blue.vercel.app` is public (verified with curl and in Chrome).
+
+## Run 3 (2026-10-24, 03:50 → )
+- **Rollback record** is in `STATUS.md` (Vercel `dpl_BqExTbLvAaYDGC8GvY441xR2GqVR`, Convex functions at git `aec7deb`).
+- **Demo cases on reset** are built by driving the real engine (`convex/seedDemo.ts`), which advances the demo clock to Monday ~15:30 PT so the legit case can land. The live demo's new probe therefore queues for Tuesday's first ACH window; Fast-forward still makes it one click. Opt-in via `{demo:true}` so the eval runner and judge mode keep their timings.
+- **Probe-amount endpoint**: now 404 unless `EVAL_PROBE_AMOUNT_ENDPOINT=1` on the deployment (dev only; `sync-env.mjs` never copies it to prod). Consequence: `eval/runner.py` cannot run `vendor_statement: correct` against prod; use judge mode on prod (it reads the amount server-side) or the local deployment.
+- **Portal session cookie** is now set by Next route handlers (`web/app/api/portal/*`) as httpOnly/secure/sameSite=lax; the portal pages poll those routes instead of subscribing through the Convex client (no live updates on the portal, by design).
+- **Login lockout state** lives in `settings` (`portalLock:<username>`) because the schema is frozen; `settings.all` filters those keys out.
+- **Hash chain** on `/audit` is computed on read (client and server) over the stored event order; `events` is unchanged.
+- **Simulated provider coverage (G6)**: the provider is called inside the frozen `cases.open` without a ctx, so a `settings` flag cannot be read there. If implemented, it must be an env flag (`SIMULATE_PROVIDER_COVERAGE=1`) on the deployment plus a fixture list; documented as such.
+- **ffmpeg** is not installed; the demo video is `.webm` only.

@@ -90,6 +90,13 @@ export const noteAttachments = internalMutation({
   },
 });
 
+export const noteEml = internalMutation({
+  args: { messageId: v.id("messages"), fileName: v.string(), authPresent: v.boolean(), raw: v.union(v.string(), v.null()), replyTo: v.union(v.string(), v.null()), attachments: v.number() },
+  handler: async (ctx, a) => {
+    await append(ctx, { actor: "vendor", type: "eml_ingested", payload: { messageId: a.messageId, fileName: a.fileName, authenticationResults: a.authPresent ? a.raw : "no authentication results in headers", replyTo: a.replyTo, attachments: a.attachments } });
+  },
+});
+
 export const noteUnknownVendor = internalMutation({
   args: { messageId: v.id("messages"), from: v.string(), evidence: v.array(v.string()) },
   handler: async (ctx, { messageId, from, evidence }) => {
