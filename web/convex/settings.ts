@@ -30,7 +30,7 @@ export const all = query({
     const out: Record<string, string> = {};
     for (const r of rows) {
       // Never expose simulated vendor statements (they may contain a probe amount).
-      if (r.key.startsWith("simVendorStatement:")) continue;
+      if (r.key.startsWith("simVendorStatement:") || r.key.startsWith("portalLock:") || r.key.startsWith("rl:") || r.key.startsWith("nessie:ref:")) continue;
       out[r.key] = r.value;
     }
     return out;

@@ -4,6 +4,14 @@ import { httpAction } from "./_generated/server";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ConvexError } from "convex/values";
+import { clientKey } from "./rateLimit";
+
+// Rate limits (token buckets in settings): portal login 10/min per client, portal confirm 30/min per client,
+// eval endpoints 300/min global (keyed callers; protects prod from runaway scripts).
+async function limited(ctx: Parameters<Parameters<typeof httpAction>[0]>[0], req: Request, bucket: string, capacity: number, refillPerSec: number) {
+  const r = await ctx.runMutation(internal.rateLimit.take, { bucket: `${bucket}:${clientKey(req)}`, capacity, refillPerSec });
+  return r.ok ? null : json({ ok: false, error: { code: "rate_limited", retryAfterMs: r.retryAfterMs } }, 429);
+}
 
 const http = httpRouter();
 
@@ -49,6 +57,7 @@ http.route({ path: "/eval/reset", method: "POST", handler: httpAction(async (ctx
 
 http.route({ path: "/eval/inject", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  { const rl = await limited(ctx, req, "eval", 300, 300 / 60); if (rl) return rl; }
   const b = await body(req);
   const m = (b.message ?? b) as Record<string, unknown>;
   try {
@@ -113,6 +122,7 @@ http.route({ path: "/eval/vendorStatement", method: "POST", handler: httpAction(
 
 http.route({ path: "/eval/manualEdit", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  { const rl = await limited(ctx, req, "eval", 300, 300 / 60); if (rl) return rl; }
   const b = await body(req);
   try {
     const res = await ctx.runAction(api.bankAccounts.manualEdit, { vendorId: b.vendorId as Id<"vendors">, routing: String(b.routing), accountNumber: String(b.accountNumber), replacesAccountId: b.replacesAccountId ? (b.replacesAccountId as Id<"bankAccounts">) : undefined });
@@ -124,6 +134,7 @@ http.route({ path: "/eval/manualEdit", method: "POST", handler: httpAction(async
 
 http.route({ path: "/eval/pay", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  { const rl = await limited(ctx, req, "eval", 300, 300 / 60); if (rl) return rl; }
   const b = await body(req);
   try {
     const res = await ctx.runMutation(api.payments.send, { invoiceId: b.invoiceId as Id<"invoices">, initiatedBy: String(b.initiatedBy ?? "eval"), rail: (b.rail as "ach" | "wire" | undefined) ?? "ach" });
@@ -301,6 +312,7 @@ http.route({ path: "/vapi/webhook", method: "POST", handler: httpAction(async (c
 
 // ---- Vendor portal (Next.js route handlers call these) ----
 http.route({ path: "/portal/login", method: "POST", handler: httpAction(async (ctx, req) => {
+  const rl = await limited(ctx, req, "portal-login", 10, 10 / 60); if (rl) return rl;
   const b = await body(req);
   try {
     const res = await ctx.runAction(api.portalAuth.login, { username: String(b.username ?? ""), password: String(b.password ?? "") });
@@ -311,6 +323,7 @@ http.route({ path: "/portal/login", method: "POST", handler: httpAction(async (c
 }) });
 
 http.route({ path: "/portal/confirm", method: "POST", handler: httpAction(async (ctx, req) => {
+  const rl = await limited(ctx, req, "portal-confirm", 30, 30 / 60); if (rl) return rl;
   const b = await body(req);
   try {
     const res = await ctx.runMutation(internal.channels.portal.confirmInternal, { sessionToken: String(b.sessionToken ?? ""), token: String(b.token ?? ""), statedAmountCents: typeof b.statedAmountCents === "number" ? b.statedAmountCents : null });

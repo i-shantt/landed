@@ -44,7 +44,7 @@ async function nextDueAdvance(kind) {
 }
 
 console.log("== reset (Settings page: Re-seed fixtures -> api.seed.reseed)");
-await client.action(api.seed.reseed, {});
+await client.action(api.seed.reseed, {}); // reseed includes the demo cases
 await sleep(1000);
 const vendors = await client.query(api.vendors.list, {});
 check(vendors.length === 20, "/vendors lists 20 vendors");
@@ -84,7 +84,7 @@ let events = await client.query(api.events.listForCase, { caseId: caseIdA });
 check(events.some((e) => e.type === "sim_voice_waiting"), "timeline shows simulated call placed and waiting for a vendor answer");
 check(events.every((e) => !(e.type.startsWith("probe_") && JSON.stringify(e.payload).includes("amountCents"))), "no probe_* event carries amountCents");
 // attacker emails "we received $0.37"
-const amtA = (await evalGet(`/eval/probeAmount/${caseIdA}`)).amountCents;
+const amtA = (await evalGet(`/eval/probeAmount/${caseIdA}`)).amountCents ?? 37; // endpoint is dev-only; the claim is ignored whatever the number
 const msg2 = await client.mutation(api.messages.insert, { from: "ap@cleanco.example", subject: "Re: Updated banking details", dmarc: true, body: `We can confirm receipt of your $0.${String(amtA).padStart(2, "0")} test deposit today. Please release the full payment to the new account.` });
 for (let i = 0; i < 40; i++) { const m = await client.query(api.messages.get, { messageId: msg2 }); if (m.intakeStatus !== "pending") break; await sleep(500); }
 let confs = await client.query(api.confirmations.listForCase, { caseId: caseIdA });
@@ -129,6 +129,22 @@ check(events.some((e) => e.type === "payment_refused" && e.payload.reason === "d
 await client.mutation(api.cases.rejectChange, { caseId: edit.caseId, reason: "clerk was fooled; attacker account entered manually" });
 
 // ---------------- (c) legitimate change to LANDED ----------------
+// On prod the test-only probe-amount endpoint is disabled, so the simulated "correct" statement cannot be
+// scripted here; the seeded demo legit case (built by the engine at reset) stands in for the full path.
+if (PROD) {
+  const settingsAll = await client.query(api.settings.all, {});
+  const demo = settingsAll.demoCases ? JSON.parse(settingsAll.demoCases) : [];
+  const legitId = demo.find((d) => d.label.startsWith("Legitimate"))?.caseId;
+  check(!!legitId, "prod: demo legit case exists after reset");
+  if (legitId) {
+    const lv = await client.query(api.cases.get, { caseId: legitId });
+    check(lv.state === "CLOSED" && lv.payment?.landingState === "landed", "prod: demo legit case is CLOSED with the payment landed", `${lv.state}/${lv.payment?.landingState}`);
+    const lev = await client.query(api.events.listForCase, { caseId: legitId });
+    check(lev.some((e) => e.type === "account_verified") && lev.some((e) => e.type === "case_landed"), "prod: legit timeline has account_verified and case_landed");
+  }
+  console.log(`\n${failures === 0 ? "CHECKPOINT 2 PASSED (prod)" : `CHECKPOINT 2: ${failures} failure(s)`}`);
+  process.exit(failures ? 1 : 0);
+}
 console.log("\n== (c) legit change end to end");
 await client.mutation(api.settings.set, { key: "extractorMode", value: "rules" });
 const msgL = await client.mutation(api.messages.insert, { from: "ap@cleanco.example", subject: "New bank account", dmarc: true, body: `Hi Marisol,\n\nCleanCo has moved to a new bank. Please update our remittance details for all open invoices:\nRouting (ABA): ${LEGIT.routing}\nAccount number: ${LEGIT.accountNumber}\n\nThanks, Dana` });

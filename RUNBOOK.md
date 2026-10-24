@@ -39,6 +39,14 @@ Settings → Rail → `nessie`, then send a bank-change email (or edit an accoun
 
 Tab B `/judge`: pick one of the five **Judge scenarios** (insistent legit vendor, bank letter PDF, bank+phone change, two-day silence, wrong vendor) or any eval scenario → **Run**. It re-seeds (demo cases vanish; re-seed with `demo` afterwards), runs every step, and streams the timeline. Or let them type an email in the Mailbox with any account number: the case opens, Pay is refused, Fast-forward, Simulate vendor answer → their choice.
 
+## Other screens worth having open
+
+- `/payment-run`: the week's batch with the guard's decision per invoice; "Run payable" pays only the verified lines (the Microsoft/Hyphenate "real enough" screen).
+- `/audit`: every event across cases with filters, CSV/JSON export, and the hash-chain check.
+- `/vendors/new`: how a contact of record is established (human-attested step with a reason).
+- `/pitch`: the seven talking slides (arrow keys, `f` fullscreen, `?` keys); `assets/pitch.pdf` is the same deck.
+- `/health`: if anything looks stuck.
+
 ## Redeploy (last-minute fix)
 
 ```bash
