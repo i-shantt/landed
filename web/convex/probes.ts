@@ -122,7 +122,8 @@ export async function markSettled(ctx: MutationCtx, probeId: Id<"probes">) {
   if (!p || p.state !== "submitted") return;
   const t = await now(ctx);
   await ctx.db.patch(probeId, { state: "settled", settledAt: t });
-  await append(ctx, { caseId: p.caseId, actor: "rail", type: "probe_settled", payload: { probeId } });
+  const owner = await ctx.db.get(p.caseId);
+  if (owner && owner.state !== "CLOSED") await append(ctx, { caseId: p.caseId, actor: "rail", type: "probe_settled", payload: { probeId } });
   if (p.railRef) await ctx.scheduler.runAfter(0, internal.rails.sim.setEntryState, { railRef: p.railRef, state: "settled" });
 }
 
@@ -131,9 +132,9 @@ export async function markAvailable(ctx: MutationCtx, probeId: Id<"probes">) {
   if (!p || p.state === "available" || p.state === "returned") return;
   const t = await now(ctx);
   await ctx.db.patch(probeId, { state: "available", availableAt: t, settledAt: p.settledAt ?? t });
-  await append(ctx, { caseId: p.caseId, actor: "rail", type: "probe_available", payload: { probeId } });
-  if (p.railRef) await ctx.scheduler.runAfter(0, internal.rails.sim.setEntryState, { railRef: p.railRef, state: "available" });
   const c = await ctx.db.get(p.caseId);
+  if (c && c.state !== "CLOSED") await append(ctx, { caseId: p.caseId, actor: "rail", type: "probe_available", payload: { probeId } });
+  if (p.railRef) await ctx.scheduler.runAfter(0, internal.rails.sim.setEntryState, { railRef: p.railRef, state: "available" });
   if (!c || c.state !== "PROBE_SENT" || c.probeId !== probeId) return;
   const slaAt = t + 24 * HOUR;
   await ctx.db.patch(c._id, { slaDeadlineAt: slaAt });

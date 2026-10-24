@@ -163,8 +163,8 @@ const msgF = await client.mutation(api.messages.insert, { from: "ap@northpeak.ex
 let mF;
 for (let i = 0; i < 40; i++) { mF = await client.query(api.messages.get, { messageId: msgF }); if (mF.intakeStatus !== "pending") break; await sleep(500); }
 await client.mutation(api.cases.markFraud, { caseId: mF.intakeResult.caseId, reason: "vendor called: they never sent this" });
-await sleep(2500);
-const pkg = await client.query(api.package.getForCase, { caseId: mF.intakeResult.caseId });
+let pkg = null;
+for (let i = 0; i < 45 && !pkg; i++) { await sleep(2000); pkg = await client.query(api.package.getForCase, { caseId: mF.intakeResult.caseId }); } // Claude prose can take a while
 check(pkg && pkg.fields.sections && Object.keys(pkg.fields.sections).length >= 5, "/cases/[id]/package has sections", pkg ? Object.keys(pkg.fields.sections).join(", ") : "none");
 view = await client.query(api.cases.get, { caseId: mF.intakeResult.caseId });
 check(view.state === "RECOVERY" && view.newAccount.status === "disputed", "Mark fraud -> RECOVERY, account disputed");

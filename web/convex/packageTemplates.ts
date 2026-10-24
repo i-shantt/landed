@@ -120,8 +120,45 @@ export function templateSections(f: PackageFields): Record<string, string> {
   };
 }
 
-export async function renderMarkdown(fields: PackageFields): Promise<{ markdown: string; prose: "template" | "claude" }> {
+/** Every number in the prose must appear in the deterministic fields; otherwise the template wins. */
+export function proseNumbersAreGrounded(prose: string, f: PackageFields): boolean {
+  const allowed = new Set<string>();
+  const add = (v: unknown) => {
+    if (v === null || v === undefined) return;
+    for (const m of String(v).matchAll(/\d[\d,]*\.?\d*/g)) allowed.add(m[0].replace(/,/g, ""));
+  };
+  for (const v of Object.values(f)) if (typeof v !== "object") add(v);
+  // Reference facts the prose may legitimately cite (Kill Chain threshold, recovery windows, IC3 figures).
+  for (const ref of ["50000", "50", "72", "24", "48", "56", "146.6", "3.05", "2025", "24768", "100"]) allowed.add(ref);
+  add(f.amountCents); add(f.hoursSincePayment);
+  if (f.amountCents !== null) { add((f.amountCents / 100).toFixed(2)); add(String(Math.round(f.amountCents / 100))); }
+  for (const e of f.timeline) add(e.atText);
+  // List markers ("1." / "2)") at the start of a line are formatting, not facts.
+  const scan = prose.replace(/^\s*\d{1,2}[.)]\s/gm, "");
+  for (const m of scan.matchAll(/\d[\d,]*\.?\d*/g)) {
+    const n = m[0].replace(/,/g, "").replace(/\.$/, "");
+    if (!allowed.has(n) && !allowed.has(n.replace(/\.0+$/, ""))) {
+      console.warn(`[package] prose rejected: number ${m[0]} is not in the deterministic fields`);
+      return false;
+    }
+  }
+  return true;
+}
+
+export async function renderMarkdown(fields: PackageFields, claudeSections?: Record<string, string> | null): Promise<{ markdown: string; prose: "template" | "claude" }> {
   const sections = templateSections(fields);
+  let prose: "template" | "claude" = "template";
+  if (claudeSections) {
+    let ok = true;
+    for (const k of ["Bank fraud-line script", "Indemnification letter draft", "IC3 narrative"]) {
+      const text = claudeSections[k];
+      if (!text || !proseNumbersAreGrounded(text, fields)) { ok = false; break; }
+    }
+    if (ok) {
+      for (const k of ["Bank fraud-line script", "Indemnification letter draft", "IC3 narrative"]) sections[k] = claudeSections[k];
+      prose = "claude";
+    }
+  }
   fields.sections = sections;
   const header = [
     `# Recovery package: ${fields.vendorName} (case ${fields.caseId})`,
@@ -132,5 +169,5 @@ export async function renderMarkdown(fields: PackageFields): Promise<{ markdown:
     ``,
   ].join("\n");
   const body = Object.entries(sections).map(([k, v]) => `## ${k}\n\n${v}\n`).join("\n");
-  return { markdown: header + body, prose: "template" };
+  return { markdown: header + body, prose };
 }

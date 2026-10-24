@@ -26,6 +26,9 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
   const supersede = useMutation(api.contacts.supersede);
   const addRecord = useMutation(api.contacts.addRecordContact);
   const manualEdit = useAction(api.bankAccounts.manualEdit);
+  const discover = useAction(api.discovery.discoverFromWebsite);
+  const [discovering, setDiscovering] = useState(false);
+  const [discoverMsg, setDiscoverMsg] = useState<string | null>(null);
 
   const [editing, setEditing] = useState<{ accountId: Id<"bankAccounts">; last4: string } | null>(null);
   const [routing, setRouting] = useState("");
@@ -42,6 +45,7 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
   if (v === null) return <p className="text-sm text-red-700">Vendor not found.</p>;
   const accountById = new Map(v.accounts.map((a) => [a._id, a]));
 
+  const recordPhones = new Set(v.contacts.filter((c) => c.kind === "phone" && c.trustLevel === "record" && !c.supersededAt).map((c) => c.value));
   return (
     <div className="space-y-5">
       <div>
@@ -68,8 +72,29 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
       <Card>
         <CardHeader>
           <CardTitle>Contacts</CardTitle>
-          <CardDescription>Only a contact of record, reached on its established channel, can confirm a probe.</CardDescription>
-          <CardAction>
+          <CardDescription>
+            Only a contact of record, reached on its established channel, can confirm a probe.
+            {discoverMsg && <span className="block mt-1 text-amber-800">{discoverMsg}</span>}
+          </CardDescription>
+          <CardAction className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={discovering}
+              onClick={async () => {
+                setDiscovering(true);
+                try {
+                  const r = await discover({ vendorId });
+                  setDiscoverMsg(r.ok ? `Discovered ${r.phones?.length ?? 0} phone number(s) from the website (cross-check only).` : `Discovery skipped: ${r.reason}`);
+                } catch (e) {
+                  setDiscoverMsg(errorMessage(e));
+                } finally {
+                  setDiscovering(false);
+                }
+              }}
+            >
+              Discover from website (Apify)
+            </Button>
             <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
               Add record contact (prototype: human-attested)
             </Button>
@@ -90,7 +115,14 @@ export default function VendorPage({ params }: { params: Promise<{ id: string }>
               {v.contacts.map((c) => (
                 <TableRow key={c._id}>
                   <TableCell>{c.kind}</TableCell>
-                  <TableCell className="font-mono text-sm">{c.value}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {c.value}
+                    {c.trustLevel === "discovered" && c.kind === "phone" && (
+                      <span className={`ml-2 text-xs ${recordPhones.has(c.value) ? "text-green-700" : "text-amber-700"}`}>
+                        {recordPhones.has(c.value) ? "matches the phone of record" : "differs from the phone of record"}
+                      </span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <TrustBadge level={c.trustLevel} superseded={!!c.supersededAt} />
                     {c.supersededAt && <span className="ml-2 text-xs text-muted-foreground">at {absTime(c.supersededAt)}</span>}

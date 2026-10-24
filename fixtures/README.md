@@ -10,3 +10,4 @@ Deterministic seed data for Landed. Regenerate with `python3 fixtures/generate.p
 - `messages.json`: 2–3 messages per invoice thread, DMARC pass.
 
 `web/convex/fixtureData.json` is the combined file bundled into Convex. Timestamps are relative to `generatedAt` and shifted to seed time by `seed.ts`.
+- `invoice_CC-2026-0419_footer.pdf`: a real one-page PDF (text layer) whose remit-to footer carries the attacker account; used by compromised_inbox_02 and the mailbox demo.

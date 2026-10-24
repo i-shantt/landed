@@ -181,6 +181,17 @@ http.route({ path: "/eval/exceptionalRelease", method: "POST", handler: httpActi
   }
 }) });
 
+http.route({ path: "/eval/markFraud", method: "POST", handler: httpAction(async (ctx, req) => {
+  if (!authorized(req)) return json({ error: "unauthorized" }, 401);
+  const b = await body(req);
+  try {
+    await ctx.runMutation(api.cases.markFraud, { caseId: b.caseId as Id<"cases">, reason: String(b.reason ?? "eval: marked fraud") });
+    return json({ ok: true });
+  } catch (e) {
+    return json({ ok: false, error: errorPayload(e) }, 400);
+  }
+}) });
+
 http.route({ path: "/eval/portalLogin", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const b = await body(req);

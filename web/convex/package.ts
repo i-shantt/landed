@@ -56,7 +56,15 @@ export const generate = internalAction({
     const info = await ctx.runQuery(internal.package.context, { caseId });
     if (!info) return;
     const fields = buildFields(info);
-    const { markdown, prose } = await renderMarkdown(fields);
+    let claudeSections: Record<string, string> | null = null;
+    if (process.env.ANTHROPIC_API_KEY) {
+      try {
+        claudeSections = await ctx.runAction(internal.packageProse.draft, { fields });
+      } catch (e) {
+        console.warn("[package] claude prose failed; using templates", String(e));
+      }
+    }
+    const { markdown, prose } = await renderMarkdown(fields, claudeSections);
     await ctx.runMutation(internal.package.save, { caseId, fields, markdown, thenRecovery, prose });
   },
 });

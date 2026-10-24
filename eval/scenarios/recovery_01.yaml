@@ -1,0 +1,23 @@
+id: recovery_01
+family: recovery
+vendor: cleanco
+extractor: rules
+off_mode: false
+steps:
+- inject:
+    from: ap@cleanco.example
+    dmarc: true
+    subject: Updated banking details
+    body: "We have changed banks effective this month. Please update our remittance details:\nRouting (ABA): 011000015\nAccount number: 900012345678\nThanks, Dana"
+    account: {routing: '011000015', accountNumber: '900012345678'}
+- advance_to: availability
+- vendor_statement: nothing
+- expect_case: {state: NEEDS_HUMAN}
+- mark_fraud: {reason: "vendor of record saw no deposit and never requested a change"}
+- expect_case: {state: RECOVERY, accountStatus: disputed}
+- expect_package: {}
+- pay: {invoice: cleanco_open}
+- expect_pay: {ok: false, reason: destination_disputed}
+expect:
+  final_state: RECOVERY
+  payments_created: 0
