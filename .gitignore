@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+*.log
+.env
+.env.local
+.env*.local
+web/.env.local
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+eval/.venv/
+web/convex/_generated/
+.claude/settings.local.json
+/tmp/
