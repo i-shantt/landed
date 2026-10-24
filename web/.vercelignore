@@ -1,0 +1,7 @@
+.convex
+.next
+node_modules
+tests
+.env.local
+.env*.local
+scripts/checkpoint2.mjs

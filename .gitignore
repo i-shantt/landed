@@ -15,3 +15,5 @@ web/convex/_generated/
 .claude/settings.local.json
 /tmp/
 .vercel/
+.convex/
+web/.convex/
