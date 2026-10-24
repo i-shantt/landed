@@ -8,6 +8,7 @@ import { execSync } from "node:child_process";
 
 const env = Object.fromEntries(readFileSync(".env.local", "utf8").split("\n").filter((l) => l.includes("=") && !l.startsWith("#")).map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
 const LOCAL = process.argv.includes("--local");
+const SHOTS_ONLY = process.argv.includes("--screenshots-only");
 const argBase = process.argv.indexOf("--base");
 const BASE = argBase > 0 ? process.argv[argBase + 1] : LOCAL ? "http://localhost:3000" : "https://landed-blue.vercel.app";
 const SITE = LOCAL ? env.NEXT_PUBLIC_CONVEX_SITE_URL : env.PROD_CONVEX_SITE_URL;
@@ -34,7 +35,7 @@ const marks = [];
 const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), label]); console.log(`[${marks.at(-1)[0]}s] ${label}`); };
 
 // ---------- Take 1: the continuous demo video ----------
-{
+if (!SHOTS_ONLY) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, recordVideo: { dir: VID, size: { width: 1280, height: 800 } }, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
   await page.goto(`${BASE}/cases`, { waitUntil: "networkidle" });
@@ -80,7 +81,8 @@ const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), lab
   mark("take 1 end");
 }
 
-// ---------- Screenshots at 1600x1000 ----------
+// ---------- Screenshots at 1600x1000 (extractor back to claude so the header reads as the demo does) ----------
+await post("/eval/setting", { key: "extractorMode", value: "claude" });
 {
   const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
   const page = await ctx.newPage();
@@ -96,7 +98,7 @@ const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), lab
 }
 
 // ---------- Take 2: /judge running a scenario (~20 s) + mid-run screenshot ----------
-{
+if (!SHOTS_ONLY) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, recordVideo: { dir: VID, size: { width: 1280, height: 800 } } });
   const page = await ctx.newPage();
   await page.goto(`${BASE}/judge`, { waitUntil: "networkidle" });
@@ -111,11 +113,11 @@ const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), lab
 await browser.close();
 
 // name the videos: newest two webm files in VID
-const vids = readdirSync(VID).filter((f) => f.endsWith(".webm") && !f.startsWith("landed-") && !f.startsWith("judge-")).map((f) => ({ f, t: statSync(`${VID}/${f}`).mtimeMs })).sort((a, b) => a.t - b.t);
+const vids = SHOTS_ONLY ? [] : readdirSync(VID).filter((f) => f.endsWith(".webm") && !f.startsWith("landed-") && !f.startsWith("judge-")).map((f) => ({ f, t: statSync(`${VID}/${f}`).mtimeMs })).sort((a, b) => a.t - b.t);
 if (vids.length >= 2) { renameSync(`${VID}/${vids[0].f}`, `${VID}/landed-raw.webm`); renameSync(`${VID}/${vids[1].f}`, `${VID}/judge-run.webm`); }
 else if (vids.length === 1) renameSync(`${VID}/${vids[0].f}`, `${VID}/landed-raw.webm`);
 let mp4 = "ffmpeg not found; .webm only";
-try { execSync("ffmpeg -version", { stdio: "ignore" }); execSync(`ffmpeg -y -i ${VID}/landed-raw.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart ${VID}/landed-raw.mp4`, { stdio: "ignore", timeout: 10 * 60 * 1000 }); mp4 = "landed-raw.mp4 written"; } catch {}
+if (!SHOTS_ONLY) try { execSync("ffmpeg -version", { stdio: "ignore" }); execSync(`ffmpeg -y -i ${VID}/landed-raw.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart ${VID}/landed-raw.mp4`, { stdio: "ignore", timeout: 10 * 60 * 1000 }); mp4 = "landed-raw.mp4 written"; } catch {}
 console.log(`[record] ${mp4}`);
 console.log("[record] marks:\n" + marks.map(([t, l]) => `  ${t}s ${l}`).join("\n"));
 await post("/eval/setting", { key: "extractorMode", value: "claude" });

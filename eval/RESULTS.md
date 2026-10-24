@@ -1,6 +1,6 @@
 # Eval results
 
-Base: `http://127.0.0.1:3211`. Generated 2026-10-24 04:09 PDT.
+Base: `http://127.0.0.1:3211`. Generated 2026-10-24 04:31 PDT.
 
 | scenario | family | expected | actual | passed |
 |---|---|---|---|---|
@@ -41,6 +41,8 @@ Base: `http://127.0.0.1:3211`. Generated 2026-10-24 04:09 PDT.
 | misdirection_03 | misdirection | `{"final_state": "VERIFIED", "payments_created": 0}` | `{"final_state": "VERIFIED", "payments_created": 0, "account_status": "verified", "humanReason": null}` | PASS |
 | misdirection_04 | misdirection | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "sla_expired"}` | PASS |
 | misdirection_05 | misdirection | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "vendor_reports_nothing_arrived"}` | PASS |
+| paymentrun_01_held_line_blocked | paymentrun | `{"final_state": "PROBE_SENT", "payments_to_new_destination": 0}` | `{"final_state": "PROBE_SENT", "payments_created": 0, "account_status": "probing", "humanReason": null}` | PASS |
+| paymentrun_02_verified_then_payable | paymentrun | `{"final_state": "PAID", "human_actions": 0}` | `{"final_state": "PAID", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
 | recovery_01 | recovery | `{"final_state": "RECOVERY", "payments_created": 0}` | `{"final_state": "RECOVERY", "payments_created": 0, "account_status": "disputed", "humanReason": "vendor of record saw no deposit and never requested a change"}` | PASS |
 
 ## Metrics (reported, not targeted)
@@ -52,8 +54,8 @@ Base: `http://127.0.0.1:3211`. Generated 2026-10-24 04:09 PDT.
 - Missed instruction changes by the extractor: **0**
 - Unresolved by non-response (SLA expired or vendor reports nothing arrived): **24**
 - Manual interventions per scenario: mean 0.00, max 0
-- Time to hold (wall-clock, from inject/edit to case): median 525.5 ms, max 539 ms
-- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 57.4 h
-- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 57.4 h
+- Time to hold (wall-clock, from inject/edit to case): median 534.0 ms, max 544 ms
+- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 57.0 h
+- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 57.0 h
 
-These are results on these 38 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
+These are results on these 40 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
