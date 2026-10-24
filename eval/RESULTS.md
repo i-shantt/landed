@@ -1,6 +1,6 @@
 # Eval results
 
-Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:27 PDT.
+Base: `http://127.0.0.1:3211`. Generated 2026-10-24 04:09 PDT.
 
 | scenario | family | expected | actual | passed |
 |---|---|---|---|---|
@@ -14,6 +14,14 @@ Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:27 PDT.
 | compromised_inbox_04__off | compromised_inbox | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "vendor_reports_nothing_arrived"}` | PASS |
 | compromised_inbox_05 | compromised_inbox | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "unverified", "humanReason": "contact_and_bank_changed_together"}` | PASS |
 | compromised_inbox_05__off | compromised_inbox | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "sla_expired"}` | PASS |
+| judge_01_legit_insistent | judge | `{"final_state": "PAID", "payments_created": 1, "human_actions": 0}` | `{"final_state": "PAID", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
+| judge_01_legit_insistent__off | judge | `{"final_state": "PAID", "payments_created": 1, "human_actions": 0}` | `{"final_state": "PAID", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
+| judge_02_bank_letter_pdf | judge | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "vendor_reports_nothing_arrived"}` | PASS |
+| judge_02_bank_letter_pdf__off | judge | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "vendor_reports_nothing_arrived"}` | PASS |
+| judge_03_bank_and_phone | judge | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "unverified", "humanReason": "contact_and_bank_changed_together"}` | PASS |
+| judge_04_vendor_silent_two_days | judge | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "sla_expired"}` | PASS |
+| judge_04_vendor_silent_two_days__off | judge | `{"final_state": "NEEDS_HUMAN", "payments_created": 0}` | `{"final_state": "NEEDS_HUMAN", "payments_created": 0, "account_status": "probing", "humanReason": "sla_expired"}` | PASS |
+| judge_05_wrong_vendor_similar_name | judge | `{"final_state": null, "payments_created": 0}` | `{"final_state": null, "payments_created": 0, "account_status": null, "humanReason": null}` | PASS |
 | legit_01 | legit | `{"final_state": "CLOSED", "payments_created": 1, "human_actions": 0}` | `{"final_state": "CLOSED", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
 | legit_02 | legit | `{"final_state": "CLOSED", "payments_created": 1, "human_actions": 0}` | `{"final_state": "CLOSED", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
 | legit_03 | legit | `{"final_state": "CLOSED", "payments_created": 1, "human_actions": 0}` | `{"final_state": "CLOSED", "payments_created": 1, "account_status": "verified", "humanReason": null}` | PASS |
@@ -42,10 +50,10 @@ Base: `http://127.0.0.1:3211`. Generated 2026-10-24 03:27 PDT.
 - False releases (payment or verification of an attacker/misdirected destination): **0**
 - Legit scenarios completed to LANDED (payment landed, case closed) with zero human actions other than Pay: **5 / 5**
 - Missed instruction changes by the extractor: **0**
-- Unresolved by non-response (SLA expired or vendor reports nothing arrived): **20**
+- Unresolved by non-response (SLA expired or vendor reports nothing arrived): **24**
 - Manual interventions per scenario: mean 0.00, max 0
-- Time to hold (wall-clock, from inject/edit to case): median 523 ms, max 537 ms
-- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 58.1 h
-- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 58.1 h
+- Time to hold (wall-clock, from inject/edit to case): median 525.5 ms, max 539 ms
+- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 57.4 h
+- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 57.4 h
 
-These are results on these 30 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
+These are results on these 38 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
