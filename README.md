@@ -180,6 +180,13 @@ or deadline → RECOVERY]
     EV[(events: append-only, redacted)] -.- CASE & PR & CF & GATE & PAY & PKG
 ```
 
+## Deployed
+
+- App (Vercel, production): https://landed-blue.vercel.app
+- Backend (Convex production): https://tremendous-malamute-864.convex.cloud (HTTP actions: https://tremendous-malamute-864.convex.site)
+
+Redeploy: `cd web && npx convex deploy -y && npx vercel --prod --yes`. Prod env vars: `cd web && node scripts/sync-env.mjs --prod` (reads `.env.local`; `PROD_*` keys are the prod secrets). Re-seed prod: `cd web && node scripts/prod-seed.mjs` (POST `/eval/reset` with the prod `EVAL_KEY`). Smoke test prod: `cd web && node scripts/checkpoint2.mjs --prod`.
+
 ## Layout
 
 `web/` Next.js 16 + Convex (engine in `web/convex/`, tests in `web/tests/`), `eval/` Python runner and scenarios, `fixtures/` deterministic seed data.

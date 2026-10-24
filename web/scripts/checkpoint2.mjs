@@ -7,9 +7,12 @@ import { anyApi } from "convex/server";
 import { readFileSync } from "node:fs";
 
 const env = Object.fromEntries(readFileSync(".env.local", "utf8").split("\n").filter((l) => l.includes("=") && !l.startsWith("#")).map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim().split(" #")[0].trim()]; }));
-const URL = env.NEXT_PUBLIC_CONVEX_URL;
-const SITE = env.NEXT_PUBLIC_CONVEX_SITE_URL;
-const EVAL_KEY = env.EVAL_KEY || "dev";
+// --prod runs against the production deployment using PROD_* values from .env.local
+const PROD = process.argv.includes("--prod");
+const URL = PROD ? env.PROD_CONVEX_URL : env.NEXT_PUBLIC_CONVEX_URL;
+const SITE = PROD ? env.PROD_CONVEX_SITE_URL : env.NEXT_PUBLIC_CONVEX_SITE_URL;
+const EVAL_KEY = (PROD ? env.PROD_EVAL_KEY : env.EVAL_KEY) || "dev";
+console.log(`target: ${URL}`);
 const client = new ConvexHttpClient(URL);
 const api = anyApi;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
