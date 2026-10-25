@@ -104,7 +104,7 @@ export default function PaymentRunPage() {
             disabled={busy || payable.length === 0}
             onClick={() => setConfirm(true)}
           >
-            {busy ? "Running…" : `Review payments (${payable.length})`}
+            {busy ? "Running…" : `Run payable (${payable.length})`}
           </Button>
         }
       />
