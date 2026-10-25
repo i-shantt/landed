@@ -23,7 +23,12 @@ export function assistantLeakedAmount(turns: Turn[]): boolean {
 export function parseVapiMessage(msg: Record<string, unknown>): { kind: string; stated?: number | null; reached?: boolean; notes?: string; turns: Turn[]; caseId?: string; contactId?: string; mode?: string; paymentId?: string } {
   const kind = String(msg.type ?? "");
   const call = (msg.call ?? {}) as Record<string, unknown>;
-  const metadata = (call.metadata ?? msg.metadata ?? {}) as Record<string, unknown>;
+  // Current Vapi shape: the assistant (with our metadata) is echoed on every server message and on the call.
+  const assistantMeta = ((msg.assistant as Record<string, unknown> | undefined)?.metadata ?? (call.assistant as Record<string, unknown> | undefined)?.metadata ?? ((call.assistantOverrides as Record<string, unknown> | undefined)?.metadata)) as Record<string, unknown> | undefined;
+  const metadata: Record<string, unknown> = { ...((call.metadata as Record<string, unknown>) ?? {}), ...((msg.metadata as Record<string, unknown>) ?? {}), ...(assistantMeta ?? {}) };
+  // Last resort: the call name is `landed:<caseId>:<mode>` (buildCallBody).
+  const nm = typeof call.name === "string" ? /^landed:([^:]+):(probe|landing)$/.exec(call.name) : null;
+  if (!metadata.caseId && nm) { metadata.caseId = nm[1]; metadata.mode = nm[2]; }
   const artifact = (msg.artifact ?? {}) as Record<string, unknown>;
   const turns = ((artifact.messages ?? msg.messages ?? []) as Turn[]).filter((t) => t && typeof t === "object");
   let stated: number | null | undefined;

@@ -310,8 +310,14 @@ http.route({ pathPrefix: "/eval/probeAmount/", method: "GET", handler: httpActio
 
 // ---- Vapi webhook (section 6.12). Implemented in Tier 3; records the payload shape until then. ----
 http.route({ path: "/vapi/webhook", method: "POST", handler: httpAction(async (ctx, req) => {
-  const b = await body(req);
+  const b = (await body(req)) as Record<string, unknown>;
   await ctx.runAction(internal.channels.vapiWebhook.handle, { payload: b });
+  // A `tool-calls` message expects {results:[{name, toolCallId, result}]} so the assistant can continue.
+  const m = ((b as { message?: Record<string, unknown> }).message ?? b) as Record<string, unknown>;
+  const list = (m.toolCallList ?? []) as { id?: string; function?: { name?: string } }[];
+  if (m.type === "tool-calls" && list.length) {
+    return json({ results: list.map((tc) => ({ name: tc.function?.name ?? "recordStatedAmount", toolCallId: tc.id ?? "", result: "Recorded. Thank the person and end the call." })) });
+  }
   return json({ ok: true });
 }) });
 

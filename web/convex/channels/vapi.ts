@@ -4,20 +4,40 @@
 // stating or guessing any amount. The webhook (channels/vapiWebhook.ts) runs a leak
 // check on the assistant's turns before any statement is recorded.
 //
-// Status: written against the public Vapi REST shape (POST https://api.vapi.ai/call
-// with an inline `assistant`, server-url webhooks delivering `end-of-call-report` and
-// `tool-calls` messages). No VAPI_API_KEY was available during the build, so this path
-// is NOT verified against the live service. See OPEN_QUESTIONS.md.
+// Request shape checked against Vapi's OpenAPI spec (https://api.vapi.ai/api-json) on 2026-10-24:
+// POST https://api.vapi.ai/call with an inline `assistant` whose webhooks go to `assistant.server.url`
+// (`end-of-call-report`, `tool-calls`); the case binding rides on `assistant.metadata`.
 import type { ActionCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { internal } from "../_generated/api";
 import type { ConfirmationChannel } from "./types";
 
-export function allowedTestNumbers(): Set<string> {
-  return new Set((process.env.TEST_PHONE_NUMBERS ?? "").split(",").map((s) => s.trim()).filter(Boolean));
+/** E.164 normalization: "(555) 010-0000", "555-010-0000", "1 555 010 0000", "+1 555 010 0000" all become "+15550100000". */
+export function normalizePhone(raw: string): string | null {
+  const s = (raw ?? "").trim();
+  const digits = s.replace(/\D/g, "");
+  if (!digits) return null;
+  if (s.startsWith("+")) return digits.length >= 8 ? `+${digits}` : null;
+  if (digits.length === 10) return `+1${digits}`;
+  if (digits.length === 11 && digits.startsWith("1")) return `+${digits}`;
+  return digits.length >= 8 ? `+${digits}` : null;
 }
 
-export function buildAssistant(args: { companyName: string; vendorName: string; mode: "probe" | "landing"; expectedPaymentAmountCents?: number; serverUrl: string }) {
+/** The dialing allow-list, normalized, so formatting differences never cause a refusal or an unintended match. */
+export function allowedTestNumbers(): Set<string> {
+  return new Set((process.env.TEST_PHONE_NUMBERS ?? "").split(",").map((s) => normalizePhone(s)).filter((x): x is string => !!x));
+}
+
+// Vapi validates the Anthropic model name against its own list (claude-sonnet-5, claude-haiku-5-5, ...);
+// ANTHROPIC_MODEL (claude-sonnet-5-5, used by intake) is not on it, so the voice model is chosen separately.
+export const VAPI_MODEL_DEFAULT = "claude-sonnet-5";
+export function vapiModel(): string {
+  return process.env.VAPI_MODEL ?? VAPI_MODEL_DEFAULT;
+}
+
+export type VapiCallMetadata = { caseId: string; contactId: string; mode: "probe" | "landing"; paymentId?: string | null };
+
+export function buildAssistant(args: { companyName: string; vendorName: string; mode: "probe" | "landing"; expectedPaymentAmountCents?: number; serverUrl: string; metadata?: VapiCallMetadata }) {
   const landing = args.mode === "landing";
   const expected = landing && args.expectedPaymentAmountCents !== undefined ? `$${(args.expectedPaymentAmountCents / 100).toFixed(2)}` : undefined;
   const system = [
@@ -34,11 +54,12 @@ export function buildAssistant(args: { companyName: string; vendorName: string; 
     firstMessage: `Hello, this is the accounts payable team at ${args.companyName} calling about ${landing ? "confirming a payment we sent" : "verifying a deposit to your bank account"}. Do you have a moment?`,
     model: {
       provider: "anthropic",
-      model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5",
+      model: vapiModel(),
       messages: [{ role: "system", content: system }],
       tools: [
         {
           type: "function",
+          async: false,
           function: {
             name: "recordStatedAmount",
             description: "Record what the vendor said arrived in their account. Call exactly once.",
@@ -54,15 +75,33 @@ export function buildAssistant(args: { companyName: string; vendorName: string; 
           },
           server: { url: args.serverUrl },
         },
+        { type: "endCall" },
       ],
     },
-    serverUrl: args.serverUrl,
+    // Current Vapi API: webhooks go to `server.url` (the old top-level `serverUrl` and `endCallFunctionEnabled`
+    // are no longer accepted and make POST /call return 400); the call itself has no metadata field, so the
+    // case binding travels on the assistant's metadata and comes back on every server message.
+    server: { url: args.serverUrl },
     serverMessages: ["end-of-call-report", "tool-calls"],
-    endCallFunctionEnabled: true,
     maxDurationSeconds: 180,
   };
-  if (process.env.CARTESIA_VOICE_ID) assistant.voice = { provider: "cartesia", voiceId: process.env.CARTESIA_VOICE_ID };
+  if (args.metadata) assistant.metadata = args.metadata;
+  if (process.env.CARTESIA_VOICE_ID) {
+    const voice: Record<string, unknown> = { provider: "cartesia", voiceId: process.env.CARTESIA_VOICE_ID };
+    if (process.env.CARTESIA_MODEL) voice.model = process.env.CARTESIA_MODEL;
+    assistant.voice = voice;
+  }
   return assistant;
+}
+
+/** The exact POST https://api.vapi.ai/call body. Exported so a test can pin the shape. */
+export function buildCallBody(args: { phoneNumberId: string; toNumber: string; vendorName: string; assistant: Record<string, unknown>; metadata: VapiCallMetadata }) {
+  return {
+    name: `landed:${args.metadata.caseId}:${args.metadata.mode}`,
+    phoneNumberId: args.phoneNumberId,
+    customer: { number: args.toNumber, name: args.vendorName },
+    assistant: args.assistant,
+  };
 }
 
 export class VapiVoice implements ConfirmationChannel {
@@ -71,10 +110,12 @@ export class VapiVoice implements ConfirmationChannel {
   async initiate(args: { caseId: string; contact: Doc<"contacts">; mode: "probe" | "landing"; expectedPaymentAmountCents?: number; paymentId?: string }) {
     const caseId = args.caseId as Id<"cases">;
     const allowed = allowedTestNumbers();
-    if (!allowed.has(args.contact.value)) {
-      await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_refused", payload: { reason: "number_not_in_TEST_PHONE_NUMBERS", contactId: args.contact._id } });
+    const toNumber = normalizePhone(args.contact.value);
+    if (!toNumber || !allowed.has(toNumber)) {
+      await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_refused", payload: { reason: "number_not_in_TEST_PHONE_NUMBERS", contactId: args.contact._id, allowListSize: allowed.size } });
       return;
     }
+    const metadata: VapiCallMetadata = { caseId, contactId: args.contact._id, mode: args.mode, paymentId: args.paymentId ?? null };
     const apiKey = process.env.VAPI_API_KEY;
     const phoneNumberId = process.env.VAPI_PHONE_NUMBER_ID;
     const siteUrl = process.env.CONVEX_SITE_URL;
@@ -82,9 +123,10 @@ export class VapiVoice implements ConfirmationChannel {
     if (dryRun) {
       // Build the exact request, redact it, record it, do not dial. Flip VAPI_DRY_RUN off to go live.
       const info = await this.ctx.runQuery(internal.channels.vapiMutations.names, { caseId });
-      const assistant = buildAssistant({ companyName: info?.companyName ?? "the company", vendorName: info?.vendorName ?? "the vendor", mode: args.mode, expectedPaymentAmountCents: args.mode === "landing" ? args.expectedPaymentAmountCents : undefined, serverUrl: `${siteUrl ?? "https://<convex-site>"}/vapi/webhook` });
+      const assistant = buildAssistant({ companyName: info?.companyName ?? "the company", vendorName: info?.vendorName ?? "the vendor", mode: args.mode, expectedPaymentAmountCents: args.mode === "landing" ? args.expectedPaymentAmountCents : undefined, serverUrl: `${siteUrl ?? "https://<convex-site>"}/vapi/webhook`, metadata });
       const leak = args.mode === "probe" && /\$?\d+\.\d{2}/.test(JSON.stringify(assistant));
-      const request = { phoneNumberId: phoneNumberId ? "<set>" : "<unset>", customer: { number: args.contact.value.replace(/\d(?=\d{4})/g, "*") }, assistant: { ...assistant, model: { ...(assistant.model as object), messages: "[system prompt, " + JSON.stringify((assistant.model as { messages: { content: string }[] }).messages[0].content).length + " chars]" } }, metadata: { caseId, contactId: args.contact._id, mode: args.mode } };
+      const full = buildCallBody({ phoneNumberId: phoneNumberId ? "<set>" : "<unset>", toNumber, vendorName: info?.vendorName ?? "the vendor", assistant, metadata });
+      const request = { ...full, customer: { ...full.customer, number: toNumber.replace(/\d(?=\d{4})/g, "*") }, assistant: { ...assistant, model: { ...(assistant.model as object), messages: "[system prompt, " + JSON.stringify((assistant.model as { messages: { content: string }[] }).messages[0].content).length + " chars]" } } };
       await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_dry_run", payload: { request, assistantContainsAmount: leak, apiKeyPresent: !!apiKey, note: "VAPI_DRY_RUN=1: request built and logged, nothing dialed" } });
       return;
     }
@@ -93,22 +135,18 @@ export class VapiVoice implements ConfirmationChannel {
       return;
     }
     const info = await this.ctx.runQuery(internal.channels.vapiMutations.names, { caseId });
-    const assistant = buildAssistant({ companyName: info?.companyName ?? "the company", vendorName: info?.vendorName ?? "the vendor", mode: args.mode, expectedPaymentAmountCents: args.mode === "landing" ? args.expectedPaymentAmountCents : undefined, serverUrl: `${siteUrl}/vapi/webhook` });
+    const assistant = buildAssistant({ companyName: info?.companyName ?? "the company", vendorName: info?.vendorName ?? "the vendor", mode: args.mode, expectedPaymentAmountCents: args.mode === "landing" ? args.expectedPaymentAmountCents : undefined, serverUrl: `${siteUrl}/vapi/webhook`, metadata });
     // Belt and braces: the assistant config must never contain a sub-dollar amount.
     if (args.mode === "probe" && /\$?\d+\.\d{2}/.test(JSON.stringify(assistant))) throw new Error("refusing to dial: assistant config contains an amount");
     const res = await fetch("https://api.vapi.ai/call", {
       method: "POST",
       headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        phoneNumberId,
-        customer: { number: args.contact.value },
-        assistant,
-        metadata: { caseId, contactId: args.contact._id, mode: args.mode, paymentId: args.paymentId ?? null },
-      }),
+      body: JSON.stringify(buildCallBody({ phoneNumberId, toNumber, vendorName: info?.vendorName ?? "the vendor", assistant, metadata })),
     });
     const text = await res.text();
     if (!res.ok) {
-      await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_failed", payload: { status: res.status, body: text.slice(0, 300) } });
+      // Redacted: Vapi error bodies echo field names, never the key; the dialed number is not included.
+      await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_failed", payload: { status: res.status, body: text.slice(0, 300), hint: res.status === 401 ? "API key" : res.status === 400 ? "request shape: phone number id, customer number, or assistant config" : res.status === 402 || res.status === 403 ? "credits or number restrictions" : "see Vapi dashboard" } });
       return;
     }
     const call = JSON.parse(text) as { id?: string };
