@@ -1,54 +1,193 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { PageHeader, Loading, EmptyState } from "@/components/landed/primitives";
+import {
+  ArrowUpRight,
+  Search,
+  X,
+  Plus,
+  Building2,
+  CircleCheck,
+  Minus,
+} from "lucide-react";
+import { Loading } from "@/components/landed/primitives";
 import { useVendors } from "@/lib/hooks";
 import { absDate } from "@/lib/format";
 
 export default function VendorsPage() {
   const vendors = useVendors();
-  const router = useRouter();
-  const [q, setQ] = useState("");
-  const rows = (vendors ?? []).filter((v) => !q || v.name.toLowerCase().includes(q.toLowerCase()) || v.domain.includes(q.toLowerCase()));
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState("all");
+  const needle = query.trim().toLowerCase();
+  const rows = (vendors ?? []).filter(
+    (v) =>
+      (!needle || `${v.name} ${v.domain}`.toLowerCase().includes(needle)) &&
+      (filter === "all" ||
+        (filter === "open"
+          ? v.openCases > 0
+          : v.verifiedCount < v.accountCount)),
+  );
   return (
-    <div className="space-y-4">
-      <PageHeader title="Vendors" description="Contacts of record and versioned bank accounts." actions={<><Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search vendors…" aria-label="Search vendors" className="h-8 w-56" /><Button size="sm" nativeButton={false} render={<Link href="/vendors/new" />}>Onboard a vendor</Button></>} />
-      {vendors === undefined ? (
-        <Loading />
-      ) : vendors.length === 0 ? (
-        <EmptyState title="No vendors" description="Re-seed the fixtures from Settings." action={{ label: "Open settings", href: "/settings" }} />
-      ) : (
-        <div className="overflow-x-auto rounded-md border bg-card">
-          <Table>
-            <TableHeader className="sticky top-0 bg-card">
-              <TableRow>
-                <TableHead>Vendor</TableHead>
-                <TableHead className="hidden sm:table-cell">Domain</TableHead>
-                <TableHead className="hidden md:table-cell">Onboarded</TableHead>
-                <TableHead>Portal</TableHead>
-                <TableHead className="text-right">Accounts (verified)</TableHead>
-                <TableHead className="text-right">Open cases</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((v) => (
-                <TableRow key={v._id} className="cursor-pointer hover:bg-muted/60" tabIndex={0} onClick={() => router.push(`/vendors/${v._id}`)} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/vendors/${v._id}`); }}>
-                  <TableCell className="font-medium text-slate-900">{v.name}</TableCell>
-                  <TableCell className="hidden sm:table-cell font-mono text-xs">{v.domain}</TableCell>
-                  <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{absDate(v.onboardedAt)}</TableCell>
-                  <TableCell className="text-xs">{v.hasPortalLogin ? <span className="rounded border px-1.5 text-[11px]">portal login</span> : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{v.accountCount} ({v.verifiedCount})</TableCell>
-                  <TableCell className="text-right font-mono tabular-nums">{v.openCases}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <div className="ops-dashboard">
+      <header className="ops-page-heading">
+        <h1>Vendors</h1>
+        <Link href="/vendors/new" className="ops-button ops-button-primary">
+          <Plus size={15} />
+          Add vendor
+        </Link>
+      </header>
+      <section className="ops-queue" aria-label="Vendor directory">
+        <div className="ops-toolbar">
+          <div className="ops-search-field">
+            <Search size={15} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search vendor name or domain"
+              aria-label="Search vendors"
+            />
+            {query && (
+              <button
+                type="button"
+                aria-label="Clear vendor search"
+                onClick={() => setQuery("")}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="ops-toolbar-selects">
+            <select
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              aria-label="Filter vendors"
+            >
+              <option value="all">All vendors</option>
+              <option value="open">With open cases</option>
+              <option value="unverified">With unverified accounts</option>
+            </select>
+          </div>
         </div>
-      )}
+        {vendors === undefined ? (
+          <div className="ops-queue-loading">
+            <Loading />
+          </div>
+        ) : (
+          <>
+            <div className="ops-table-scroll ops-desktop-records">
+              <table className="ops-table">
+                <thead>
+                  <tr>
+                    <th>Vendor</th>
+                    <th>Verified accounts</th>
+                    <th>Open cases</th>
+                    <th className="ops-hide-small">Portal access</th>
+                    <th className="ops-hide-medium">Onboarded</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((v) => (
+                    <tr key={v._id}>
+                      <td>
+                        <Link
+                          href={`/vendors/${v._id}`}
+                          className="ops-vendor-link"
+                        >
+                          <span className="ops-vendor-avatar">
+                            <Building2 size={16} />
+                          </span>
+                          <span>
+                            <strong>{v.name}</strong>
+                            <span className="ops-record-meta">{v.domain}</span>
+                          </span>
+                        </Link>
+                      </td>
+                      <td>
+                        <span className="ops-verified-count">
+                          <CircleCheck size={13} />
+                          {v.verifiedCount} / {v.accountCount}
+                        </span>
+                      </td>
+                      <td>
+                        {v.openCases > 0 ? (
+                          <Link
+                            href={`/vendors/${v._id}`}
+                            className="ops-case-count"
+                          >
+                            {v.openCases} open
+                          </Link>
+                        ) : (
+                          <Minus size={12} />
+                        )}
+                      </td>
+                      <td className="ops-hide-small">
+                        {v.hasPortalLogin ? "Enabled" : "Not enabled"}
+                      </td>
+                      <td className="ops-hide-medium ops-date">
+                        {absDate(v.onboardedAt)}
+                      </td>
+                      <td>
+                        <Link
+                          className="ops-row-action"
+                          href={`/vendors/${v._id}`}
+                        >
+                          View vendor
+                          <ArrowUpRight size={13} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="ops-mobile-records">
+              {rows.map((v) => (
+                <Link
+                  key={v._id}
+                  href={`/vendors/${v._id}`}
+                  className="ops-mobile-record"
+                >
+                  <div>
+                    <strong>{v.name}</strong>
+                    <ArrowUpRight size={14} />
+                  </div>
+                  <div>
+                    <span>
+                      {v.verifiedCount} / {v.accountCount} accounts verified
+                    </span>
+                    <span>{v.openCases} open cases</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {!rows.length && (
+              <div className="ops-no-results">
+                <Search size={24} />
+                <h2>No matching vendors</h2>
+                <button
+                  type="button"
+                  className="ops-button"
+                  onClick={() => {
+                    setQuery("");
+                    setFilter("all");
+                  }}
+                >
+                  Reset filters
+                </button>
+              </div>
+            )}
+            <footer className="ops-table-footer">
+              <span>
+                {rows.length} of {vendors.length} vendors
+              </span>
+              <span>
+                {vendors.reduce((n, v) => n + v.openCases, 0)} open cases
+              </span>
+            </footer>
+          </>
+        )}
+      </section>
     </div>
   );
 }

@@ -1,142 +1,462 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CaseStatusBadge } from "@/components/landed/badges";
-import { PageHeader, StatCard, EmptyState, Loading } from "@/components/landed/primitives";
-import { useCases, useNow, useSettings } from "@/lib/hooks";
-import { Term } from "@/components/landed/Term";
 import Link from "next/link";
-import { usd, absTime, countdown } from "@/lib/format";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ArrowDownUp,
+  Search,
+  Plus,
+  X,
+  CircleAlert,
+  ShieldCheck,
+  Building2,
+  Inbox,
+  Banknote,
+  Download,
+} from "lucide-react";
+import { CaseStatusBadge } from "@/components/landed/badges";
+import { Loading } from "@/components/landed/primitives";
+import { useCases, useNow, useSettings } from "@/lib/hooks";
+import { usd, absDate, countdown } from "@/lib/format";
 import { triggerLabel, stateLabel } from "@/lib/labels";
-import { CASE_STATES } from "@/lib/enums";
-import { cn } from "@/lib/utils";
+import {
+  isAttention,
+  isBlocked,
+  isClosed,
+  matchesQueueFilter,
+  nextCaseAction,
+  selectQueue,
+  type QueueFilter,
+  type QueueSort,
+} from "@/lib/case-queue";
 
-const TERMINAL = new Set(["CLOSED"]);
+const filters: { key: QueueFilter; label: string }[] = [
+  { key: "all", label: "All cases" },
+  { key: "attention", label: "Needs attention" },
+  { key: "progress", label: "In progress" },
+  { key: "ready", label: "Ready to pay" },
+  { key: "blocked", label: "Blocked" },
+  { key: "closed", label: "Closed" },
+];
 
 export default function CasesPage() {
   const cases = useCases();
   const now = useNow();
-  const router = useRouter();
   const settings = useSettings();
-  const [filter, setFilter] = useState<string | null>(null);
-  const demo = useMemo(() => parseDemoCases(settings?.demoCases), [settings?.demoCases]);
-  const demoIds = useMemo(() => new Set(demo.map((d) => d.caseId)), [demo]);
-  const demoRows = useMemo(() => demo.map((d) => ({ ...d, c: (cases ?? []).find((c) => c._id === d.caseId) })).filter((d) => d.c), [demo, cases]);
-
-  const stats = useMemo(() => {
-    const open = (cases ?? []).filter((c) => !TERMINAL.has(c.state));
-    return {
-      open: open.length,
-      blocked: open.filter((c) => !["VERIFIED", "PAID", "LANDED"].includes(c.state)).reduce((s, c) => s + c.amountAtStakeCents, 0),
-      human: open.filter((c) => c.state === "NEEDS_HUMAN").length,
-    };
-  }, [cases]);
-  const present = useMemo(() => new Set((cases ?? []).filter((c) => !demoIds.has(c._id)).map((c) => c.state)), [cases, demoIds]);
-  const liveCases = (cases ?? []).filter((c) => !demoIds.has(c._id));
-  const rows = liveCases.filter((c) => !filter || c.state === filter);
-
-  return (
-    <div className="space-y-4">
-      <PageHeader
-        title="Verification cases"
-        description={
-          <span className="block max-w-3xl">
-            <Term k="accounts_payable">Accounts payable</Term> pays vendors to the bank account stored in the <Term k="vendor_master">vendor record</Term>; <Term k="bec">business email compromise</Term> works by getting that one field changed.
-            Landed turns every change into a verification case: nothing is paid to the new account until the vendor&apos;s <Term k="contact_of_record">contact of record</Term> reads back a randomized <Term k="probe">test deposit</Term>.
-          </span>
-        }
-      />
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard label="Open cases" value={stats.open} />
-        <StatCard label="Amount blocked" value={usd(stats.blocked)} hint="open invoices pointed at unverified destinations" tone={stats.blocked > 0 ? "amber" : undefined} />
-        <StatCard label="Needing a human" value={stats.human} tone={stats.human > 0 ? "amber" : undefined} />
-      </div>
-      {demoRows.length > 0 && (
-        <section aria-labelledby="demo-cases" className="rounded-md border bg-card">
-          <div className="flex items-baseline justify-between border-b px-4 py-2.5">
-            <h2 id="demo-cases" className="text-sm font-medium text-slate-900">Demo cases</h2>
-            <span className="text-xs text-muted-foreground">pre-run at seed time so each outcome is one click away</span>
-          </div>
-          <ul className="divide-y">
-            {demoRows.map((d) => (
-              <li key={d.caseId}>
-                <Link href={`/cases/${d.caseId}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm hover:bg-muted/60 focus-visible:outline-2 focus-visible:outline-ring">
-                  <span className="min-w-56 font-medium text-slate-900">{d.label}</span>
-                  <span className="text-muted-foreground">{d.c!.vendorName}</span>
-                  <CaseStatusBadge state={d.c!.state} showToken={false} />
-                  <span className="ml-auto font-mono text-xs tabular-nums text-slate-800" title="Amount at stake: open invoices pointed at this case's destination">{usd(d.c!.amountAtStakeCents)}</span>
-                  <span className="font-mono text-xs tabular-nums text-muted-foreground">{absTime(d.c!.openedAt)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-      {cases === undefined ? (
-        <Loading />
-      ) : liveCases.length === 0 ? (
-        <EmptyState title={demoRows.length ? "No live cases yet" : "No cases yet"} description="Send a bank-change email from the Mailbox or edit a vendor's bank account to open one." action={{ label: "Send a bank-change email", href: "/mailbox" }} />
-      ) : (
-        <>
-          {demoRows.length > 0 && <h2 className="pt-1 text-sm font-medium text-slate-900">Live queue</h2>}
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter by state">
-            <FilterChip active={filter === null} onClick={() => setFilter(null)} label="All" count={liveCases.length} />
-            {CASE_STATES.filter((s) => present.has(s)).map((s) => (
-              <FilterChip key={s} active={filter === s} onClick={() => setFilter(filter === s ? null : s)} label={stateLabel(s)} count={liveCases.filter((c) => c.state === s).length} />
-            ))}
-          </div>
-          <div className="overflow-x-auto rounded-md border bg-card">
-            <Table>
-              <TableHeader className="sticky top-0 bg-card">
-                <TableRow>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead className="hidden md:table-cell">Trigger</TableHead>
-                  <TableHead className="text-right">At stake</TableHead>
-                  <TableHead>SLA</TableHead>
-                  <TableHead className="hidden sm:table-cell">Opened</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((c) => {
-                  const sla = c.state === "AWAITING_CONFIRMATION" && c.slaDeadlineAt ? c.slaDeadlineAt - now : null;
-                  return (
-                    <TableRow key={c._id} className="cursor-pointer hover:bg-muted/60" onClick={() => router.push(`/cases/${c._id}`)} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter") router.push(`/cases/${c._id}`); }}>
-                      <TableCell className="font-medium text-slate-900">{c.vendorName}</TableCell>
-                      <TableCell><CaseStatusBadge state={c.state} showToken={false} /></TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">{triggerLabel(c.triggerType)}</TableCell>
-                      <TableCell className="text-right font-mono tabular-nums">{usd(c.amountAtStakeCents)}</TableCell>
-                      <TableCell className={cn("font-mono tabular-nums text-xs", sla !== null && sla < 4 * 3_600_000 && "text-amber-800 font-medium")}>{sla !== null ? countdown(c.slaDeadlineAt, now) : "—"}</TableCell>
-                      <TableCell className="hidden sm:table-cell font-mono text-xs text-muted-foreground">{absTime(c.openedAt)}</TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        </>
-      )}
-    </div>
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<QueueFilter>("all");
+  const [sort, setSort] = useState<QueueSort>("priority");
+  const [source, setSource] = useState("all");
+  const demoIds = useMemo(() => {
+    try {
+      const parsed: unknown = JSON.parse(settings?.demoCases ?? "[]");
+      return new Set(
+        Array.isArray(parsed)
+          ? parsed.flatMap((v) =>
+              typeof v?.caseId === "string" ? [v.caseId] : [],
+            )
+          : [],
+      );
+    } catch {
+      return new Set<string>();
+    }
+  }, [settings]);
+  const scoped = (cases ?? []).filter(
+    (c) =>
+      source === "all" ||
+      (source === "demo" ? demoIds.has(c._id) : !demoIds.has(c._id)),
   );
-}
-
-function parseDemoCases(raw: string | undefined): { caseId: string; label: string }[] {
-  if (!raw) return [];
-  try {
-    const v = JSON.parse(raw) as unknown;
-    if (!Array.isArray(v)) return [];
-    return v.filter((x): x is { caseId: string; label: string } => !!x && typeof x === "object" && typeof (x as { caseId?: unknown }).caseId === "string" && typeof (x as { label?: unknown }).label === "string");
-  } catch {
-    return [];
+  const rows = selectQueue(scoped, query, filter, sort);
+  const attention = selectQueue(scoped, "", "attention", "priority");
+  const blocked = scoped.filter((c) => isBlocked(c.state));
+  const closed = scoped.filter((c) => isClosed(c.state));
+  const stats = [
+    {
+      label: "Total cases",
+      value: String(scoped.length),
+      filter: "all" as QueueFilter,
+      icon: Inbox,
+    },
+    {
+      label: "Payments on hold",
+      value: usd(blocked.reduce((n, c) => n + c.amountAtStakeCents, 0)),
+      filter: "blocked" as QueueFilter,
+      icon: ShieldCheck,
+    },
+    {
+      label: "Needs attention",
+      value: String(attention.length),
+      filter: "attention" as QueueFilter,
+      icon: CircleAlert,
+    },
+    {
+      label: "Closed cases",
+      value: String(closed.length),
+      filter: "closed" as QueueFilter,
+      icon: Building2,
+    },
+  ];
+  function exportQueue() {
+    const columns = [
+      "Vendor",
+      "Status",
+      "Amount at stake (USD)",
+      "Opened",
+      "Record type",
+    ];
+    const values = rows.map((c) => [
+      c.vendorName,
+      stateLabel(c.state),
+      (c.amountAtStakeCents / 100).toFixed(2),
+      new Date(c.openedAt).toISOString(),
+      demoIds.has(c._id) ? "Demo" : "Live",
+    ]);
+    const csv = [columns, ...values]
+      .map((row) =>
+        row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","),
+      )
+      .join("\r\n");
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "landed-cases.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   }
-}
-
-function FilterChip({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count: number }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className={cn("inline-flex h-6 items-center gap-1 rounded-full border px-2 text-xs hover:bg-muted", active && "border-primary bg-accent text-accent-foreground")}>
-      {label}
-      <span className="font-mono tabular-nums text-[10px] text-muted-foreground">{count}</span>
-    </button>
+    <div className="ops-dashboard">
+      <header className="ops-page-heading">
+        <div>
+          <h1>Verification cases</h1>
+        </div>
+        <div className="ops-heading-actions">
+          <button
+            type="button"
+            className="ops-button"
+            onClick={exportQueue}
+            disabled={!rows.length}
+          >
+            <Download size={14} />
+            Export
+          </button>
+          <Link href="/mailbox" className="ops-button ops-button-primary">
+            <Plus size={15} />
+            New verification
+          </Link>
+        </div>
+      </header>
+      <div className="ops-metrics">
+        {stats.map(({ label, value, filter: target, icon: Icon }) => (
+          <button
+            key={label}
+            className={`ops-metric ${label === "Needs attention" && attention.length ? "ops-metric-attention" : ""}`}
+            onClick={() => setFilter(target)}
+            type="button"
+          >
+            <span>
+              {label}
+              <Icon size={15} />
+            </span>
+            <strong>{cases === undefined ? "—" : value}</strong>
+            <ArrowUpRight className="ops-metric-arrow" size={14} />
+          </button>
+        ))}
+      </div>
+      {attention.length > 0 && (
+        <div className="ops-review-strip">
+          <span className="ops-attention-icon">
+            <CircleAlert size={18} />
+          </span>
+          <strong>
+            {attention.length}{" "}
+            {attention.length === 1 ? "case requires" : "cases require"} review
+          </strong>
+          <Link href={`/cases/${attention[0]._id}`}>
+            Review next case <ArrowRight size={15} />
+          </Link>
+        </div>
+      )}
+      <section className="ops-queue" aria-label="Verification case queue">
+        <div
+          className="ops-queue-tabs"
+          role="group"
+          aria-label="Filter cases by status"
+        >
+          {filters.map(({ key, label }) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={filter === key}
+              onClick={() => setFilter(key)}
+            >
+              {label}
+              <span>
+                {scoped.filter((c) => matchesQueueFilter(c.state, key)).length}
+              </span>
+            </button>
+          ))}
+        </div>
+        <div className="ops-toolbar">
+          <div className="ops-search-field">
+            <Search size={15} />
+            <input
+              aria-label="Search cases"
+              placeholder="Search vendors or case IDs"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {query && (
+              <button
+                type="button"
+                aria-label="Clear case search"
+                onClick={() => setQuery("")}
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
+          <div className="ops-toolbar-selects">
+            <select
+              aria-label="Case record source"
+              value={source}
+              onChange={(e) => setSource(e.target.value)}
+            >
+              <option value="all">All records</option>
+              <option value="live">Live records</option>
+              <option value="demo">Demo records</option>
+            </select>
+            <div className="ops-sort">
+              <ArrowDownUp size={13} />
+              <select
+                aria-label="Sort cases"
+                value={sort}
+                onChange={(e) => setSort(e.target.value as QueueSort)}
+              >
+                <option value="priority">Priority first</option>
+                <option value="newest">Newest first</option>
+                <option value="amount">Highest amount</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        {cases === undefined ? (
+          <div className="ops-queue-loading">
+            <Loading label="Loading cases…" />
+          </div>
+        ) : (
+          <>
+            <div className="ops-table-scroll ops-desktop-records">
+              <table className="ops-table">
+                <thead>
+                  <tr>
+                    <th>Vendor</th>
+                    <th>Status</th>
+                    <th className="ops-hide-small">Trigger</th>
+                    <th className="ops-number">Amount at stake</th>
+                    <th className="ops-hide-medium">Opened</th>
+                    <th>Next action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((c) => (
+                    <tr key={c._id}>
+                      <td>
+                        <Link
+                          className="ops-vendor-link"
+                          href={`/cases/${c._id}`}
+                        >
+                          <span className="ops-vendor-avatar">
+                            {c.vendorName
+                              .split(" ")
+                              .map((p) => p[0])
+                              .slice(0, 2)
+                              .join("")}
+                          </span>
+                          <span>
+                            <strong>{c.vendorName}</strong>
+                            <span className="ops-record-meta">
+                              {demoIds.has(c._id) ? (
+                                <span className="ops-demo-tag">Demo</span>
+                              ) : (
+                                <span className="ops-live-dot" />
+                              )}
+                              <span>#{c._id.slice(-7).toUpperCase()}</span>
+                            </span>
+                          </span>
+                        </Link>
+                      </td>
+                      <td>
+                        <CaseStatusBadge state={c.state} showToken={false} />
+                        {c.state === "AWAITING_CONFIRMATION" &&
+                          c.slaDeadlineAt && (
+                            <span
+                              className={
+                                c.slaDeadlineAt < now
+                                  ? "ops-deadline ops-overdue"
+                                  : "ops-deadline"
+                              }
+                            >
+                              {countdown(c.slaDeadlineAt, now)}
+                            </span>
+                          )}
+                      </td>
+                      <td className="ops-hide-small">
+                        {triggerLabel(c.triggerType)}
+                      </td>
+                      <td className="ops-number">
+                        {usd(c.amountAtStakeCents)}
+                      </td>
+                      <td className="ops-hide-medium ops-date">
+                        {absDate(c.openedAt)}
+                      </td>
+                      <td>
+                        <Link
+                          className={`ops-row-action ${isAttention(c.state) ? "ops-row-action-priority" : ""}`}
+                          href={
+                            c.state === "RECOVERY"
+                              ? `/cases/${c._id}/package`
+                              : `/cases/${c._id}`
+                          }
+                        >
+                          {nextCaseAction(c.state)}
+                          <ArrowUpRight size={13} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="ops-mobile-records">
+              {rows.map((c) => (
+                <Link
+                  key={c._id}
+                  href={
+                    c.state === "RECOVERY"
+                      ? `/cases/${c._id}/package`
+                      : `/cases/${c._id}`
+                  }
+                  className="ops-mobile-record"
+                >
+                  <div>
+                    <strong>{c.vendorName}</strong>
+                    <CaseStatusBadge state={c.state} showToken={false} />
+                  </div>
+                  <div>
+                    <span>{usd(c.amountAtStakeCents)} at stake</span>
+                    <span>
+                      {nextCaseAction(c.state)}
+                      <ArrowUpRight size={13} />
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+            {!rows.length && (
+              <div className="ops-no-results">
+                <Search size={24} />
+                <h2>
+                  {query
+                    ? "No matching cases"
+                    : source === "live"
+                      ? "No live cases"
+                      : "No cases in this view"}
+                </h2>
+                <button
+                  type="button"
+                  className="ops-button"
+                  onClick={() => {
+                    setQuery("");
+                    setFilter("all");
+                    setSource("all");
+                  }}
+                >
+                  Reset filters
+                </button>
+                {source === "live" && (
+                  <Link
+                    className="ops-button ops-button-primary"
+                    href="/mailbox"
+                  >
+                    Create verification
+                  </Link>
+                )}
+              </div>
+            )}
+            <footer className="ops-table-footer">
+              <span>
+                {rows.length} of {scoped.length} cases
+              </span>
+              <span>
+                {demoIds.size > 0 && source !== "live"
+                  ? "Demo records included"
+                  : "Live records"}
+              </span>
+            </footer>
+          </>
+        )}
+      </section>
+      <div className="ops-bottom-grid">
+        <section className="ops-pipeline">
+          <h2>Verification pipeline</h2>
+          <div>
+            {[
+              {
+                label: "Needs review",
+                count: attention.length,
+                filter: "attention" as QueueFilter,
+              },
+              {
+                label: "In progress",
+                count: scoped.filter((c) =>
+                  matchesQueueFilter(c.state, "progress"),
+                ).length,
+                filter: "progress" as QueueFilter,
+              },
+              {
+                label: "Ready to pay",
+                count: scoped.filter((c) => c.state === "VERIFIED").length,
+                filter: "ready" as QueueFilter,
+              },
+              {
+                label: "Closed",
+                count: closed.length,
+                filter: "closed" as QueueFilter,
+              },
+            ].map(({ label, count, filter: target }) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => setFilter(target)}
+              >
+                <span>{label}</span>
+                <strong>{count}</strong>
+              </button>
+            ))}
+          </div>
+        </section>
+        <section className="ops-quick-actions">
+          <h2>Workspace</h2>
+          <Link href="/vendors">
+            <Building2 size={15} />
+            Vendor directory
+            <ArrowRight size={14} />
+          </Link>
+          <Link href="/payment-run">
+            <Banknote size={15} />
+            Review payment run
+            <ArrowRight size={14} />
+          </Link>
+          <Link href="/audit">
+            <ShieldCheck size={15} />
+            Audit log
+            <ArrowRight size={14} />
+          </Link>
+        </section>
+      </div>
+    </div>
   );
 }
