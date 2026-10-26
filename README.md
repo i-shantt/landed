@@ -1,15 +1,61 @@
 # Landed
 
-**No payment can be sent to a bank account that has not been verified for that specific vendor, even when the AI misses the email.**
+**Payment controls for accounts payable: no payment can be sent to a bank account that has not been verified for that specific vendor, even when the AI misses the email.**
 
-Landed is a payment-control system for accounts payable, built for Cal Hacks 13.0. Business email compromise works by getting one field changed: a fraudster writes to AP from a compromised or lookalike vendor address saying "we switched banks." The invoice is real, the vendor is real, only the destination changed. Landed holds every new destination, verifies it with a randomized sub-dollar probe deposit that the vendor's **contact of record** (a phone number established at onboarding, never a contact from the request) must read back, and only then lets a payment go out. After payment it confirms the money landed; if it did not, it assembles the bank-recall and FBI IC3 response package.
+Business email compromise works by getting one field changed: a fraudster writes to AP from a compromised or lookalike vendor address saying "we switched banks." The invoice is real, the vendor is real, only the destination changed. Landed holds every new destination, verifies it with a randomized sub-dollar probe deposit that the vendor's **contact of record** (a phone number established at onboarding, never a contact from the request) must read back, and only then lets a payment go out. After payment it confirms the money landed; if it did not, it assembles the bank-recall and FBI IC3 response package.
+
+Built at Cal Hacks 13.0 (Oct 2026) and extended afterwards into a fuller control plane: risk scoring, maker-checker approvals and payment policy, sanctions screening, a public REST API with signed webhooks, Nacha and ISO 20022 payment files, and a controls matrix mapped to SOC 2, NIST CSF and COSO. See `ARCHITECTURE.md` for how the pieces fit and `CHANGELOG.md` for what was added when.
+
+- **Live:** https://landed-blue.vercel.app (demo workspace; simulated bank, clock and vendor answers unless Settings says otherwise)
+- **API:** `https://tremendous-malamute-864.convex.site/api/v1/openapi.json`
+
+## What is in the product
+
+| Area | What it does | Where |
+|---|---|---|
+| **Verification engine** | Holds every bank change, probes the account (11–99¢, Nacha Micro-Entry `ACCTVERIFY`), requires the contact of record to read the amount back on a trusted channel (voice, portal), re-points and holds open invoices, lands the payment, builds the recovery package | `/cases`, `/vendors`, `/mailbox` |
+| **Payment boundary** | `payments.send` is the only writer of payments; refuses anything not verified for that vendor; idempotent; fail closed; every refusal is an audit event | `/payment-run` |
+| **Risk engine** | Deterministic 0–100 score from 16 signals (lookalike sender, DMARC failure, phone changed with the bank, urgency and secrecy language, ABA checksum, account reused across vendors, …) with the evidence for each | case page, queue, API |
+| **Controls** | Named operators with server-enforced roles; maker-checker approvals; policy evaluated inside the boundary: dual approval above $X, risk review above a score, cooling-off after verification, rolling daily vendor limit, ACH-first for new accounts, block on screening hits | `/controls`, `/approvals` |
+| **Sanctions screening** | Jaro-Winkler + token-sort name matching at onboarding and on demand; approver dispositions; OFAC SDN/ALT parsers for production lists (demo list is synthetic) | vendor page, `/controls` |
+| **Dashboard and ledger** | Money held and money protected, median time to verify, pipeline, risk tiers, 30-day trend, a cross-module "needs you" queue; payments ledger with landing state and attestation | `/dashboard`, `/payments` |
+| **REST API + webhooks** | Scoped keys, idempotent writes, cursor pagination, OpenAPI 3.1; signed webhooks (`Landed-Signature`, HMAC-SHA256) with retries and a built-in signed inbox | `/developers` |
+| **Payment files** | Nacha ACH (94-char records, CCD/PPD/CTX, entry hash, blocking) and ISO 20022 pain.001 from payable lines only; full file server-side, masked preview in the browser | `/payment-files` |
+| **Compliance** | 20 controls mapped to SOC 2 TSC, NIST CSF 2.0 and COSO with the test that proves each; append-only audit log with a hash chain; CSV export | `/compliance`, `/audit` |
+| **Evaluation** | 28 scripted scenarios run twice (extractor on/off) against a real deployment; measured numbers single-sourced into this README | `/eval`, `/judge` |
 
 The two demonstrations that matter most:
 
 1. **AI off, clerk fooled, Pay refused.** Extractor disabled, a clerk types the fraudster's account on the vendor page, clicks Pay. The server mutation refuses: `destination_not_verified`. No AI gets a vote.
 2. **Legitimate change passes.** Probe sent, vendor of record states the right amount, account verified, payment sent, landing confirmed. No manual verification.
 
-See `DEMO.md` for the click-by-click script, `STATUS.md` for what works and how to run it, `BUILD_LOG.md` and `OPEN_QUESTIONS.md` for the build record.
+## Quick start
+
+```bash
+cd web && npm ci
+npx convex dev            # creates/attaches a dev deployment, writes .env.local
+cp .env.example .env.local 2>/dev/null; # or set NEXT_PUBLIC_CONVEX_URL / NEXT_PUBLIC_CONVEX_SITE_URL
+npx convex env set ACCOUNT_HMAC_KEY $(openssl rand -hex 32) ACCOUNT_ENC_KEY $(openssl rand -hex 32) EVAL_KEY $(openssl rand -hex 16)
+npm run dev               # http://localhost:3000 → Settings → Re-seed fixtures
+npx vitest run            # 209 unit and invariant tests (in-memory)
+bash ../scripts/verify.sh # full gate: tests + 40-run scenario suite + measured numbers + build
+```
+
+Optional keys: `ANTHROPIC_API_KEY` (Claude extractor and package prose), `NESSIE_KEY` (Capital One rail), `VAPI_API_KEY` + `VAPI_PHONE_NUMBER_ID` + `CARTESIA_VOICE_ID` + `TEST_PHONE_NUMBERS` + `VAPI_WEBHOOK_SECRET` (voice). Env names are listed on `/settings`; values never leave the server.
+
+## API in three calls
+
+```bash
+# 1. Submit a vendor bank-account change: opens a verification case, holds the vendor's open invoices
+curl -X POST $SITE/api/v1/bank-changes -H "Authorization: Bearer $KEY" -H "Idempotency-Key: chg-001" \
+  -H "Content-Type: application/json" -d '{"vendor_id":"…","routing":"011000015","account_number":"900012345678"}'
+# 2. Read the case and its risk assessment
+curl $SITE/api/v1/cases/$CASE/risk -H "Authorization: Bearer $KEY"
+# 3. Try to pay: 409 {"error":{"code":"payment_refused","reason":"destination_not_verified"}} until the contact of record reads back the probe
+curl -X POST $SITE/api/v1/payments -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{"invoice_id":"…"}'
+```
+
+Keys are minted on `/developers` by an administrator (shown once, stored as SHA-256). Webhook deliveries carry `Landed-Signature: t=<unix>,v1=<hex HMAC-SHA256 of "{t}.{body}">` and retry at 1 m, 10 m, 1 h, 4 h, 12 h, 24 h, 72 h.
 
 ## Who it is for
 
@@ -38,6 +84,8 @@ A bank-change request (from intake or a clerk's manual edit) creates a new **unv
 - **I7 The probe amount is secret.** No public query, event, or channel configuration carries it.
 - **I8 Timers are deterministic.** Every timeout is a row on the application clock, fired by one `tick`.
 
+Added on top of the invariants, all configurable per policy and audited: maker-checker approvals, risk review, cooling-off, velocity, ACH-first, screening block. Known-bad account numbers (previously rejected or disputed for the vendor, or already requested by a different vendor) never get a probe: the case opens straight to a human.
+
 ## What the agent can and cannot do (permissions)
 
 | Capability | Agent (LLM / intake / package actions) | Human (dashboard) | Database rule |
@@ -57,7 +105,11 @@ When it asks for a human: wrong or missing vendor statement (`NEEDS_HUMAN`), ban
 
 ## Measured (results, not targets)
 
-<!-- measured:start -->From `eval/RESULTS.md` (40 scripted runs over 28 scenarios, 12 of them with the extractor off; 40/40 passed): fraud and misdirection scenarios blocked before payment 15/15; blocked with the extractor off 9/9; false releases 0; legitimate changes landed with zero human actions other than Pay 5/5; missed instruction changes by the extractor 0; time to hold median 870 ms wall-clock; 118 unit and invariant tests (convex-test). This paragraph is generated from `eval/results.json` by `web/scripts/sync-measured.mjs`; the gate fails if it drifts from the data the Eval page shows.<!-- measured:end --> The rules and Claude extractors each scored precision 1.00 and recall 1.00 on a 10-message hand-written set that includes an account hidden in a PDF footer. The whole suite was also run with the Claude extractor on every intake step (`eval/RESULTS-claude-extractor.md`): 21/21 scenario runs passed, including the real PDF-footer scenario. These are results on scripted cases; they do not establish effectiveness against real-world fraud.
+<!-- measured:start -->From `eval/RESULTS.md` (40 scripted runs over 28 scenarios, 12 of them with the extractor off; 40/40 passed): fraud and misdirection scenarios blocked before payment 15/15; blocked with the extractor off 9/9; false releases 0; legitimate changes landed with zero human actions other than Pay 5/5; missed instruction changes by the extractor 0; time to hold median 867 ms wall-clock; 209 unit and invariant tests (convex-test). This paragraph is generated from `eval/results.json` by `web/scripts/sync-measured.mjs`; the gate fails if it drifts from the data the Eval page shows.<!-- measured:end --> The rules and Claude extractors each scored precision 1.00 and recall 1.00 on a 10-message hand-written set that includes an account hidden in a PDF footer. These are results on scripted cases; they do not establish effectiveness against real-world fraud.
+
+## Security model in one paragraph
+
+Account numbers are HMAC-hashed and AES-256-GCM encrypted at rest and never reach the browser; the probe amount lives in one table and is compared in one mutation; the audit log is append-only and redacted at insert; the AI paths cannot import or schedule any release function (a static test enforces this); the Vapi webhook needs a shared secret and binds only to calls Landed placed; statements that are not accepted never reach the release gate, so nothing can probe for the amount; API keys are scoped and hashed; webhooks are signed; the eval endpoints fail closed without a key. Identity is a server-enforced operator role table behind a picker in this build; production replaces the picker with SSO and keeps every rule. Details and the public-surface table are in `SECURITY.md`; the controls-to-framework mapping is on `/compliance`.
 
 ## Path from prototype to production
 
@@ -189,7 +241,7 @@ Redeploy: `cd web && npx convex deploy -y && npx vercel --prod --yes`. Prod env 
 
 ## Pages
 
-`/cases` (demo cases + live queue), `/cases/[id]` (timeline, fast-forward, explain, export, replay/autoplay), `/vendors` and `/vendors/[id]`, `/vendors/new` (onboarding with a human-attested contact of record), `/mailbox` (composer, `.eml` upload), `/payment-run` (the week's batch with the guard's decision per line), `/audit` (every event, export, hash chain), `/judge` (run any scenario), `/eval`, `/about` (permissions, real vs simulated), `/pitch` (deck), `/health`, `/settings`, vendor portal (`/portal/login`, `/portal`, `/confirm/[token]`).
+`/dashboard` (overview and the "needs you" queue), `/cases` and `/cases/[id]` (timeline, risk, fast-forward, explain, export, replay), `/vendors`, `/vendors/[id]` (accounts, contacts, screening), `/vendors/new`, `/mailbox` (composer, `.eml` upload), `/payment-run` (guard and policy decision per line, approvals), `/payments` (ledger, landing), `/payment-files` (Nacha, pain.001), `/approvals`, `/controls` (policy, screening, operators), `/developers` (API keys, webhooks, inbox, OpenAPI), `/compliance` (controls matrix), `/audit` (every event, export, hash chain), `/eval`, `/judge`, `/about`, `/pitch`, `/health`, `/settings`, vendor portal (`/portal/login`, `/portal`, `/confirm/[token]`).
 
 ## Layout
 
