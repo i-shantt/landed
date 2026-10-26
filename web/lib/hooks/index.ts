@@ -148,6 +148,14 @@ export function useEmlIngest() {
   return useAction(api.emlIntake.ingest);
 }
 
+// ---- risk engine ----
+export function useRisk(caseId: Id<"cases">) {
+  return useQuery(api.risk.assess.forCase, { caseId });
+}
+export function useRiskForAll() {
+  return useQuery(api.risk.assess.forAll, {});
+}
+
 export function useOnboarding() {
   return {
     createVendor: useMutation(api.onboarding.createVendor),

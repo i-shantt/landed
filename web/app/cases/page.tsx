@@ -17,7 +17,8 @@ import {
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/landed/badges";
 import { Loading } from "@/components/landed/primitives";
-import { useCases, useNow, useSettings } from "@/lib/hooks";
+import { useCases, useNow, useRiskForAll, useSettings } from "@/lib/hooks";
+import { RiskBadge } from "@/components/landed/RiskPanel";
 import { usd, absDate, countdown } from "@/lib/format";
 import { triggerLabel, stateLabel } from "@/lib/labels";
 import {
@@ -42,6 +43,7 @@ const filters: { key: QueueFilter; label: string }[] = [
 
 export default function CasesPage() {
   const cases = useCases();
+  const risk = useRiskForAll();
   const now = useNow();
   const settings = useSettings();
   const [query, setQuery] = useState("");
@@ -101,6 +103,7 @@ export default function CasesPage() {
     const columns = [
       "Vendor",
       "Status",
+      "Risk score",
       "Amount at stake (USD)",
       "Opened",
       "Record type",
@@ -108,6 +111,7 @@ export default function CasesPage() {
     const values = rows.map((c) => [
       c.vendorName,
       stateLabel(c.state),
+      risk?.[c._id]?.score ?? "",
       (c.amountAtStakeCents / 100).toFixed(2),
       new Date(c.openedAt).toISOString(),
       demoIds.has(c._id) ? "Demo" : "Live",
@@ -254,6 +258,7 @@ export default function CasesPage() {
                   <tr>
                     <th>Vendor</th>
                     <th>Status</th>
+                    <th className="ops-hide-small">Risk</th>
                     <th className="ops-hide-small">Trigger</th>
                     <th className="ops-number">Amount at stake</th>
                     <th className="ops-hide-medium">Opened</th>
@@ -302,6 +307,13 @@ export default function CasesPage() {
                               {countdown(c.slaDeadlineAt, now)}
                             </span>
                           )}
+                      </td>
+                      <td className="ops-hide-small">
+                        {risk?.[c._id] ? (
+                          <RiskBadge score={risk[c._id].score} tier={risk[c._id].tier} title={risk[c._id].top} />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">…</span>
+                        )}
                       </td>
                       <td className="ops-hide-small">
                         {triggerLabel(c.triggerType)}

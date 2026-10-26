@@ -30,6 +30,7 @@ import {
 } from "@/components/landed/CaseActions";
 import { ExplainPanel } from "@/components/landed/ExplainPanel";
 import { NessiePanel } from "@/components/landed/NessiePanel";
+import { RiskPanel } from "@/components/landed/RiskPanel";
 import { ExportButton } from "@/components/landed/ExportButton";
 import { FastForward } from "@/components/landed/FastForward";
 import { Term } from "@/components/landed/Term";
@@ -206,6 +207,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
               openInvoices={c.openInvoices}
             />
           )}
+          <RiskPanel caseId={caseId} />
           <ProbeCard probe={probe}>
             {!replay && c.state !== "PAID" ? (
               <FastForward caseId={caseId} state={c.state} />
