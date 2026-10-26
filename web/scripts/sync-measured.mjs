@@ -28,7 +28,10 @@ const falseReleases = [...fraud, ...fraudOff].filter((r) => (r.actual.payments_t
 const legitOk = legit.filter((r) => (r.actual.payments_landed ?? 0) >= 1 && r.metrics.human_actions === 0);
 const missed = fraud.filter((r) => r.failures.join(" ").includes("missed_extraction") || (r.actual.final_state === null && r.family !== "misdirection"));
 const holds = results.map((r) => r.metrics?.time_to_hold_ms).filter((x) => typeof x === "number").sort((a, b) => a - b);
-const holdMedian = holds.length ? holds[Math.floor(holds.length / 2)] : null;
+// Wall-clock medians jitter by a few ms between runs; round to the nearest 50 ms so the gate's
+// drift check compares the measurement, not network noise.
+const rawMedian = holds.length ? holds[Math.floor(holds.length / 2)] : null;
+const holdMedian = rawMedian === null ? null : Math.round(rawMedian / 50) * 50;
 const scenarios = new Set(results.map((r) => r.scenarioId.replace(/__off$/, ""))).size;
 const runs = results.length;
 const offRuns = results.filter(off).length;
@@ -47,7 +50,7 @@ if (!Number.isFinite(tests) || tests <= 0) throw new Error("could not determine 
 const famLabel = { compromised_inbox: "compromised inbox", lookalike: "lookalike sender", misdirection: "misdirection", legit: "legitimate change", recovery: "recovery", judge: "judge-style cases", paymentrun: "payment run" };
 const famList = families.map((f) => famLabel[f] ?? f).join(", ").replace(/, ([^,]*)$/, " and $1");
 
-const readmeText = `From \`eval/RESULTS.md\` (${runs} scripted runs over ${scenarios} scenarios, ${offRuns} of them with the extractor off; ${passed}/${runs} passed): fraud and misdirection scenarios blocked before payment ${blocked.length}/${fraud.length}; blocked with the extractor off ${blockedOff.length}/${fraudOff.length}; false releases ${falseReleases.length}; legitimate changes landed with zero human actions other than Pay ${legitOk.length}/${legit.length}; missed instruction changes by the extractor ${missed.length}; time to hold median ${holdMedian} ms wall-clock; ${tests} unit and invariant tests (convex-test). This paragraph is generated from \`eval/results.json\` by \`web/scripts/sync-measured.mjs\`; the gate fails if it drifts from the data the Eval page shows.`;
+const readmeText = `From \`eval/RESULTS.md\` (${runs} scripted runs over ${scenarios} scenarios, ${offRuns} of them with the extractor off; ${passed}/${runs} passed): fraud and misdirection scenarios blocked before payment ${blocked.length}/${fraud.length}; blocked with the extractor off ${blockedOff.length}/${fraudOff.length}; false releases ${falseReleases.length}; legitimate changes landed with zero human actions other than Pay ${legitOk.length}/${legit.length}; missed instruction changes by the extractor ${missed.length}; time to hold median about ${holdMedian} ms wall-clock; ${tests} unit and invariant tests (convex-test). This paragraph is generated from \`eval/results.json\` by \`web/scripts/sync-measured.mjs\`; the gate fails if it drifts from the data the Eval page shows.`;
 const devpostText = `${tests} unit and invariant tests (convex-test), a scripted click-through of the dashboard, and an eval of ${scenarios} scenarios across ${famList}, run with the extractor on and off (${runs} runs): ${blocked.length}/${fraud.length} fraud and misdirection scenarios blocked before payment, ${blockedOff.length}/${fraudOff.length} blocked with the extractor off, ${falseReleases.length} false releases, ${legitOk.length}/${legit.length} legitimate changes landed with no human action other than Pay.`;
 
 const START = "<!-- measured:start -->", END = "<!-- measured:end -->";
