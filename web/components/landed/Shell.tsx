@@ -22,6 +22,8 @@ import {
   ShieldCheck,
   ClipboardCheck,
   SlidersHorizontal,
+  LayoutDashboard,
+  Receipt,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -34,10 +36,12 @@ import { OperatorMenu } from "./OperatorMenu";
 import { usePendingApprovalCount } from "@/lib/hooks";
 
 const NAV = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/cases", label: "Verification cases", icon: FolderKanban },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
   { href: "/payment-run", label: "Payment run", icon: Banknote },
+  { href: "/payments", label: "Payments", icon: Receipt },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/audit", label: "Audit log", icon: ScrollText },
 ];

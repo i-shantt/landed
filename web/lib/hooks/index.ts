@@ -168,6 +168,23 @@ export function useOperatorAdmin() {
   return { create: useMutation(api.controls.operators.create), deactivate: useMutation(api.controls.operators.deactivate) };
 }
 
+// ---- dashboard, payments ledger ----
+export function useOverview() {
+  return useQuery(api.analytics.overview, {});
+}
+export function useAttention() {
+  return useQuery(api.analytics.attention, {});
+}
+export function useRecentEvents() {
+  return useQuery(api.events.recent, {});
+}
+export function usePaymentsDetailed() {
+  return useQuery(api.paymentQueries.listDetailed, {});
+}
+export function useAttestLanded() {
+  return useMutation(api.payments.attestLanded);
+}
+
 // ---- risk engine ----
 export function useRisk(caseId: Id<"cases">) {
   return useQuery(api.risk.assess.forCase, { caseId });
