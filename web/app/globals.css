@@ -2,8 +2,6 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -60,7 +58,8 @@
   --secondary: #f0f3f2;
   --secondary-foreground: #263430;
   --muted: #f0f3f2;
-  --muted-foreground: #7b8781;
+  /* 5.55:1 on white, 4.8:1 on the sage accent (#eaf0e9); WCAG AA for small text. */
+  --muted-foreground: #5f6b66;
   --accent: #eaf0ed;
   --accent-foreground: #244d3e;
   --destructive: #b91c1c;
@@ -81,40 +80,6 @@
   --sidebar-accent-foreground: #244d3e;
   --sidebar-border: #e2e7e5;
   --sidebar-ring: #244d3e;
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -138,7 +103,6 @@ body {
     "tnum" 1,
     "cv11" 1;
 }
-.tnum,
 table,
 .font-mono {
   font-variant-numeric: tabular-nums;
@@ -242,7 +206,7 @@ table,
   border-radius: 14px;
 }
 .workspace-shell [data-slot="table-head"] {
-  color: #7f8c74;
+  color: #5c6a63;
   font-size: 11px;
   font-weight: 500;
   height: 45px;
@@ -253,79 +217,7 @@ table,
 .workspace-shell [data-slot="table-row"]:last-child {
   border-bottom: 0;
 }
-.demo-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 15px;
-}
-.demo-card {
-  background: #fffffc;
-  border: 1px solid #e1e7d8;
-  border-radius: 14px;
-  padding: 22px;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  transition:
-    box-shadow 0.2s,
-    transform 0.2s;
-}
-.demo-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 22px #314c2a0d;
-}
-.demo-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-.demo-vendor-icon {
-  width: 37px;
-  height: 37px;
-  display: grid;
-  place-items: center;
-  background: #f0f4e7;
-  border-radius: 10px;
-  color: #829968;
-}
-.demo-card h3 {
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: -0.3px;
-}
-.demo-card > p {
-  font-size: 11px;
-  line-height: 1.7;
-  color: #8b967f;
-  margin-top: 7px;
-  min-height: 38px;
-}
-.demo-card-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #edf0e5;
-  font-size: 12px;
-  color: #536a45;
-}
 @media (max-width: 760px) {
-  .demo-grid {
-    grid-template-columns: 1fr;
-  }
-  .demo-card {
-    padding: 20px;
-  }
-  .demo-card-top {
-    margin-bottom: 15px;
-  }
-  .demo-card > p {
-    min-height: 0;
-  }
   .workspace-shell .page-header h1 {
     font-size: 25px;
   }
@@ -335,20 +227,4 @@ table,
   .workspace-shell .stat-card > div:nth-child(2) {
     font-size: 27px;
   }
-}
-/* Shared workspace action style. */
-.landing-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.landing-button.primary {
-  background: #335e43;
-  color: #fffef3;
-}
-.landing-button.primary:hover {
-  background: #254b34;
 }

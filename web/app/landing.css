@@ -1095,7 +1095,7 @@
   align-items: center;
   gap: 8px;
   font-size: 9px;
-  color: #93a27e;
+  color: #5f7350; /* 4.9:1 on the #f8f9f7 landing background */
 }
 .landing-v2 [data-reveal] {
   transition:

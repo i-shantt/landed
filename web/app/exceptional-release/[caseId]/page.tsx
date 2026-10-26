@@ -27,7 +27,8 @@ export default function ExceptionalReleasePage({ params }: { params: Promise<{ c
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState(false);
-  const ready = !!a.trim() && !!b.trim() && reason.trim().length >= 20;
+  const samePerson = !!a.trim() && a.trim().toLowerCase() === b.trim().toLowerCase();
+  const ready = !!a.trim() && !!b.trim() && !samePerson && reason.trim().length >= 20;
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -50,7 +51,8 @@ export default function ExceptionalReleasePage({ params }: { params: Promise<{ c
             </div>
             <div className="space-y-1">
               <Label htmlFor="er-b">Approver B</Label>
-              <Input id="er-b" value={b} onChange={(e) => setB(e.target.value)} placeholder="Full name (different person)" />
+              <Input id="er-b" value={b} onChange={(e) => setB(e.target.value)} placeholder="Full name (different person)" aria-invalid={samePerson || undefined} aria-describedby={samePerson ? "er-b-error" : undefined} />
+              {samePerson && <p id="er-b-error" className="text-xs text-red-700">Approver B must be a different person from approver A.</p>}
             </div>
           </div>
           <div className="space-y-1">

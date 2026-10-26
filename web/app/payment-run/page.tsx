@@ -54,7 +54,13 @@ export default function PaymentRunPage() {
   const [busy, setBusy] = useState(false);
   const [results, setResults] = useState<Record<string, LineResult>>({});
 
-  if (run === undefined) return <Loading />;
+  if (run === undefined)
+    return (
+      <div className="space-y-4">
+        <PageHeader title="Payment run" />
+        <Loading label="Evaluating every open invoice against the guard…" />
+      </div>
+    );
   const payable = run.lines.filter((l) => l.decision.ok && (l.policy === null || l.policy.ok));
   const needsApproval = run.lines.filter((l) => l.decision.ok && l.policy !== null && !l.policy.ok);
   const lineKind = (l: (typeof run.lines)[number]) => (!l.decision.ok ? "blocked" : l.policy && !l.policy.ok ? "approval" : "payable");

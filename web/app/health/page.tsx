@@ -6,11 +6,17 @@ import { absTime } from "@/lib/format";
 
 export default function HealthPage() {
   const h = useHealth();
-  if (!h) return <Loading label="Reading deployment health…" />;
+  if (!h)
+    return (
+      <div className="space-y-4">
+        <PageHeader title="System health" description="Deployment, seed, demo clock, timers, modes and key presence." />
+        <Loading label="Reading deployment health…" />
+      </div>
+    );
   const yn = (b: boolean) => (b ? "yes" : "no");
   return (
     <div className="space-y-4">
-      <PageHeader title="Health" description="Deployment, seed, demo clock, timers, modes and key presence. The runbook points here first if anything looks stuck.">
+      <PageHeader title="System health" description="Deployment, seed, demo clock, timers, modes and key presence. The runbook points here first if anything looks stuck.">
         <Link href="/settings" className="text-xs underline underline-offset-2">Settings</Link>
       </PageHeader>
       <div className="grid gap-4 lg:grid-cols-2">

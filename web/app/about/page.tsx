@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageHeader, Section } from "@/components/landed/primitives";
 import { PermissionsTable } from "@/components/landed/PermissionsTable";
 import { useEvalRuns } from "@/lib/hooks";
+import { summarizeEvalRuns } from "@/lib/eval-metrics";
 import { Term } from "@/components/landed/Term";
 
 
@@ -12,7 +13,7 @@ const REAL = [
   "the append-only audit log with redaction",
   "the rule-based extractor and the Claude extractor (PDFs passed as documents) when a key is set",
   "the vendor portal login (bcrypt, cookie session)",
-  "the eval harness: 20 scenarios run twice (extractor on, extractor off)",
+  "the eval harness: every scripted scenario run twice (extractor on, extractor off)",
   "Nessie transfers on the mock bank (deposit plus withdrawal, integer cents) when the rail is switched to Nessie",
   "the recovery package's deterministic fields; Claude prose is checked number by number",
 ];
@@ -35,8 +36,8 @@ const INVARIANTS: [string, string][] = [
 ];
 
 export default function AboutPage() {
-  const runs = useEvalRuns() as { scenarioId: string; metrics?: { passed?: number; total?: number } }[] | undefined;
-  const m = runs?.find((r) => r.scenarioId === "__metrics__")?.metrics;
+  const runs = useEvalRuns();
+  const ev = summarizeEvalRuns(runs);
   return (
     <div className="space-y-4 print:space-y-3">
       <PageHeader title="About Landed" description="No payment can be sent to a bank account that has not been verified for that specific vendor, even when the AI misses the email.">
@@ -82,9 +83,16 @@ export default function AboutPage() {
 
       <Section title="How we know">
         <p className="text-sm">
-          89 unit and invariant tests (vitest + convex-test), a scripted click-through of every page, and an eval of 20 scripted scenarios run twice (extractor on and off)
-          {m && typeof m.passed === "number" ? <>: the last posted run is <span className="font-mono tabular-nums">{m.passed} / {m.total}</span> passed</> : null}.
-          {" "}See <Link href="/eval" className="underline">Eval</Link> for the per-scenario table and the metrics. These are results on scripted cases; they do not establish effectiveness against real-world fraud.
+          A vitest suite of unit and invariant tests (convex-test; the count is generated into the README by <code className="font-mono text-xs">scripts/sync-measured.mjs</code>), a scripted click-through of every page, and an eval of{" "}
+          {ev ? (
+            <>
+              <span className="font-mono tabular-nums">{ev.scenarios}</span> scripted scenarios run with the extractor on and off: the last posted run is{" "}
+              <span className="font-mono tabular-nums">{ev.passed} / {ev.total}</span> passed
+            </>
+          ) : (
+            <>scripted scenarios run with the extractor on and off (no run has been posted to this deployment yet; see <Link href="/eval" className="underline">Evaluations</Link>)</>
+          )}
+          . See <Link href="/eval" className="underline">Evaluations</Link> for the per-scenario table and the metrics. {ev?.disclaimer ?? "These are results on scripted cases; they do not establish effectiveness against real-world fraud."}
         </p>
       </Section>
 

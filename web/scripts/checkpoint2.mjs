@@ -21,10 +21,6 @@ function check(cond, label, extra = "") {
   console.log(`${cond ? "ok  " : "FAIL"} ${label}${extra ? " :: " + extra : ""}`);
   if (!cond) failures++;
 }
-async function evalPost(path, body) {
-  const r = await fetch(`${SITE}${path}`, { method: "POST", headers: { "x-eval-key": EVAL_KEY, "content-type": "application/json" }, body: JSON.stringify(body ?? {}) });
-  return r.json();
-}
 async function evalGet(path) {
   const r = await fetch(`${SITE}${path}`, { headers: { "x-eval-key": EVAL_KEY } });
   return r.json();

@@ -41,16 +41,6 @@ function errorPayload(e: unknown) {
   return { message: String((e as Error)?.message ?? e) };
 }
 
-const evalPost = (handler: (req: Request, b: Record<string, unknown>) => Promise<Response>) =>
-  httpAction(async (_ctx, req) => {
-    if (!authorized(req)) return json({ error: "unauthorized" }, 401);
-    try {
-      return await handler(req, await body(req));
-    } catch (e) {
-      return json({ ok: false, error: errorPayload(e) }, 400);
-    }
-  });
-
 http.route({ path: "/eval/reset", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const b = await body(req);

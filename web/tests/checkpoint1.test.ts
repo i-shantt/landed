@@ -1,6 +1,5 @@
 // Checkpoint 1: the payment invariant holds end to end (section 9).
 import { describe, it, expect } from "vitest";
-import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { setup, manualEdit, pay, advanceToAvailability, vendorStatement, probeAmount, getCase, getAccount, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT } from "./harness";
 

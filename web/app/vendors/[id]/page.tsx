@@ -72,10 +72,29 @@ export default function VendorPage({
   const [newKind, setNewKind] = useState<"phone" | "portal" | "email">("phone");
   const [newValue, setNewValue] = useState("");
   const [attested, setAttested] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
 
-  if (v === undefined) return <Loading />;
+  if (v === undefined)
+    return (
+      <div className="space-y-4">
+        <Link href="/vendors" className="ops-back-link">
+          <ArrowLeft size={13} />
+          Vendor directory
+        </Link>
+        <PageHeader title="Vendor" description="Loading contacts, bank accounts, invoices and cases…" />
+        <Loading label="Loading vendor…" />
+      </div>
+    );
   if (v === null)
-    return <p className="text-sm text-red-700">Vendor not found.</p>;
+    return (
+      <div className="space-y-4">
+        <Link href="/vendors" className="ops-back-link">
+          <ArrowLeft size={13} />
+          Vendor directory
+        </Link>
+        <PageHeader title="Vendor not found" description="This vendor id does not exist on this deployment. It may have been removed by a re-seed." />
+      </div>
+    );
   const accountById = new Map(v.accounts.map((a) => [a._id, a]));
 
   return (
@@ -425,14 +444,20 @@ export default function VendorPage({
         }}
       />
 
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog
+        open={addOpen}
+        onOpenChange={(o) => {
+          setAddOpen(o);
+          if (!o) setAddError(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add contact of record</DialogTitle>
             <DialogDescription>
-              Prototype: a human attests this contact. In production this
-              requires a separate verification process (onboarding form plus
-              verified call).
+              Demo: a human attests this contact. In production this requires
+              a separate verification process (onboarding form plus verified
+              call).
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -469,6 +494,11 @@ export default function VendorPage({
                 placeholder="your name"
               />
             </div>
+            {addError && (
+              <p className="text-sm text-red-700" role="alert">
+                {addError}
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddOpen(false)}>
@@ -478,6 +508,7 @@ export default function VendorPage({
               disabled={busy || !newValue || !attested}
               onClick={async () => {
                 setBusy(true);
+                setAddError(null);
                 try {
                   await addRecord({
                     vendorId,
@@ -487,6 +518,8 @@ export default function VendorPage({
                   });
                   setAddOpen(false);
                   setNewValue("");
+                } catch (e) {
+                  setAddError(errorMessage(e));
                 } finally {
                   setBusy(false);
                 }

@@ -151,7 +151,7 @@ export function Sidebar({
       <div className="ops-nav-main">
         <NavLinks collapsed={collapsed} />
       </div>
-      {!collapsed && (
+      {!collapsed ? (
         <details className="ops-demo-tools" open={toolsActive || undefined}>
           <summary>
             <FlaskConical size={15} />
@@ -160,6 +160,10 @@ export function Sidebar({
           </summary>
           <NavLinks items={TOOLS} />
         </details>
+      ) : (
+        <div className="ops-nav-main" aria-label="Demo tools (collapsed)">
+          <NavLinks collapsed items={TOOLS} />
+        </div>
       )}
       <div className="ops-sidebar-bottom">
         <NavLinks collapsed={collapsed} items={UTILITY} />
@@ -248,7 +252,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <div className="ops-environment-bar">
             <span>
               <ShieldCheck size={12} />
-              Development workspace
+              Simulated bank, clock and vendor answers unless Settings says otherwise
             </span>
             <ClockChip />
           </div>

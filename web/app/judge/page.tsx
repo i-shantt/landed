@@ -60,7 +60,17 @@ function JudgeView() {
   const current = useJudgeRun(runId);
   const off = settings?.judgeMode === "off";
 
-  if (scenarios === undefined) return <Loading />;
+  if (scenarios === undefined)
+    return (
+      <div className="space-y-4">
+        <PageHeader title="Scenario runner" description="Run any scripted scenario against this deployment and watch the case unfold." />
+        <Loading label="Loading scenarios…" />
+      </div>
+    );
+  // `run` resolves only when the scenario has finished, so `busy` is the whole in-progress window.
+  // Viewing a stale row (an interrupted run whose status never reached "done") must not disable
+  // the Run buttons, so the row's status is deliberately not consulted here.
+  const inProgress = busy !== null;
   const families = new Map<string, typeof scenarios>();
   for (const s of scenarios) families.set(s.family, [...(families.get(s.family) ?? []), s]);
   const rank = (f: string) => { const i = FAMILY_ORDER.indexOf(f); return i === -1 ? 999 : i; };
@@ -77,10 +87,10 @@ function JudgeView() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="Judge mode" description="Run any scripted scenario against this deployment and watch the case unfold. Try your own in the Mailbox; this page runs the eval's steps for you.">
+      <PageHeader title="Scenario runner" description="Run any scripted scenario against this deployment and watch the case unfold. Try your own in the Mailbox; this page runs the eval's steps for you.">
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm text-amber-900">Running a scenario re-seeds the demo database first. Open cases from a previous run disappear.</p>
       </PageHeader>
-      {off && <p className="text-sm text-red-700">Judge mode is off (settings key judgeMode).</p>}
+      {off && <p className="text-sm text-red-700">The scenario runner is off (settings key judgeMode).</p>}
       {err && <p className="text-sm text-red-700" role="alert">{err}</p>}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -107,7 +117,7 @@ function JudgeView() {
                             AI off
                           </label>
                         )}
-                        <Button size="sm" disabled={off || busy !== null || (current !== undefined && current !== null && current.actual?.status !== "done" && runId !== null)} onClick={() => start(s.id)}>
+                        <Button size="sm" disabled={off || inProgress} onClick={() => start(s.id)}>
                           {busy === s.id ? "Starting…" : "Run"}
                         </Button>
                       </div>

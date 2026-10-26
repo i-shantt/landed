@@ -21,6 +21,7 @@ import { useCases, useNow, useRiskForAll, useSettings } from "@/lib/hooks";
 import { RiskBadge } from "@/components/landed/RiskPanel";
 import { usd, absDate, countdown } from "@/lib/format";
 import { triggerLabel, stateLabel } from "@/lib/labels";
+import { toCsv, downloadText } from "@/lib/csv";
 import {
   isAttention,
   isBlocked,
@@ -113,28 +114,23 @@ export default function CasesPage() {
       stateLabel(c.state),
       risk?.[c._id]?.score ?? "",
       (c.amountAtStakeCents / 100).toFixed(2),
-      new Date(c.openedAt).toISOString(),
+      new Date(c.openedAt),
       demoIds.has(c._id) ? "Demo" : "Live",
     ]);
-    const csv = [columns, ...values]
-      .map((row) =>
-        row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","),
-      )
-      .join("\r\n");
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "landed-cases.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadText("landed-cases.csv", toCsv(columns, values));
   }
   return (
     <div className="ops-dashboard">
       <header className="ops-page-heading">
         <div>
           <h1>Verification cases</h1>
+          <p className="ops-page-intro">
+            A verification case opens whenever a vendor&apos;s bank account
+            changes, and nothing is paid to the new account until the vendor&apos;s
+            contact of record reads back a small probe deposit. &ldquo;Amount at
+            stake&rdquo; is the total of that vendor&apos;s open invoices that would
+            have gone to the unverified account.
+          </p>
         </div>
         <div className="ops-heading-actions">
           <button
@@ -296,7 +292,8 @@ export default function CasesPage() {
                       <td>
                         <CaseStatusBadge state={c.state} showToken={false} />
                         {c.state === "AWAITING_CONFIRMATION" &&
-                          c.slaDeadlineAt && (
+                          c.slaDeadlineAt &&
+                          now > 0 && (
                             <span
                               className={
                                 c.slaDeadlineAt < now

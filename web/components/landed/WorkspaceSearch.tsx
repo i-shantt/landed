@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   Search,
@@ -9,6 +9,18 @@ import {
   Inbox,
   Banknote,
   ScrollText,
+  Receipt,
+  FileText,
+  ClipboardCheck,
+  LayoutDashboard,
+  FlaskConical,
+  Gavel,
+  Presentation,
+  Activity,
+  SlidersHorizontal,
+  Code2,
+  Settings,
+  Info,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,18 +31,42 @@ import {
 import { useCases, useVendors } from "@/lib/hooks";
 import { stateLabel } from "@/lib/labels";
 
+// Mirrors the sidebar's NAV + TOOLS + UTILITY lists (Shell.tsx), so every page is reachable from search.
 const pages = [
-  { label: "Verification cases", href: "/cases", icon: FolderKanban },
-  { label: "Vendors", href: "/vendors", icon: Building2 },
-  { label: "Mailbox", href: "/mailbox", icon: Inbox },
-  { label: "Payment run", href: "/payment-run", icon: Banknote },
-  { label: "Audit log", href: "/audit", icon: ScrollText },
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, meta: "Page" },
+  { label: "Verification cases", href: "/cases", icon: FolderKanban, meta: "Page" },
+  { label: "Vendors", href: "/vendors", icon: Building2, meta: "Page" },
+  { label: "Mailbox", href: "/mailbox", icon: Inbox, meta: "Page" },
+  { label: "Payment run", href: "/payment-run", icon: Banknote, meta: "Page" },
+  { label: "Payments", href: "/payments", icon: Receipt, meta: "Page" },
+  { label: "Payment files", href: "/payment-files", icon: FileText, meta: "Page" },
+  { label: "Approvals", href: "/approvals", icon: ClipboardCheck, meta: "Page" },
+  { label: "Audit log", href: "/audit", icon: ScrollText, meta: "Page" },
+  { label: "Evaluations", href: "/eval", icon: FlaskConical, meta: "Demo tool" },
+  { label: "Scenario runner", href: "/judge", icon: Gavel, meta: "Demo tool" },
+  { label: "Pitch deck", href: "/pitch", icon: Presentation, meta: "Demo tool" },
+  { label: "System health", href: "/health", icon: Activity, meta: "Demo tool" },
+  { label: "Controls", href: "/controls", icon: SlidersHorizontal, meta: "Settings" },
+  { label: "Developers", href: "/developers", icon: Code2, meta: "Settings" },
+  { label: "Settings", href: "/settings", icon: Settings, meta: "Settings" },
+  { label: "About Landed", href: "/about", icon: Info, meta: "Settings" },
 ];
+
+/** "⌘ K" on Apple platforms, "Ctrl K" elsewhere; resolves on the client only (server renders the neutral form). */
+function useShortcutLabel() {
+  return useSyncExternalStore(
+    () => () => {},
+    () => (/Mac|iPhone|iPad|iPod/i.test(navigator.platform ?? "") || /Macintosh/i.test(navigator.userAgent) ? "⌘ K" : "Ctrl K"),
+    () => "Ctrl K",
+  );
+}
+
 export function WorkspaceSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const cases = useCases();
   const vendors = useVendors();
+  const shortcut = useShortcutLabel();
   const needle = query.trim().toLowerCase();
   useEffect(() => {
     const key = (e: KeyboardEvent) => {
@@ -43,9 +79,9 @@ export function WorkspaceSearch() {
     return () => window.removeEventListener("keydown", key);
   }, []);
   const results = [
-    ...pages
-      .filter((p) => !needle || p.label.toLowerCase().includes(needle))
-      .map((p) => ({ ...p, meta: "Page" })),
+    ...pages.filter(
+      (p) => !needle || p.label.toLowerCase().includes(needle) || p.meta.toLowerCase().includes(needle),
+    ),
     ...(needle
       ? (cases ?? [])
           .filter((c) =>
@@ -81,10 +117,11 @@ export function WorkspaceSearch() {
           setOpen(true);
         }}
         aria-label="Search workspace"
+        aria-keyshortcuts="Meta+K Control+K"
       >
         <Search size={15} />
         <span>Search workspace</span>
-        <kbd>⌘ K</kbd>
+        <kbd>{shortcut}</kbd>
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent

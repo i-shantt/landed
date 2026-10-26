@@ -9,7 +9,8 @@ import { NativeSelect } from "@/components/native-select";
 import { PageHeader, Section, Loading, EmptyState } from "@/components/landed/primitives";
 import { payloadChips } from "@/components/landed/CaseTimeline";
 import { useAuditChain, useAuditEvents, useVendors } from "@/lib/hooks";
-import { absTime, shortId } from "@/lib/format";
+import { absTime, shortId, pacificLocalToEpoch } from "@/lib/format";
+import { toCsv, downloadText } from "@/lib/csv";
 import { actorLabel, eventLabel } from "@/lib/labels";
 import { ACTORS } from "@/lib/enums";
 import { chainOver } from "@/lib/hashchain";
@@ -17,17 +18,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 
 type Row = { _id: string; at: number; actor: string; type: string; caseId: string | null; vendorName: string | null; payload: unknown };
 
-function download(name: string, text: string, type: string) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = document.createElement("a");
-  a.href = url; a.download = name; a.click();
-  URL.revokeObjectURL(url);
-}
-
-function csvEscape(v: unknown) {
-  const s = v === null || v === undefined ? "" : typeof v === "object" ? JSON.stringify(v) : String(v);
-  return `"${s.replace(/"/g, '""')}"`;
-}
+const TZ_HINT = "Interpreted as Pacific Time (America/Los_Angeles), the zone every timestamp in Landed is shown in, whatever your browser's zone.";
 
 export default function AuditPage() {
   const vendors = useVendors();
@@ -42,8 +33,8 @@ export default function AuditPage() {
     caseId: caseId.trim() ? (caseId.trim() as Id<"cases">) : undefined,
     actor: actor || undefined,
     type: type || undefined,
-    from: from ? new Date(from).getTime() : undefined,
-    to: to ? new Date(to).getTime() : undefined,
+    from: from ? pacificLocalToEpoch(from) : undefined,
+    to: to ? pacificLocalToEpoch(to) : undefined,
   }), [vendorId, caseId, actor, type, from, to]);
   const filtered = useAuditEvents(args);
   const all = useAuditEvents({ limit: 100000 });
@@ -69,11 +60,11 @@ export default function AuditPage() {
     try { setServerHead(await chainAction({})); } catch (e) { setChainError(String((e as Error)?.message ?? e)); } finally { setChecking(false); }
   }
 
-  const exportJson = () => download(`landed-audit-${Date.now()}.json`, JSON.stringify(rows, null, 2), "application/json");
+  const exportJson = () => downloadText(`landed-audit-${Date.now()}.json`, JSON.stringify(rows, null, 2), "application/json");
   const exportCsv = () => {
-    const header = ["at", "atText", "actor", "type", "caseId", "vendor", "payload"];
-    const lines = rows.map((r) => [r.at, absTime(r.at), r.actor, r.type, r.caseId ?? "", r.vendorName ?? "", r.payload].map(csvEscape).join(","));
-    download(`landed-audit-${Date.now()}.csv`, [header.join(","), ...lines].join("\n"), "text/csv");
+    const header = ["At (ISO 8601 UTC)", "At (PT)", "Actor", "Event type", "Case id", "Vendor", "Payload (JSON)"];
+    const values = rows.map((r) => [new Date(r.at), absTime(r.at), r.actor, r.type, r.caseId ?? "", r.vendorName ?? "", r.payload as object]);
+    downloadText(`landed-audit-${Date.now()}.csv`, toCsv(header, values));
   };
 
   const match = localHead && serverHead ? (localHead.head === serverHead.head && localHead.count === serverHead.count) : null;
@@ -81,7 +72,7 @@ export default function AuditPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Audit"
+        title="Audit log"
         description="Every event across all cases, read-only. Events are append-only (no update or delete function exists); the hash chain below is recomputed on read, so any edit to the stored order would change the head."
         actions={
           <>
@@ -137,12 +128,12 @@ export default function AuditPage() {
             </NativeSelect>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="au-from">From</Label>
-            <Input id="au-from" type="datetime-local" value={from} onChange={(e) => setFrom(e.target.value)} max={to || undefined} />
+            <Label htmlFor="au-from" title={TZ_HINT}>From (PT)</Label>
+            <Input id="au-from" type="datetime-local" title={TZ_HINT} value={from} onChange={(e) => setFrom(e.target.value)} max={to || undefined} />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="au-to">To</Label>
-            <Input id="au-to" type="datetime-local" value={to} onChange={(e) => setTo(e.target.value)} min={from || undefined} />
+            <Label htmlFor="au-to" title={TZ_HINT}>To (PT)</Label>
+            <Input id="au-to" type="datetime-local" title={TZ_HINT} value={to} onChange={(e) => setTo(e.target.value)} min={from || undefined} />
           </div>
         </div>
       </Section>

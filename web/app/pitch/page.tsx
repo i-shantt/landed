@@ -1,9 +1,11 @@
 "use client";
 // In-app pitch deck: 7 full-viewport slides, keyboard-navigable, printable one slide per page.
-// Numbers are sourced from README.md / DEVPOST.md and are not to be edited here.
+// Measured numbers come from the posted eval run (the same rows the Evaluations page shows), never from
+// literals in this file; when no run is posted the tiles point at Evaluations instead.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useSettings } from "@/lib/hooks";
+import { useEvalRuns, useSettings } from "@/lib/hooks";
+import { summarizeEvalRuns } from "@/lib/eval-metrics";
 import { PermissionsTable } from "@/components/landed/PermissionsTable";
 import { cn } from "@/lib/utils";
 
@@ -41,6 +43,7 @@ export default function PitchPage() {
   const [i, setI] = useState(0);
   const [help, setHelp] = useState(false);
   const settings = useSettings();
+  const ev = summarizeEvalRuns(useEvalRuns());
   const demo = useMemo(() => parseDemo(settings?.demoCases), [settings?.demoCases]);
   const fraud = demo.find((d) => /^Fraud/i.test(d.label))?.caseId ?? null;
 
@@ -135,12 +138,21 @@ export default function PitchPage() {
         </div>
       </div>
       <div className="mt-8 grid gap-4 md:grid-cols-4">
-        <Stat value="91" label="unit and invariant tests" />
-        <Stat value="30/30" label="eval scenario runs (extractor on and off)" />
-        <Stat value="21/21" label="through the Claude extractor" />
-        <Stat value="0" label="false releases" />
+        {ev ? (
+          <>
+            <Stat value={String(ev.scenarios)} label="scripted scenarios, each run with the extractor on and off" />
+            <Stat value={`${ev.passed}/${ev.total}`} label="eval scenario runs passed (extractor on and off)" />
+            <Stat value={`${ev.onPassed}/${ev.onTotal}`} label="passed with the extractor on" />
+            <Stat value={ev.falseReleases === null ? "—" : String(ev.falseReleases)} label={ev.falseReleases === null ? "false releases: see Evaluations" : "false releases"} />
+          </>
+        ) : (
+          <div className="rounded-md border bg-card px-5 py-4 text-sm text-slate-600 md:col-span-4">
+            No eval run has been posted to this deployment yet. The measured numbers (scenario runs passed, extractor-on results, false releases) live on the{" "}
+            <Link href="/eval" className="underline underline-offset-2">Evaluations</Link> page once the runner posts them.
+          </div>
+        )}
       </div>
-      <p className="mt-5 text-sm text-slate-600">These are results on scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.</p>
+      <p className="mt-5 text-sm text-slate-600">{ev?.disclaimer ?? "These are results on scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud."}</p>
     </SlideFrame>,
     <SlideFrame key={7} n={7} title="Prior art, and what Landed adds" wide>
       <div className="grid gap-8 md:grid-cols-2">

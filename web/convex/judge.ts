@@ -3,7 +3,6 @@
 // progress into an `evalRuns` row (scenarioId "judge:<runId>") that the /judge page
 // subscribes to. Flag: settings.judgeMode ("off" disables). Additive: touches no core file.
 import { action, internalMutation, internalQuery, query } from "./_generated/server";
-import type { ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { api, internal } from "./_generated/api";

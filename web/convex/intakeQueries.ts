@@ -14,7 +14,7 @@ export const messageContext = internalQuery({
     let currentRouting: string | undefined;
     let currentLast4: string | undefined;
     let vendorName: string | undefined;
-    let openCaseId = undefined as undefined | typeof m.vendorId extends infer _ ? import("./_generated/dataModel").Id<"cases"> | undefined : never;
+    let openCaseId: import("./_generated/dataModel").Id<"cases"> | undefined = undefined;
     if (m.vendorId) {
       const vendor = await ctx.db.get(m.vendorId);
       vendorName = vendor?.name;

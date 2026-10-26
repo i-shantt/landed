@@ -56,12 +56,6 @@ export function useEvalRuns() {
 export function useSeedStatus() {
   return useQuery(api.seed.status, {});
 }
-export function usePortalRequests(sessionToken: string | null | undefined) {
-  return useQuery(api.channels.portal.openRequestsForSession, sessionToken ? { sessionToken } : "skip");
-}
-export function usePortalToken(sessionToken: string | null | undefined, token: string) {
-  return useQuery(api.channels.portal.tokenInfo, sessionToken ? { sessionToken, token } : "skip");
-}
 
 // Mutations / actions (human-initiated).
 export function useClockControls() {
@@ -93,9 +87,6 @@ export function useVendorActions() {
 }
 export function useMailboxActions() {
   return { insert: useMutation(api.messages.insert), generateUploadUrl: useMutation(api.messages.generateUploadUrl) };
-}
-export function usePortalActions() {
-  return { login: useAction(api.portalAuth.login), confirm: useMutation(api.channels.portal.confirm) };
 }
 
 // ---- Phase C additions ----

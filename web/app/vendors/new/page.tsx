@@ -88,7 +88,7 @@ export default function NewVendorPage() {
           const done = step > n;
           const active = step === n;
           return (
-            <li key={s} className={cn("flex items-center gap-1.5 rounded border px-2 py-1", active && "border-[#1E3A8A] text-[#1E3A8A]", done && "bg-green-50 border-green-200 text-green-800", !active && !done && "text-muted-foreground")}>
+            <li key={s} className={cn("flex items-center gap-1.5 rounded border px-2 py-1", active && "border-primary text-primary", done && "bg-green-50 border-green-200 text-green-800", !active && !done && "text-muted-foreground")}>
               <span className="font-mono tabular-nums">{n}</span> {s}{done ? " ✓" : ""}
             </li>
           );

@@ -64,7 +64,7 @@ export default function VendorsPage() {
             >
               <option value="all">All vendors</option>
               <option value="open">With open cases</option>
-              <option value="unverified">With unverified accounts</option>
+              <option value="unverified">Not every account version verified</option>
             </select>
           </div>
         </div>
@@ -79,7 +79,9 @@ export default function VendorsPage() {
                 <thead>
                   <tr>
                     <th>Vendor</th>
-                    <th>Verified accounts</th>
+                    <th title="Verified account versions over all versions on file, including superseded ones">
+                      Verified / all versions
+                    </th>
                     <th>Open cases</th>
                     <th className="ops-hide-small">Portal access</th>
                     <th className="ops-hide-medium">Onboarded</th>
@@ -154,7 +156,7 @@ export default function VendorsPage() {
                   </div>
                   <div>
                     <span>
-                      {v.verifiedCount} / {v.accountCount} accounts verified
+                      {v.verifiedCount} / {v.accountCount} account versions verified
                     </span>
                     <span>{v.openCases} open cases</span>
                   </div>

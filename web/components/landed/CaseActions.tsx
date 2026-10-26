@@ -38,7 +38,12 @@ export function CaseActions({
     { ok: true; text: string } | { ok: false; reason: string } | null
   >(null);
   const [busy, setBusy] = useState(false);
-  const selected = invoiceId || openInvoices[0]?._id || "";
+  // Fall back to the first open invoice whenever the remembered selection is no longer open
+  // (it was just paid, or the case re-rendered with a different invoice set).
+  const selected =
+    (invoiceId && openInvoices.some((i) => i._id === invoiceId) ? invoiceId : "") ||
+    openInvoices[0]?._id ||
+    "";
   const canReview = ["HELD", "PROBE_SENT", "AWAITING_CONFIRMATION"].includes(
     state,
   );
@@ -89,11 +94,13 @@ export function CaseActions({
                     rail: "ach",
                   });
                   if (!r.ok) setPayResult({ ok: false, reason: r.reason });
-                  else
+                  else {
                     setPayResult({
                       ok: true,
                       text: `${r.duplicate ? "Already sent earlier; the same payment was returned" : "Payment sent"} · ${r.paymentId}`,
                     });
+                    setInvoiceId("");
+                  }
                 } catch (e) {
                   setPayResult({ ok: false, reason: errorMessage(e) });
                 } finally {

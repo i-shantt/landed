@@ -155,7 +155,15 @@ export function TrustBadge({
   return (
     <span className="inline-flex items-center gap-1">
       <Tooltip>
-        <TooltipTrigger render={<span className="inline-flex" />}>
+        <TooltipTrigger
+          render={
+            <span
+              className="inline-flex rounded focus-visible:outline-2 focus-visible:outline-ring"
+              tabIndex={0}
+              aria-label={`${trustLabel(level)}: ${TRUST_TOOLTIPS[level] ?? level}`}
+            />
+          }
+        >
           <Pill tone={tone} label={trustLabel(level)} />
         </TooltipTrigger>
         <TooltipContent className="max-w-xs text-xs">

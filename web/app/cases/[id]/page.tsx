@@ -43,7 +43,7 @@ import {
   useNow,
 } from "@/lib/hooks";
 import { absTime, countdown } from "@/lib/format";
-import { triggerLabel, humanReasonLabel, caseSummary } from "@/lib/labels";
+import { triggerLabel, caseSummary } from "@/lib/labels";
 
 export default function CasePage({
   params,
@@ -69,9 +69,29 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
   const now = useNow();
   const [filter, setFilter] = useState("");
 
-  if (c === undefined) return <Loading />;
+  if (c === undefined)
+    return (
+      <div className="space-y-4">
+        <Link href="/cases" className="ops-back-link">
+          <ArrowLeft size={13} />
+          All verification cases
+        </Link>
+        <PageHeader title="Verification case" description="Loading the case, its accounts and its timeline…" />
+        <Loading label="Loading case…" />
+      </div>
+    );
   if (c === null)
-    return <p className="text-sm text-red-700">Case not found.</p>;
+    return (
+      <div className="space-y-4">
+        <Link href="/cases" className="ops-back-link">
+          <ArrowLeft size={13} />
+          All verification cases
+        </Link>
+        <PageHeader title="Case not found" description="This case id does not exist on this deployment. It may have been removed by a re-seed." />
+      </div>
+    );
+  // Demo tools matter most when a vendor answer is awaited (probe or landing); open them then.
+  const demoToolsOpen = c.state === "AWAITING_CONFIRMATION" || c.state === "PAID";
 
   return (
     <div className="space-y-4">
@@ -94,7 +114,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
             )}
             <CaseStatusBadge state={c.state} showToken={false} />
             {replay && (
-              <span className="rounded-md border border-indigo-200 bg-indigo-50 px-1.5 text-[11px] text-indigo-900">
+              <span className="rounded-md border border-emerald-200 bg-emerald-50 px-1.5 text-[11px] text-emerald-900">
                 {autoplay ? "Autoplay" : "Replay"}
               </span>
             )}
@@ -106,7 +126,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
             <span className="font-mono tabular-nums">
               {absTime(c.openedAt)}
             </span>
-            {c.state === "AWAITING_CONFIRMATION" && c.slaDeadlineAt ? (
+            {c.state === "AWAITING_CONFIRMATION" && c.slaDeadlineAt && now > 0 ? (
               <>
                 {" "}
                 · SLA{" "}
@@ -156,14 +176,6 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
             <SummaryWithTerms text={caseSummary(c.state, c.humanReason)} />
           </p>
         </div>
-        {c.humanReason && c.state === "NEEDS_HUMAN" && (
-          <p className="text-sm text-amber-900">
-            Needs a human:{" "}
-            <span className="font-medium">
-              {humanReasonLabel(c.humanReason)}
-            </span>
-          </p>
-        )}
       </PageHeader>
 
       <div className="case-detail-grid grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
@@ -230,7 +242,7 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
 
           <ConfirmationList confirmations={confirmations} />
           {!replay && (
-            <details className="ops-inline-tools">
+            <details className="ops-inline-tools" open={demoToolsOpen || undefined} key={String(demoToolsOpen)}>
               <summary>Demo and diagnostic tools</summary>
               <div className="space-y-4 pt-4">
                 <SimulateVendorAnswer caseId={caseId} state={c.state} />
@@ -320,14 +332,15 @@ function ReplayPlayer({
   const reduced = usePrefersReducedMotion();
   // Captions pace slower (2.4s per event) so a viewer can read them; plain replay runs at 10x (300ms).
   const interval = captions ? 2400 : 300;
+  const finished = tick >= frozen.length;
   useEffect(() => {
-    if (reduced || paused) return;
+    if (reduced || paused || finished) return;
     const timer = setInterval(
       () => setTick((t) => Math.min(t + 1, frozen.length)),
       interval,
     );
     return () => clearInterval(timer);
-  }, [run, reduced, paused, interval, frozen.length]);
+  }, [run, reduced, paused, finished, interval, frozen.length]);
   const shown =
     reduced && !captions ? frozen.length : Math.min(tick, frozen.length);
   const current = shown > 0 ? frozen[shown - 1] : null;
@@ -340,7 +353,7 @@ function ReplayPlayer({
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
         <span className="font-mono tabular-nums">
           {shown}/{frozen.length} events · {captions ? "captioned" : "10x"} ·
-          offline (no live subscription)
+          snapshot taken when the replay started
         </span>
         <Button
           size="xs"

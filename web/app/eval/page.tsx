@@ -30,7 +30,7 @@ export default function EvalPage() {
   const disclaimer = lines.find((l) => l.startsWith("These are results"));
   return (
     <div className="space-y-4">
-      <PageHeader title="Evaluation" description={disclaimer ?? "These are results on scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud."} />
+      <PageHeader title="Evaluations" description={disclaimer ?? "These are results on scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud."} />
       {runs === undefined ? <Loading /> : rows.length === 0 ? (
         <EmptyState title="No runs yet" description="Run the scenarios from the repo: cd eval && .venv/bin/python runner.py. Results are posted here." />
       ) : (

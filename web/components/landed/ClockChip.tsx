@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useClock, useClockControls, useNextTimers } from "@/lib/hooks";
 import { absTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ModeChips } from "./ModeChips";
 
 const HOUR = 3_600_000;
 
@@ -26,7 +27,7 @@ export function ClockControls({ onDone }: { onDone?: (msg: string) => void }) {
     <div className="space-y-3 text-sm">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono tabular-nums text-base">{clock ? absTime(clock.now) : "…"}</span>
-        <span className={cn("rounded border px-1.5 text-[11px]", clock?.mode === "demo" ? "border-indigo-200 bg-indigo-50 text-indigo-900" : "border-emerald-200 bg-emerald-50 text-emerald-900")}>{clock?.mode === "demo" ? "demo clock" : "live clock"}</span>
+        <span className={cn("rounded border px-1.5 text-[11px]", clock?.mode === "demo" ? "border-emerald-200 bg-emerald-50 text-emerald-900" : "border-slate-200 bg-slate-50 text-slate-700")}>{clock?.mode === "demo" ? "demo clock" : "live clock"}</span>
         {clock && <span className="text-xs text-muted-foreground">offset {Math.round((clock.offsetMs / HOUR) * 10) / 10}h</span>}
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -54,11 +55,17 @@ export function ClockControls({ onDone }: { onDone?: (msg: string) => void }) {
   );
 }
 
+/**
+ * Environment-bar chip: the demo clock plus the extractor / rail / voice mode chips
+ * (ModeChips is mounted here so it is visible on desktop; Shell only places it in the
+ * mobile navigation sheet).
+ */
 export function ClockChip() {
   const clock = useClock();
   const [open, setOpen] = useState(false);
   return (
-    <>
+    <div className="flex flex-wrap items-center justify-end gap-2">
+      <ModeChips compact />
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -67,7 +74,7 @@ export function ClockChip() {
       >
         <Clock3 className="size-3.5 text-muted-foreground" aria-hidden />
         <span className="font-mono tabular-nums">{clock ? absTime(clock.now) : "…"}</span>
-        <span className={cn("rounded px-1 text-[10px]", clock?.mode === "demo" ? "bg-indigo-50 text-indigo-900" : "bg-emerald-50 text-emerald-900")}>{clock?.mode ?? "…"}</span>
+        <span className={cn("rounded px-1 text-[11px]", clock?.mode === "demo" ? "bg-emerald-50 text-emerald-900" : "bg-slate-100 text-slate-700")}>{clock?.mode ?? "…"}</span>
       </button>
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent side="right" className="p-5">
@@ -78,6 +85,6 @@ export function ClockChip() {
           <ClockControls />
         </SheetContent>
       </Sheet>
-    </>
+    </div>
   );
 }

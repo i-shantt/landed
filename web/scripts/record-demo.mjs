@@ -3,7 +3,7 @@
 // Usage (from web/): node scripts/record-demo.mjs [--base https://landed-blue.vercel.app] [--local]
 // Outputs: ../assets/video/landed-raw.webm, ../assets/video/judge-run.webm, ../assets/screenshots/*.png
 import { chromium } from "@playwright/test";
-import { readFileSync, renameSync, existsSync, mkdirSync, readdirSync, statSync } from "node:fs";
+import { readFileSync, renameSync, mkdirSync, readdirSync, statSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 const env = Object.fromEntries(readFileSync(".env.local", "utf8").split("\n").filter((l) => l.includes("=") && !l.startsWith("#")).map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
@@ -25,7 +25,6 @@ const seed = await post("/eval/reset", { which: "full", demo: true });
 const demo = seed.demoCases ?? [];
 const fraud = demo.find((d) => d.label.startsWith("Fraud"))?.caseId;
 const legit = demo.find((d) => d.label.startsWith("Legitimate"))?.caseId;
-const combo = demo.find((d) => d.label.startsWith("Bank and phone"))?.caseId;
 if (!fraud || !legit) throw new Error("demo cases missing after reset");
 const cleanco = (await get("/eval/vendor/slug/cleanco")).vendor._id;
 

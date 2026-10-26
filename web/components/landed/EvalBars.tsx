@@ -23,7 +23,7 @@ export function EvalBars({ rows }: { rows: Row[] }) {
   const W = 560, rowH = 26, left = 130, barMax = W - left - 40;
   const H = data.length * rowH + 28;
   const series: { key: "blocked" | "completed" | "escalated"; color: string; label: string }[] = [
-    { key: "blocked", color: "#1E3A8A", label: "blocked before payment" },
+    { key: "blocked", color: "var(--primary)", label: "blocked before payment" },
     { key: "completed", color: "#047857", label: "completed (paid and landed)" },
     { key: "escalated", color: "#B45309", label: "escalated to a human" },
   ];

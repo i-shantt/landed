@@ -13,7 +13,9 @@ export const draft = internalAction({
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const model = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5";
     const f = fields as Record<string, unknown>;
-    const { timeline: _t, sections: _s, ...facts } = f;
+    const facts: Record<string, unknown> = { ...f };
+    delete facts.timeline;
+    delete facts.sections;
     const res = await client.messages.create({
       model,
       max_tokens: 4000,
