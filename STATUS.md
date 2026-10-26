@@ -1,15 +1,30 @@
-# STATUS.md — overnight run 3
+# STATUS.md
 
-Stopped 2026-10-24 04:45 PT. Phases D–G done; the Phase G list is exhausted except the two items skipped with reasons. Final tag `v2-overnight-3`.
+Updated 2026-10-25 (post-judging platform build). The hackathon demo is no longer locked; `main` carries the full platform: risk engine, controls (operators, approvals, policy, demo kill switch), sanctions screening, dashboard and payments ledger, REST API v1 + signed webhooks, Nacha/ISO 20022 payment files, controls matrix, security hardening and the frontend review fixes. See `CHANGELOG.md` (what), `ARCHITECTURE.md` (how), `SECURITY.md` (public surface).
 
-## Morning items (human only)
+## Live now
 
-1. **Push the repo public** (your GitHub auth) and paste the link into Devpost. Secrets scan was clean in run 2; `.env.local`, `.vercel/`, `.convex/` are ignored.
-2. **Narrate the video**: `assets/video/landed-raw.webm` with `assets/video/NARRATION.md` (timestamps at the bottom), or re-record live from `/cases/<fraud demo case>?autoplay=1` (the "Play with captions" button). No ffmpeg on this machine, so it is `.webm`.
-3. **Cartesia/Vapi**: one real call with a teammate's number. Set `VAPI_API_KEY`, `VAPI_PHONE_NUMBER_ID`, `CARTESIA_VOICE_ID`, `TEST_PHONE_NUMBERS=+1…` in `web/.env.local`, run `cd web && node scripts/sync-env.mjs --prod`, set Voice to `vapi` in Settings, try `VAPI_DRY_RUN=1` first (a `voice_dry_run` event shows the exact request), then run a case to availability.
-4. **Apify**: decide; if yes, add one real vendor domain to the fixtures and `APIFY_TOKEN`, then "Discover from website" on that vendor.
-5. **Talk to one AP practitioner** (a finance sponsor booth counts) and quote them in `DEVPOST.md` → Problem.
-6. **Devpost**: draft by Saturday 11:30 PM, final by Sunday 8:30 AM. Text is in `DEVPOST.md`; screenshots in `assets/screenshots/`; deck `assets/pitch.pdf`.
+- **Repo:** https://github.com/i-shantt/landed — `main` at the platform build (gate green: 213 vitest, 40/40 eval, measured check, next build).
+- **Production has NOT been redeployed yet with the platform build.** Vercel is still `dpl_DfnsVAjSqH4TJpoZ6eHiN8R6M7zn` (https://landed-blue.vercel.app) and Convex prod functions are still at `ea5fd57` (hackathon demo + voice fix). Prod env already has `VAPI_WEBHOOK_SECRET` set (random, recorded as `PROD_VAPI_WEBHOOK_SECRET` in `web/.env.local`).
+- **To deploy** (from a clean checkout of `main`; the prepared worktree is the scratchpad `deploytree`):
+  ```bash
+  cd web && npm ci
+  npx convex deploy -y                              # schema adds 9 tables; no data migration needed
+  npx vercel --prod --yes                           # note the dpl_ id for rollback
+  npx convex run --prod controls/operators:ensureSeeded   # operators on the existing prod data (reseed also does it)
+  node scripts/checkpoint2.mjs --prod               # smoke test
+  node scripts/prod-seed.mjs                        # clean demo state (20 vendors, 3 demo cases, operators)
+  ```
+  Then on prod: pick an administrator in the top-bar operator menu, `/controls` → Apply recommended, `/developers` → Add built-in inbox (webhooks), `/controls` → Screen all vendors.
+- **Rollback:** `cd web && npx vercel rollback dpl_DfnsVAjSqH4TJpoZ6eHiN8R6M7zn`; functions: `git checkout ea5fd57 -- web/convex && (cd web && npx convex deploy -y) && git checkout main -- web/convex`.
+
+## What to do next (suggested)
+
+1. **Real identity**: add Convex auth (Clerk or WorkOS) and map identities to `operators`; keep every server rule. This closes the one known structural gap (see `SECURITY.md` → Known limits).
+2. **Bulk actions and saved views** on `/cases`; an `/invoices` page; a NEEDS_HUMAN decision helper card.
+3. **Production watchlist**: load OFAC `SDN.CSV`/`ALT.CSV` with the parsers in `convex/screening/watchlist.ts` on a schedule and re-screen the vendor master on every list change.
+4. **Bank connector**: pull `GET /api/v1/payment-files/{id}` with a `files:read` key from the bank's SFTP job; probe deposits as `ACCTVERIFY` Micro-Entries through the same builder.
+5. **Voice**: with `VAPI_WEBHOOK_SECRET` now required, re-run the dev voice check (`voice=vapi`, test number as the contact of record) to place a real call; the webhook only accepts messages for calls Landed placed.
 
 ## Rollback (recorded at the start of run 3; use if a later deploy misbehaves)
 
