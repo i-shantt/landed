@@ -26,6 +26,7 @@ import {
   Receipt,
   Code2,
   FileText,
+  BadgeCheck,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -57,6 +58,7 @@ const TOOLS = [
 const UTILITY = [
   { href: "/controls", label: "Controls", icon: SlidersHorizontal },
   { href: "/developers", label: "Developers", icon: Code2 },
+  { href: "/compliance", label: "Controls matrix", icon: BadgeCheck },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About Landed", icon: Info },
 ];
