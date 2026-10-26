@@ -4,7 +4,7 @@
 import { action, internalAction, internalMutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id, TableNames } from "./_generated/dataModel";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 import bcrypt from "bcryptjs";
 import { hashAndEncrypt } from "./crypto";
@@ -212,6 +212,7 @@ export function rebase(fx: Fixture & { generatedAt?: number }, now: number): Fix
 export const reseed = action({
   args: {},
   handler: async (ctx): Promise<{ deleted: number }> => {
+    if (!(await ctx.runQuery(internal.controls.demoGuard.check, {}))) throw new ConvexError("demo_controls_disabled");
     const res = await ctx.runAction(internal.seed.reseedInternal, { which: "full", demo: true });
     return { deleted: res.deleted };
   },

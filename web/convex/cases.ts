@@ -104,6 +104,20 @@ export async function openCase(
     );
     return caseId;
   }
+  // Known-bad account numbers never get another probe: a prior version of this identity that a human
+  // rejected or disputed, or the same account requested by a different vendor (mule pattern).
+  const versions = await ctx.db.query("bankAccounts").withIndex("by_identity", (q) => q.eq("identityKey", account.identityKey)).collect();
+  const priorBad = versions.find((a) => a._id !== account._id && (a.status === "rejected" || a.status === "disputed"));
+  if (priorBad) {
+    await transition(ctx, caseId, "NEEDS_HUMAN", { actor: "system", type: "escalated", payload: { reason: "account_previously_rejected", priorVersion: priorBad.version, priorStatus: priorBad.status } }, "account_previously_rejected");
+    return caseId;
+  }
+  const sameHash = await ctx.db.query("bankAccounts").withIndex("by_hash", (q) => q.eq("accountHash", account.accountHash)).collect();
+  const otherVendors = new Set(sameHash.filter((a) => a.vendorId !== account.vendorId).map((a) => a.vendorId as string));
+  if (otherVendors.size > 0) {
+    await transition(ctx, caseId, "NEEDS_HUMAN", { actor: "system", type: "escalated", payload: { reason: "account_reused_across_vendors", otherVendors: otherVendors.size } }, "account_reused_across_vendors");
+    return caseId;
+  }
   const vendor = await ctx.db.get(args.vendorId);
   const result = await getValidationProvider().lookup({ routing: account.routing, accountHash: account.accountHash, vendorName: vendor?.name ?? "" });
   await ctx.db.patch(caseId, { validationProviderResult: result });
@@ -272,19 +286,30 @@ export const rejectChange = mutation({
     if (!c) throw new ConvexError("case_not_found");
     if (!["HELD", "PROBE_SENT", "AWAITING_CONFIRMATION", "NEEDS_HUMAN"].includes(c.state)) throw new ConvexError(`cannot_reject_from_${c.state}`);
     await ctx.db.patch(c.newAccountId, { status: "rejected" });
+    // Where do this account's invoices go? To the vendor's current verified account if one exists.
+    // The previous account is restored from `superseded` only when nothing else is verified, i.e. it
+    // was superseded by THIS change (manual edit) and not by another case that verified in the meantime.
+    const vendorAccounts = await ctx.db.query("bankAccounts").withIndex("by_vendor", (q) => q.eq("vendorId", c.vendorId)).collect();
+    const currentVerified = vendorAccounts.filter((a) => a.status === "verified" && a._id !== c.newAccountId).sort((a, b) => (b.firstPaidAt ?? 0) - (a.firstPaidAt ?? 0))[0] ?? null;
     const old = c.oldAccountId ? await ctx.db.get(c.oldAccountId) : null;
+    let target = currentVerified;
+    let previousAccountRestored = false;
+    if (!target && old && old.status === "superseded") {
+      await ctx.db.patch(old._id, { status: "verified" });
+      target = old;
+      previousAccountRestored = true;
+    }
     let restored = 0;
-    if (old && (old.status === "verified" || old.status === "superseded")) {
-      if (old.status === "superseded") await ctx.db.patch(old._id, { status: "verified" });
+    if (target) {
       const invoices = await ctx.db.query("invoices").withIndex("by_vendor", (q) => q.eq("vendorId", c.vendorId)).collect();
       for (const inv of invoices) {
         if (inv.status !== "paid" && inv.remitAccountId === c.newAccountId) {
-          await ctx.db.patch(inv._id, { remitAccountId: old._id, status: "open" });
+          await ctx.db.patch(inv._id, { remitAccountId: target._id, status: "open" });
           restored++;
         }
       }
     }
-    await append(ctx, { caseId, actor: "human", type: "change_rejected", payload: { reason, restoredInvoices: restored, previousAccountRestored: !!old } });
+    await append(ctx, { caseId, actor: "human", type: "change_rejected", payload: { reason, restoredInvoices: restored, previousAccountRestored, invoicesNowRemitTo: target ? { routing: target.routing, last4: target.accountLast4, version: target.version } : null } });
     if (c.state !== "NEEDS_HUMAN") await transition(ctx, caseId, "NEEDS_HUMAN", { actor: "human", type: "human_review_requested", payload: { reason } }, reason);
     await transition(ctx, caseId, "CLOSED", { actor: "human", type: "case_closed", payload: { reason: "change_rejected" } });
   },

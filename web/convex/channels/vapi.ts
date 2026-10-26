@@ -73,7 +73,7 @@ export function buildAssistant(args: { companyName: string; vendorName: string; 
               required: ["statedAmountCents", "reachedRecordContact", "notes"],
             },
           },
-          server: { url: args.serverUrl },
+          server: process.env.VAPI_WEBHOOK_SECRET ? { url: args.serverUrl, secret: process.env.VAPI_WEBHOOK_SECRET } : { url: args.serverUrl },
         },
         { type: "endCall" },
       ],
@@ -81,7 +81,7 @@ export function buildAssistant(args: { companyName: string; vendorName: string; 
     // Current Vapi API: webhooks go to `server.url` (the old top-level `serverUrl` and `endCallFunctionEnabled`
     // are no longer accepted and make POST /call return 400); the call itself has no metadata field, so the
     // case binding travels on the assistant's metadata and comes back on every server message.
-    server: { url: args.serverUrl },
+    server: process.env.VAPI_WEBHOOK_SECRET ? { url: args.serverUrl, secret: process.env.VAPI_WEBHOOK_SECRET } : { url: args.serverUrl },
     serverMessages: ["end-of-call-report", "tool-calls"],
     maxDurationSeconds: 180,
   };
@@ -150,6 +150,7 @@ export class VapiVoice implements ConfirmationChannel {
       return;
     }
     const call = JSON.parse(text) as { id?: string };
+    if (call.id) await this.ctx.runMutation(internal.channels.vapiMutations.recordCall, { caseId, contactId: args.contact._id, mode: args.mode, paymentId: args.paymentId as Id<"payments"> | undefined, vapiCallId: call.id });
     await this.ctx.runMutation(internal.channels.vapiMutations.note, { caseId, type: "voice_call_placed", payload: { vapiCallId: call.id ?? null, contactId: args.contact._id, mode: args.mode } });
   }
 }

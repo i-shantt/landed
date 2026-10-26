@@ -4,6 +4,8 @@
 // (which opens a case) or record an untrusted contact / rejected email receipt
 // claim. It never touches verification, payments, or account status (I5).
 import { internalAction } from "./_generated/server";
+import type { ActionCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import { extractWithRules, type Extraction } from "./extractors/rules";
@@ -12,6 +14,19 @@ import { extractWithClaude } from "./extractors/claude";
 export const run = internalAction({
   args: { messageId: v.id("messages") },
   handler: async (ctx, { messageId }) => {
+    try {
+      await runIntake(ctx, messageId);
+    } catch (e) {
+      // Fail closed and visibly: the message is marked `error` so it never looks "still processing".
+      const error = String((e as Error)?.message ?? e).slice(0, 500);
+      console.warn("[intake] failed", error);
+      await ctx.runMutation(internal.messages.setIntakeResult, { messageId, status: "error", result: { error, outcome: "intake_error" } });
+    }
+  },
+});
+
+async function runIntake(ctx: ActionCtx, messageId: Id<"messages">) {
+  {
     const info = await ctx.runQuery(internal.intakeQueries.messageContext, { messageId });
     if (!info) return;
     const mode = info.extractorMode;
@@ -134,5 +149,5 @@ export const run = internalAction({
     }
 
     await ctx.runMutation(internal.messages.setIntakeResult, { messageId, status: "done", result });
-  },
-});
+  }
+}

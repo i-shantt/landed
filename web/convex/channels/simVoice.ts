@@ -6,6 +6,7 @@ import { internalMutation, mutation } from "../_generated/server";
 import type { ActionCtx, MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
+import { assertDemoControls } from "../controls/demoGuard";
 import { internal } from "../_generated/api";
 import type { ConfirmationChannel } from "./types";
 import { getSetting, setSetting } from "../settings";
@@ -100,7 +101,10 @@ export const answer = mutation({
     outcome: v.optional(v.union(v.literal("stated"), v.literal("nothing_arrived"), v.literal("no_answer"))),
     mode: v.optional(v.union(v.literal("probe"), v.literal("landing"))),
   },
-  handler: async (ctx, args) => setStatementAndDeliver(ctx, args),
+  handler: async (ctx, args) => {
+    await assertDemoControls(ctx);
+    return setStatementAndDeliver(ctx, args);
+  },
 });
 
 export const answerInternal = internalMutation({

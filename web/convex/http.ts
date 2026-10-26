@@ -19,10 +19,20 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", "access-control-allow-origin": "*" } });
 }
 
+/** Constant-time string compare (same length required). */
+export function safeEqual(a: string, b: string): boolean {
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  let diff = ea.length ^ eb.length;
+  for (let i = 0; i < Math.max(ea.length, eb.length); i++) diff |= (ea[i] ?? 0) ^ (eb[i] ?? 0);
+  return diff === 0;
+}
+
+/** Fail closed: no EVAL_KEY on the deployment means no /eval/* access at all. */
 function authorized(req: Request): boolean {
-  const expected = process.env.EVAL_KEY ?? "dev";
-  if (!process.env.EVAL_KEY) console.warn("[eval] EVAL_KEY unset; using 'dev'");
-  return req.headers.get("x-eval-key") === expected;
+  const expected = process.env.EVAL_KEY;
+  if (!expected) return false;
+  return safeEqual(req.headers.get("x-eval-key") ?? "", expected);
 }
 
 async function body(req: Request): Promise<Record<string, unknown>> {
@@ -87,14 +97,18 @@ http.route({ path: "/eval/inject", method: "POST", handler: httpAction(async (ct
 http.route({ path: "/eval/advance", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const b = await body(req);
-  const res = await ctx.runMutation(api.clock.advance, { ms: Number(b.ms ?? 0) });
+  const ms = Number(b.ms ?? 0);
+  if (!Number.isFinite(ms) || Math.abs(ms) > 400 * 24 * 3600_000) return json({ ok: false, error: { code: "bad_ms", message: "ms must be a finite number of milliseconds (|ms| <= 400 days)" } }, 400);
+  const res = await ctx.runMutation(api.clock.advance, { ms });
   return json({ ok: true, ...res });
 }) });
 
 http.route({ path: "/eval/advanceTo", method: "POST", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const b = await body(req);
-  const res = await ctx.runMutation(api.clock.advanceTo, { at: Number(b.at) });
+  const at = Number(b.at);
+  if (!Number.isFinite(at) || at <= 0) return json({ ok: false, error: { code: "bad_at", message: "at must be an epoch millisecond timestamp" } }, 400);
+  const res = await ctx.runMutation(api.clock.advanceTo, { at });
   return json({ ok: true, ...res });
 }) });
 
@@ -308,8 +322,12 @@ http.route({ pathPrefix: "/eval/probeAmount/", method: "GET", handler: httpActio
   }
 }) });
 
-// ---- Vapi webhook (section 6.12). Implemented in Tier 3; records the payload shape until then. ----
+// ---- Vapi webhook. Authenticated by the shared secret Vapi sends back (`server.secret` on the assistant,
+// delivered as `x-vapi-secret`). Fail closed when the secret is not configured. The case binding is
+// resolved server-side from the call id (voiceCalls), never from metadata in the body. ----
 http.route({ path: "/vapi/webhook", method: "POST", handler: httpAction(async (ctx, req) => {
+  const secret = process.env.VAPI_WEBHOOK_SECRET;
+  if (!secret || !safeEqual(req.headers.get("x-vapi-secret") ?? "", secret)) return json({ error: "unauthorized" }, 401);
   const b = (await body(req)) as Record<string, unknown>;
   await ctx.runAction(internal.channels.vapiWebhook.handle, { payload: b });
   // A `tool-calls` message expects {results:[{name, toolCallId, result}]} so the assistant can continue.

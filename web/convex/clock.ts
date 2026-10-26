@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { runTick } from "./timers";
+import { assertDemoControls } from "./controls/demoGuard";
 
 export const NY = "America/New_York";
 export const DEFAULT_RECEIVER_TZ = "America/Los_Angeles";
@@ -37,13 +38,19 @@ export async function advanceBy(ctx: MutationCtx, ms: number) {
 
 export const advance = mutation({
   args: { ms: v.number() },
-  handler: async (ctx, { ms }) => advanceBy(ctx, ms),
+  handler: async (ctx, { ms }) => {
+    await assertDemoControls(ctx);
+    if (!Number.isFinite(ms)) throw new Error("ms must be finite");
+    return advanceBy(ctx, ms);
+  },
 });
 
 /** Advance the demo clock to an absolute instant (no-op if already past). */
 export const advanceTo = mutation({
   args: { at: v.number() },
   handler: async (ctx, { at }) => {
+    await assertDemoControls(ctx);
+    if (!Number.isFinite(at)) throw new Error("at must be finite");
     const t = await now(ctx);
     return advanceBy(ctx, Math.max(0, at - t));
   },
@@ -52,6 +59,7 @@ export const advanceTo = mutation({
 export const setMode = mutation({
   args: { mode: v.union(v.literal("live"), v.literal("demo")) },
   handler: async (ctx, { mode }) => {
+    await assertDemoControls(ctx);
     const row = await ctx.db.query("clock").first();
     if (!row) await ctx.db.insert("clock", { mode, offsetMs: 0 });
     else await ctx.db.patch(row._id, { mode });

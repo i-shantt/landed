@@ -59,7 +59,8 @@ export async function manualEdit(t: T, vendorId: Id<"vendors">, routing: string,
 /** Advance until the case's probe is available (probe_available timer fired). */
 export async function advanceToAvailability(t: T, caseId: Id<"cases">) {
   const timers = await t.run(async (ctx) => ctx.db.query("timers").withIndex("by_case", (q) => q.eq("caseId", caseId)).collect());
-  const avail = timers.find((x) => x.kind === "probe_available");
+  // The latest unfired availability timer (a re-issued probe adds a second one).
+  const avail = timers.filter((x) => x.kind === "probe_available" && !x.fired).sort((a, b) => b.dueAt - a.dueAt)[0] ?? timers.find((x) => x.kind === "probe_available");
   if (!avail) throw new Error("no probe_available timer");
   const now = (await t.query(api.clock.get, {})).now;
   await advance(t, Math.max(0, avail.dueAt - now) + 1000);

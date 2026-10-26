@@ -34,6 +34,8 @@ export const take = internalMutation({
 
 export function clientKey(req: Request): string {
   const xff = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "";
-  const ip = xff.split(",")[0].trim();
+  // The LAST entry is the hop the platform appended; the leftmost values are client-controlled.
+  const parts = xff.split(",").map((p) => p.trim()).filter(Boolean);
+  const ip = parts[parts.length - 1] ?? "";
   return ip || "global";
 }

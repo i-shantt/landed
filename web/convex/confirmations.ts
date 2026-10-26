@@ -91,6 +91,13 @@ export async function recordFromChannel(
     // Not a statement; SLA timer will escalate if nothing else arrives.
     return { confirmationId, accepted, rejectReason };
   }
+  if (!accepted) {
+    // Never evaluate an unaccepted statement against the probe: the refusal reason would leak whether
+    // the amount was right. Logged as rejected at acceptance; the gate is not consulted.
+    // The logged reason is the acceptance reason (channel/contact), which says nothing about the amount.
+    await append(ctx, { caseId: c._id, actor: "system", type: "release_refused", payload: { reason: rejectReason ?? "confirmation_not_accepted", confirmationId, channel: args.channel, gateConsulted: false } });
+    return { confirmationId, accepted, rejectReason };
+  }
   const decision = await tryRelease(ctx, c._id, confirmationId);
   return { confirmationId, accepted, rejectReason, decision };
 }
@@ -163,7 +170,8 @@ export const listForCase = query({
         hasStatedAmount: r.statedAmountCents !== undefined,
         // Landing statements are about the (non-secret) payment amount; probe statements are never shown.
         statedAmountCents: r.mode === "landing" ? r.statedAmountCents : undefined,
-        transcript: r.transcript ?? null,
+        // Probe-mode transcripts can quote the amount (voice notes, an attacker's email); only landing transcripts are shown.
+        transcript: r.mode === "landing" ? (r.transcript ?? null) : null,
         contact: contact ? { _id: contact._id, kind: contact.kind, value: contact.value, trustLevel: contact.trustLevel, supersededAt: contact.supersededAt ?? null } : null,
       });
     }

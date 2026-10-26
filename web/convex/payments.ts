@@ -2,7 +2,7 @@
 import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
 import { append } from "./events";
 import { canPay } from "./guard";
@@ -129,9 +129,11 @@ export const send = mutation({
     if (openCase && openCase.state === "VERIFIED") {
       await ctx.db.patch(openCase._id, { paymentId });
       await transition(ctx, openCase._id, "PAID", { actor: "human", type: "case_paid", payload: { paymentId } });
-      await createTimer(ctx, { caseId: openCase._id, kind: "landing_check", dueAt: landingCheckAt, payload: { paymentId } });
-      await createTimer(ctx, { caseId: openCase._id, kind: "landing_deadline", dueAt: landingDeadlineAt, payload: { paymentId } });
     }
+    // Every payment is landing-tracked, with or without a case (the case, when present, drives the vendor call).
+    const timerCase = openCase && openCase.state === "PAID" ? openCase._id : undefined;
+    await createTimer(ctx, { caseId: timerCase, kind: "landing_check", dueAt: landingCheckAt, payload: { paymentId } });
+    await createTimer(ctx, { caseId: timerCase, kind: "landing_deadline", dueAt: landingDeadlineAt, payload: { paymentId } });
     await ctx.scheduler.runAfter(0, internal.payments.submitToRail, { paymentId });
     return { ok: true as const, paymentId, duplicate: false };
   },
@@ -221,6 +223,40 @@ export async function recordLanding(
 export const recordLandingInternal = internalMutation({
   args: { paymentId: v.id("payments"), statedAmountCents: v.union(v.number(), v.null()), contactId: v.id("contacts") },
   handler: async (ctx, args) => recordLanding(ctx, args),
+});
+
+/**
+ * Human attestation that a payment landed (e.g. the vendor's AR confirmed receipt on the number of
+ * record, or a remittance acknowledgement arrived). Used for payments that have no verification case
+ * driving an automated landing call. Logged with the operator's name; cannot re-attest a decided payment.
+ */
+export const attestLanded = mutation({
+  args: { paymentId: v.id("payments"), operatorId: v.id("operators"), note: v.string() },
+  handler: async (ctx, { paymentId, operatorId, note }) => {
+    const op = await ctx.db.get(operatorId);
+    if (!op || !op.active) throw new ConvexError("operator_unknown_or_inactive");
+    if (note.trim().length < 3) throw new ConvexError("note_required");
+    const p = await ctx.db.get(paymentId);
+    if (!p) throw new ConvexError("payment_not_found");
+    if (p.landingState === "landed") throw new ConvexError("already_landed");
+    const t = await now(ctx);
+    await ctx.db.patch(p._id, { landingState: "landed" });
+    await append(ctx, { caseId: p.caseId, actor: "human", type: "payment_landed", payload: { paymentId: p._id, amountCents: p.amountCents, confirmedAt: t, attestedBy: op.name, operatorId, note: note.trim(), method: "operator_attestation" } });
+    if (p.caseId) {
+      const c = await ctx.db.get(p.caseId);
+      if (c && (c.state === "PAID" || c.state === "UNCONFIRMED")) {
+        if (c.state === "UNCONFIRMED") {
+          // Money turned up after the deadline: close through RECOVERY → CLOSED with the attestation on record.
+          await transition(ctx, c._id, "RECOVERY", { actor: "human", type: "recovery_started", payload: { reason: "late_landing_attested" } });
+          await transition(ctx, c._id, "CLOSED", { actor: "human", type: "case_closed", payload: { reason: "landed_late_attested" } });
+        } else {
+          await transition(ctx, c._id, "LANDED", { actor: "human", type: "case_landed", payload: { paymentId: p._id, method: "operator_attestation" } });
+          await transition(ctx, c._id, "CLOSED", { actor: "system", type: "case_closed", payload: { reason: "landed" } });
+        }
+      }
+    }
+    return { ok: true };
+  },
 });
 
 export const listForInvoice = query({

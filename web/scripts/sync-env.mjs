@@ -12,7 +12,7 @@ import { randomBytes } from "node:crypto";
 const PROD = process.argv.includes("--prod");
 const GENERATE = process.argv.includes("--generate");
 // EVAL_PROBE_AMOUNT_ENDPOINT is dev-only (enables the test-only probe-amount endpoint) and is never copied to prod.
-const KEYS = ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ACCOUNT_HMAC_KEY", "ACCOUNT_ENC_KEY", "EVAL_KEY", "RAIL", "VOICE", "NESSIE_KEY", "VAPI_API_KEY", "VAPI_PHONE_NUMBER_ID", "CARTESIA_VOICE_ID", "TEST_PHONE_NUMBERS", "APIFY_TOKEN"];
+const KEYS = ["ANTHROPIC_API_KEY", "ANTHROPIC_MODEL", "ACCOUNT_HMAC_KEY", "ACCOUNT_ENC_KEY", "EVAL_KEY", "RAIL", "VOICE", "NESSIE_KEY", "VAPI_API_KEY", "VAPI_PHONE_NUMBER_ID", "CARTESIA_VOICE_ID", "TEST_PHONE_NUMBERS", "APIFY_TOKEN", "VAPI_WEBHOOK_SECRET"];
 
 if (!existsSync(".env.local")) {
   console.log("[sync-env] no .env.local; nothing to sync");

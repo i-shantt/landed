@@ -91,19 +91,21 @@ export function canRelease(args: {
     return { ok: false, reason: "probe_mismatch" };
   if (probe.state !== "available" || probe.availableAt === undefined)
     return { ok: false, reason: "probe_not_available" };
+  // Acceptance and contact checks come BEFORE the amount comparison so that a statement from an
+  // untrusted or unaccepted source never produces an amount-derived refusal reason (no oracle).
+  if (!confirmation.accepted) return { ok: false, reason: "confirmation_not_accepted" };
+  if (confirmation.usedAt !== undefined && confirmation.usedAt !== null)
+    return { ok: false, reason: "confirmation_used" };
+  if (!contact) return { ok: false, reason: "contact_missing" };
+  if (contact.trustLevel !== "record") return { ok: false, reason: "contact_not_record" };
+  if (contact.supersededAt !== undefined && contact.supersededAt !== null)
+    return { ok: false, reason: "contact_superseded" };
   if (
     confirmation.statedAmountCents === undefined ||
     confirmation.statedAmountCents === null ||
     confirmation.statedAmountCents !== probe.amountCents
   )
     return { ok: false, reason: "amount_mismatch" };
-  if (!contact) return { ok: false, reason: "contact_missing" };
-  if (contact.trustLevel !== "record") return { ok: false, reason: "contact_not_record" };
-  if (contact.supersededAt !== undefined && contact.supersededAt !== null)
-    return { ok: false, reason: "contact_superseded" };
-  if (!confirmation.accepted) return { ok: false, reason: "confirmation_not_accepted" };
-  if (confirmation.usedAt !== undefined && confirmation.usedAt !== null)
-    return { ok: false, reason: "confirmation_used" };
   if (confirmation.receivedAt <= probe.availableAt)
     return { ok: false, reason: "received_before_available" };
   if (confirmation.receivedAt >= confirmation.expiresAt || now >= confirmation.expiresAt)
@@ -115,7 +117,7 @@ export function canRelease(args: {
 export const ALLOWED_TRANSITIONS: Record<string, readonly string[]> = {
   HELD: ["PROBE_SENT", "NEEDS_HUMAN"],
   PROBE_SENT: ["AWAITING_CONFIRMATION", "NEEDS_HUMAN"],
-  AWAITING_CONFIRMATION: ["VERIFIED", "NEEDS_HUMAN"],
+  AWAITING_CONFIRMATION: ["VERIFIED", "NEEDS_HUMAN", "PROBE_SENT"], // PROBE_SENT only on a re-issued probe (assistant leak)
   NEEDS_HUMAN: ["VERIFIED", "RECOVERY", "CLOSED"],
   VERIFIED: ["PAID"],
   PAID: ["LANDED", "UNCONFIRMED"],

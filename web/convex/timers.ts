@@ -29,6 +29,17 @@ export async function runTick(ctx: MutationCtx): Promise<number> {
   for (const timer of due) {
     await ctx.db.patch(timer._id, { fired: true });
     fired++;
+    try {
+      await fireTimer(ctx, timer);
+    } catch (e) {
+      // One bad timer must not wedge every other deadline: record it and move on (fired stays true).
+      await ctx.db.insert("events", { caseId: timer.caseId, at: t, actor: "system", type: "timer_failed", payload: { timerId: timer._id, kind: timer.kind, error: String((e as Error)?.message ?? e) } });
+    }
+  }
+  return fired;
+}
+
+async function fireTimer(ctx: MutationCtx, timer: { _id: Id<"timers">; caseId?: Id<"cases">; kind: string; payload?: unknown }) {
     const payload = (timer.payload ?? {}) as Record<string, unknown>;
     switch (timer.kind) {
       case "probe_settle": {
@@ -48,30 +59,34 @@ export async function runTick(ctx: MutationCtx): Promise<number> {
         break;
       }
       case "landing_check": {
-        if (timer.caseId && payload.paymentId) {
-          const p = await ctx.db.get(payload.paymentId as Id<"payments">);
-          if (p && p.landingState === "pending") {
-            await ctx.scheduler.runAfter(0, internal.channels.initiate.initiateLanding, { caseId: timer.caseId, paymentId: p._id });
-          }
+        if (!payload.paymentId) break;
+        const p = await ctx.db.get(payload.paymentId as Id<"payments">);
+        if (!p || p.landingState !== "pending") break;
+        if (timer.caseId) {
+          await ctx.scheduler.runAfter(0, internal.channels.initiate.initiateLanding, { caseId: timer.caseId, paymentId: p._id });
+        } else {
+          // No verification case: nobody is called automatically; the Payments page asks an operator to attest.
+          await ctx.db.insert("events", { at: await now(ctx), actor: "system", type: "landing_check_due", payload: { paymentId: p._id, note: "no case drives a vendor call for this payment; attest landing on the Payments page" } });
         }
         break;
       }
       case "landing_deadline": {
-        if (!timer.caseId || !payload.paymentId) break;
+        if (!payload.paymentId) break;
         const p = await ctx.db.get(payload.paymentId as Id<"payments">);
-        const c = await ctx.db.get(timer.caseId);
-        if (p && p.landingState === "pending" && c && c.state === "PAID") {
-          await ctx.db.patch(p._id, { landingState: "unconfirmed" });
+        if (!p || p.landingState !== "pending") break;
+        await ctx.db.patch(p._id, { landingState: "unconfirmed" });
+        const c = timer.caseId ? await ctx.db.get(timer.caseId) : null;
+        if (c && c.state === "PAID") {
           await transition(ctx, c._id, "UNCONFIRMED", { actor: "system", type: "landing_unconfirmed", payload: { paymentId: p._id, reason: "landing_deadline_passed" } });
           await ctx.scheduler.runAfter(0, internal.package.generate, { caseId: c._id, thenRecovery: true });
+        } else {
+          await ctx.db.insert("events", { caseId: c?._id, at: await now(ctx), actor: "system", type: "landing_unconfirmed", payload: { paymentId: p._id, reason: "landing_deadline_passed", note: "no open case; review on the Payments page" } });
         }
         break;
       }
       default:
         break;
     }
-  }
-  return fired;
 }
 
 export const tick = internalMutation({

@@ -363,6 +363,20 @@ export default defineSchema({
     body: v.string(),
   }),
 
+  // Calls we placed through Vapi. The webhook binds a server message to a case through this table
+  // (by call id), never through metadata supplied in the request body.
+  voiceCalls: defineTable({
+    caseId: v.id("cases"),
+    contactId: v.id("contacts"),
+    mode: v.union(v.literal("probe"), v.literal("landing")),
+    paymentId: v.optional(v.id("payments")),
+    vapiCallId: v.string(),
+    placedAt: v.number(),
+    status: v.union(v.literal("placed"), v.literal("completed"), v.literal("failed")),
+  })
+    .index("by_callId", ["vapiCallId"])
+    .index("by_case", ["caseId"]),
+
   paymentFiles: defineTable({
     format: v.union(v.literal("nacha"), v.literal("pain.001")),
     createdAt: v.number(),
