@@ -8,6 +8,7 @@ import type { Id } from "./_generated/dataModel";
 import bcrypt from "bcryptjs";
 import { append } from "./events";
 import { now } from "./clock";
+import { ensureScreened } from "./screening/screen";
 
 export const createVendor = mutation({
   args: { name: v.string(), domain: v.string(), onboardedBy: v.string() },
@@ -20,6 +21,9 @@ export const createVendor = mutation({
     const vendorId = await ctx.db.insert("vendors", { name: name.trim(), domain: d, slug, onboardedAt: t, hasPortalLogin: false, notes: `onboarded by ${onboardedBy}` });
     await ctx.db.insert("contacts", { vendorId, kind: "email", value: `ap@${d}`, trustLevel: "discovered", establishedAt: t, establishedVia: "onboarding_form" });
     await append(ctx, { actor: "human", type: "vendor_onboarded", payload: { vendorId, name, domain: d, onboardedBy } });
+    // Sanctions screening at onboarding (controls layer): records a `screenings` row; a potential match
+    // blocks payment when policy `blockOnScreeningHit` is on, until an approver resolves it.
+    await ensureScreened(ctx, vendorId);
     return vendorId;
   },
 });
