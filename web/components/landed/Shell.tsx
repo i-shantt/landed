@@ -20,6 +20,8 @@ import {
   Activity,
   ArrowUpRight,
   ShieldCheck,
+  ClipboardCheck,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -28,12 +30,15 @@ import { Brand } from "./Brand";
 import { ClockChip } from "./ClockChip";
 import { ModeChips } from "./ModeChips";
 import { WorkspaceSearch } from "./WorkspaceSearch";
+import { OperatorMenu } from "./OperatorMenu";
+import { usePendingApprovalCount } from "@/lib/hooks";
 
 const NAV = [
   { href: "/cases", label: "Verification cases", icon: FolderKanban },
   { href: "/vendors", label: "Vendors", icon: Building2 },
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
   { href: "/payment-run", label: "Payment run", icon: Banknote },
+  { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/audit", label: "Audit log", icon: ScrollText },
 ];
 const TOOLS = [
@@ -43,6 +48,7 @@ const TOOLS = [
   { href: "/health", label: "System health", icon: Activity },
 ];
 const UTILITY = [
+  { href: "/controls", label: "Controls", icon: SlidersHorizontal },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About Landed", icon: Info },
 ];
@@ -56,6 +62,7 @@ function NavLinks({
   items?: typeof NAV;
 }) {
   const path = usePathname();
+  const pending = usePendingApprovalCount();
   return (
     <nav
       aria-label={
@@ -81,6 +88,11 @@ function NavLinks({
         >
           <Icon size={16} aria-hidden />
           {!collapsed && <span>{label}</span>}
+          {href === "/approvals" && pending ? (
+            <span className="ml-auto rounded-full bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-900" aria-label={`${pending} pending`}>
+              {pending}
+            </span>
+          ) : null}
         </Link>
       ))}
     </nav>
@@ -176,13 +188,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
             <span />
             Demo environment
           </span>
-          <Link
-            href="/settings"
-            className="ops-profile"
-            aria-label="Workspace settings"
-          >
-            MO
-          </Link>
+          <OperatorMenu />
         </div>
       </div>
     </header>

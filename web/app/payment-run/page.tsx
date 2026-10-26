@@ -29,19 +29,25 @@ import {
   AccountStatusBadge,
   CaseStatusBadge,
 } from "@/components/landed/badges";
-import { usePaymentRun, useSendPayment } from "@/lib/hooks";
+import { usePaymentRun, useSendPayment, useApprovalActions } from "@/lib/hooks";
+import { useOperator } from "@/lib/operator";
 import { usd, absDate } from "@/lib/format";
 import { refusalLabel } from "@/lib/labels";
 import { errorMessage } from "@/components/landed/ReasonDialog";
+import type { Id } from "@/convex/_generated/dataModel";
 
 type LineResult = {
   kind: "paid" | "duplicate" | "refused" | "error";
   text: string;
 };
+type SentLine = { invoiceId: string; number: string; vendorName: string; amountCents: number; paymentId: string; at: number };
 
 export default function PaymentRunPage() {
   const run = usePaymentRun();
   const send = useSendPayment();
+  const { request } = useApprovalActions();
+  const { operator } = useOperator();
+  const [sent, setSent] = useState<SentLine[]>([]);
   const [confirm, setConfirm] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState("all");
@@ -49,28 +55,42 @@ export default function PaymentRunPage() {
   const [results, setResults] = useState<Record<string, LineResult>>({});
 
   if (run === undefined) return <Loading />;
-  const payable = run.lines.filter((l) => l.decision.ok);
+  const payable = run.lines.filter((l) => l.decision.ok && (l.policy === null || l.policy.ok));
+  const needsApproval = run.lines.filter((l) => l.decision.ok && l.policy !== null && !l.policy.ok);
+  const lineKind = (l: (typeof run.lines)[number]) => (!l.decision.ok ? "blocked" : l.policy && !l.policy.ok ? "approval" : "payable");
   const visibleLines = run.lines.filter(
     (l) =>
       (!query.trim() ||
         `${l.number} ${l.vendorName}`
           .toLowerCase()
           .includes(query.trim().toLowerCase())) &&
-      (view === "all" || (view === "payable" ? l.decision.ok : !l.decision.ok)),
+      (view === "all" || lineKind(l) === view),
   );
+
+  async function requestApproval(invoiceId: Id<"invoices">) {
+    if (!operator) return;
+    try {
+      await request({ invoiceId, operatorId: operator._id });
+      setResults((prev) => ({ ...prev, [invoiceId]: { kind: "duplicate", text: `approval requested by ${operator.name}; see Approvals` } }));
+    } catch (e) {
+      setResults((prev) => ({ ...prev, [invoiceId]: { kind: "error", text: errorMessage(e) } }));
+    }
+  }
 
   async function runPayable() {
     setConfirm(false);
     setBusy(true);
     // Snapshot the payable set now; each line is re-evaluated by the server on send.
-    const ids = payable.map((l) => l.invoiceId);
-    for (const invoiceId of ids) {
+    const snapshot = payable.map((l) => ({ invoiceId: l.invoiceId, number: l.number, vendorName: l.vendorName, amountCents: l.amountCents }));
+    for (const line of snapshot) {
+      const invoiceId = line.invoiceId;
       try {
         const r = await send({
           invoiceId,
-          initiatedBy: "payment-run",
+          initiatedBy: operator ? `${operator.name} (payment run)` : "payment-run",
           rail: "ach",
         });
+        if (r.ok && !r.duplicate) setSent((prev) => [{ ...line, paymentId: r.paymentId as string, at: Date.now() }, ...prev]);
         setResults((prev) => ({
           ...prev,
           [invoiceId]: r.ok
@@ -108,12 +128,18 @@ export default function PaymentRunPage() {
           </Button>
         }
       />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3 sm:grid-cols-3">
         <StatCard
           label="Payable"
           value={usd(run.totals.payableCents)}
           hint={`${run.totals.payable} invoice${run.totals.payable === 1 ? "" : "s"} to verified, current-version accounts`}
           tone={run.totals.payable > 0 ? "green" : undefined}
+        />
+        <StatCard
+          label="Needs approval"
+          value={usd(run.totals.needsApprovalCents)}
+          hint={`${run.totals.needsApproval} verified line${run.totals.needsApproval === 1 ? "" : "s"} held by company policy`}
+          tone={run.totals.needsApproval > 0 ? "amber" : undefined}
         />
         <StatCard
           label="Blocked"
@@ -148,8 +174,9 @@ export default function PaymentRunPage() {
               >
                 <option value="all">All invoices ({run.lines.length})</option>
                 <option value="blocked">
-                  Blocked ({run.lines.length - payable.length})
+                  Blocked ({run.totals.blocked})
                 </option>
+                <option value="approval">Needs approval ({needsApproval.length})</option>
                 <option value="payable">Payable ({payable.length})</option>
               </select>
             </div>
@@ -196,7 +223,18 @@ export default function PaymentRunPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {l.decision.ok ? (
+                      {l.decision.ok && l.policy && !l.policy.ok ? (
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          <span className="rounded border border-amber-200 bg-amber-50 px-1.5 text-xs text-amber-900" title={refusalLabel(l.policy.reason)}>
+                            {l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required" ? "needs approval" : l.policy.reason.replace("policy_", "").replaceAll("_", " ")}
+                          </span>
+                          {(l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required") && (
+                            <button type="button" className="text-xs underline underline-offset-2" onClick={() => requestApproval(l.invoiceId)}>
+                              Request approval
+                            </button>
+                          )}
+                        </span>
+                      ) : l.decision.ok ? (
                         <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 text-xs text-emerald-900">
                           payable
                         </span>
@@ -268,6 +306,24 @@ export default function PaymentRunPage() {
           </footer>
         </section>
       )}
+      {sent.length > 0 && (
+        <section className="rounded-md border border-emerald-200 bg-emerald-50/40" aria-label="Sent this session">
+          <header className="border-b border-emerald-200 px-4 py-2 text-sm font-medium text-emerald-900">
+            Sent this session · {sent.length} payment{sent.length === 1 ? "" : "s"} · {usd(sent.reduce((n, l) => n + l.amountCents, 0))}
+          </header>
+          <ul className="divide-y divide-emerald-100 text-xs">
+            {sent.map((l) => (
+              <li key={l.paymentId} className="flex flex-wrap items-center justify-between gap-2 px-4 py-1.5">
+                <span>
+                  <span className="font-mono">{l.number}</span> · {l.vendorName}
+                </span>
+                <span className="font-mono tabular-nums">{usd(l.amountCents)}</span>
+                <span className="font-mono text-muted-foreground">payment {l.paymentId.slice(-8)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <Dialog open={confirm} onOpenChange={setConfirm}>
         <DialogContent>
           <DialogHeader>
@@ -277,8 +333,8 @@ export default function PaymentRunPage() {
             </DialogTitle>
             <DialogDescription>
               {usd(run.totals.payableCents)} to verified accounts, sent one by
-              one by <code className="font-mono">payments.send</code>. Blocked
-              lines are never sent; the server re-checks every line as it goes.
+              one by <code className="font-mono">payments.send</code> as {operator?.name ?? "payment-run"}. Blocked lines and
+              lines awaiting approval are never sent; the server re-checks every line as it goes.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

@@ -189,7 +189,8 @@ export default defineSchema({
   })
     .index("by_invoice", ["invoiceId"])
     .index("by_key", ["idempotencyKey"])
-    .index("by_case", ["caseId"]),
+    .index("by_case", ["caseId"])
+    .index("by_vendor", ["vendorId"]),
 
   events: defineTable({
     caseId: v.optional(v.id("cases")),
@@ -276,4 +277,101 @@ export default defineSchema({
     key: v.string(),
     value: v.string(),
   }).index("by_key", ["key"]),
+
+  // ---- controls layer (additive): named operators, maker-checker approvals, policy, screening ----
+  operators: defineTable({
+    name: v.string(),
+    initials: v.string(),
+    role: v.union(v.literal("clerk"), v.literal("approver"), v.literal("admin")),
+    email: v.optional(v.string()),
+    active: v.boolean(),
+  }).index("by_name", ["name"]),
+
+  approvals: defineTable({
+    invoiceId: v.id("invoices"),
+    destinationAccountId: v.id("bankAccounts"),
+    vendorId: v.id("vendors"),
+    amountCents: v.number(),
+    requiredBy: v.array(v.string()), // policy reasons that required this approval
+    requestedBy: v.id("operators"),
+    requestedAt: v.number(),
+    status: v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"), v.literal("consumed")),
+    decidedBy: v.optional(v.id("operators")),
+    decidedAt: v.optional(v.number()),
+    note: v.optional(v.string()),
+    riskScore: v.optional(v.number()),
+  })
+    .index("by_invoice", ["invoiceId"])
+    .index("by_status", ["status"]),
+
+  screenings: defineTable({
+    vendorId: v.id("vendors"),
+    subject: v.string(), // the name screened
+    listVersion: v.string(),
+    screenedAt: v.number(),
+    status: v.union(v.literal("clear"), v.literal("potential_match"), v.literal("confirmed_match"), v.literal("false_positive")),
+    matches: v.array(v.object({ entry: v.string(), program: v.string(), score: v.number(), method: v.string() })),
+    reviewedBy: v.optional(v.id("operators")),
+    reviewedAt: v.optional(v.number()),
+    note: v.optional(v.string()),
+  })
+    .index("by_vendor", ["vendorId"])
+    .index("by_status", ["status"]),
+
+  // ---- integration layer (additive): API keys, outbound webhooks, payment files ----
+  apiKeys: defineTable({
+    name: v.string(),
+    prefix: v.string(), // first 12 chars shown in the UI
+    keyHash: v.string(), // sha256 of the full key; the key itself is shown once
+    scopes: v.array(v.string()),
+    createdBy: v.optional(v.id("operators")),
+    createdAt: v.number(),
+    lastUsedAt: v.optional(v.number()),
+    revokedAt: v.optional(v.number()),
+  }).index("by_hash", ["keyHash"]),
+
+  webhookEndpoints: defineTable({
+    url: v.string(),
+    description: v.optional(v.string()),
+    secret: v.string(), // server-only; shown once at creation
+    eventTypes: v.array(v.string()), // ["*"] for all
+    active: v.boolean(),
+    createdAt: v.number(),
+  }),
+
+  webhookDeliveries: defineTable({
+    endpointId: v.id("webhookEndpoints"),
+    eventId: v.id("events"),
+    eventType: v.string(),
+    attempt: v.number(),
+    status: v.union(v.literal("pending"), v.literal("delivered"), v.literal("failed"), v.literal("exhausted")),
+    nextAttemptAt: v.number(),
+    lastStatusCode: v.optional(v.number()),
+    lastError: v.optional(v.string()),
+    deliveredAt: v.optional(v.number()),
+  })
+    .index("by_due", ["status", "nextAttemptAt"])
+    .index("by_endpoint", ["endpointId"])
+    .index("by_event", ["eventId"]),
+
+  // Built-in receiver for demos: what a customer's system would see.
+  webhookInbox: defineTable({
+    receivedAt: v.number(),
+    signatureValid: v.boolean(),
+    eventType: v.string(),
+    eventId: v.string(),
+    body: v.string(),
+  }),
+
+  paymentFiles: defineTable({
+    format: v.union(v.literal("nacha"), v.literal("pain.001")),
+    createdAt: v.number(),
+    createdBy: v.string(),
+    entryCount: v.number(),
+    totalCents: v.number(),
+    invoiceIds: v.array(v.id("invoices")),
+    storageId: v.id("_storage"), // full file, server-only
+    previewMasked: v.string(), // same file with account numbers masked, safe for the browser
+    sha256: v.string(),
+  }),
 });

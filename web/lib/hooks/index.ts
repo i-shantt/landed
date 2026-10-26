@@ -148,6 +148,26 @@ export function useEmlIngest() {
   return useAction(api.emlIntake.ingest);
 }
 
+// ---- controls layer: operators, approvals, policy ----
+export function useApprovals(status?: "pending" | "approved" | "rejected" | "consumed") {
+  return useQuery(api.controls.approvals.list, status ? { status } : {});
+}
+export function usePendingApprovalCount(): number {
+  return useQuery(api.controls.approvals.list, { status: "pending" })?.length ?? 0;
+}
+export function useApprovalActions() {
+  return { request: useMutation(api.controls.approvals.request), decide: useMutation(api.controls.approvals.decide) };
+}
+export function usePolicy() {
+  return useQuery(api.controls.policy.get, {});
+}
+export function usePolicyActions() {
+  return { set: useMutation(api.controls.policy.set), applyRecommended: useMutation(api.controls.policy.applyRecommended) };
+}
+export function useOperatorAdmin() {
+  return { create: useMutation(api.controls.operators.create), deactivate: useMutation(api.controls.operators.deactivate) };
+}
+
 // ---- risk engine ----
 export function useRisk(caseId: Id<"cases">) {
   return useQuery(api.risk.assess.forCase, { caseId });

@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import bcrypt from "bcryptjs";
 import { hashAndEncrypt } from "./crypto";
+import { seedOperators } from "./controls/operators";
 import type { Fixture } from "./fixtureTypes";
 import { setSetting } from "./settings";
 import { createUnverifiedWithHash } from "./bankAccounts";
@@ -79,6 +80,7 @@ export async function insertFixture(ctx: MutationCtx, prepared: Prepared) {
   await setSetting(ctx, "rail", process.env.RAIL === "nessie" && process.env.NESSIE_KEY ? "nessie" : "sim");
   await setSetting(ctx, "voice", process.env.VOICE === "vapi" && process.env.VAPI_API_KEY ? "vapi" : "sim");
   await setSetting(ctx, "seededAt", String(now));
+  await seedOperators(ctx);
 
   const vendorIds = new Map<string, Id<"vendors">>();
   for (const vnd of fixture.vendors) {

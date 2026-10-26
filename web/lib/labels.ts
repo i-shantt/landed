@@ -167,6 +167,12 @@ export function rejectLabel(reason: string | null | undefined): string {
 }
 
 export const REFUSAL_LABELS: Record<string, string> = {
+  policy_approval_required: "Company policy: a second approver must sign off on a payment this large before it can be sent.",
+  policy_risk_review_required: "Company policy: this change scored high on the risk assessment, so an approver must review it before payment.",
+  policy_cooling_off: "Company policy: the account was verified too recently. A cooling-off window applies before the first payment.",
+  policy_velocity_exceeded: "Company policy: this payment would exceed the daily limit for this vendor.",
+  policy_wire_blocked_for_new_account: "Company policy: the first payment to a new account must go by ACH, which can be recalled, not by wire.",
+  policy_screening_hit: "Company policy: this vendor has an unresolved sanctions-screening match. Resolve it before paying.",
   destination_missing: "Destination account does not exist",
   destination_vendor_mismatch:
     "Destination account belongs to a different vendor",

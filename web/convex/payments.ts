@@ -11,6 +11,7 @@ import { createTimer } from "./timers";
 import { transition } from "./cases";
 import { decryptAccount } from "./crypto";
 import { selectRail } from "./rails/select";
+import { evaluatePaymentPolicy, type PolicyRefusal } from "./controls/policy";
 
 export async function currentVersionForIdentity(ctx: MutationCtx, identityKey: string): Promise<number | null> {
   const latest = await ctx.db
@@ -79,6 +80,24 @@ export const send = mutation({
     if (existing) return { ok: true as const, paymentId: existing._id, duplicate: true };
 
     const t = await now(ctx);
+
+    // Policy layer (controls/policy.ts): company rules on top of the structural guard. Off by default.
+    // Fail closed: an internal error inside policy evaluation is a refusal, logged like any other.
+    let policy: Awaited<ReturnType<typeof evaluatePaymentPolicy>>;
+    try {
+      policy = await evaluatePaymentPolicy(ctx, { invoice: inv, destination: dest, rail: railKind, now: t });
+    } catch (e) {
+      policy = { ok: false, reason: "policy_approval_required", detail: { error: String((e as Error)?.message ?? e) } };
+    }
+    if (!policy.ok) {
+      await append(ctx, {
+        caseId: openCase?._id,
+        actor: "human",
+        type: "payment_refused",
+        payload: { reason: policy.reason, layer: "policy", detail: policy.detail ?? null, invoiceId, invoiceNumber: inv.number, amountCents: inv.amountCents, rail: railKind, destination: { routing: dest.routing, last4: dest.accountLast4, status: dest.status, version: dest.version, vendorId: dest.vendorId }, initiatedBy },
+      });
+      return { ok: false as const, code: "payment_refused" as const, reason: policy.reason as PolicyRefusal | ReturnType<typeof canPay> extends { ok: false; reason: infer R } ? R : never };
+    }
     const landingCheckAt = railKind === "ach" ? t + 2 * HOUR : t + 1 * HOUR;
     const landingDeadlineAt = railKind === "ach" ? Math.max(endOfBusinessDay(t), landingCheckAt + HOUR) : t + 4 * HOUR;
 
@@ -97,6 +116,10 @@ export const send = mutation({
     });
     await ctx.db.patch(invoiceId, { status: "paid" });
     if (dest.firstPaidAt === undefined) await ctx.db.patch(dest._id, { firstPaidAt: t });
+    if (policy.approvalId) {
+      await ctx.db.patch(policy.approvalId, { status: "consumed" });
+      await append(ctx, { caseId: openCase?._id, actor: "system", type: "approval_consumed", payload: { approvalId: policy.approvalId, paymentId } });
+    }
     await append(ctx, {
       caseId: openCase?._id,
       actor: "human",
