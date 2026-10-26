@@ -5,6 +5,8 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { ConvexError } from "convex/values";
 import { clientKey } from "./rateLimit";
+import { safeEqual } from "./api/util";
+import { registerApiRoutes } from "./apiRoutes";
 
 // Rate limits (token buckets in settings): portal login 10/min per client, portal confirm 30/min per client,
 // eval endpoints 300/min global (keyed callers; protects prod from runaway scripts).
@@ -17,15 +19,6 @@ const http = httpRouter();
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", "access-control-allow-origin": "*" } });
-}
-
-/** Constant-time string compare (same length required). */
-export function safeEqual(a: string, b: string): boolean {
-  const ea = new TextEncoder().encode(a);
-  const eb = new TextEncoder().encode(b);
-  let diff = ea.length ^ eb.length;
-  for (let i = 0; i < Math.max(ea.length, eb.length); i++) diff |= (ea[i] ?? 0) ^ (eb[i] ?? 0);
-  return diff === 0;
 }
 
 /** Fail closed: no EVAL_KEY on the deployment means no /eval/* access at all. */
@@ -361,5 +354,7 @@ http.route({ path: "/portal/confirm", method: "POST", handler: httpAction(async 
     return json({ ok: false, error: errorPayload(e) }, 400);
   }
 }) });
+
+registerApiRoutes(http);
 
 export default http;

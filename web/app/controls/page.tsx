@@ -1,14 +1,14 @@
 "use client";
 import { useState } from "react";
-import Link from "next/link";
-import { ShieldCheck, Sparkles } from "lucide-react";
+import { ShieldCheck, Sparkles, Radar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { errorMessage } from "@/components/landed/ReasonDialog";
 import { ROLE_LABEL } from "@/components/landed/OperatorMenu";
-import { usePolicy, usePolicyActions, useOperatorAdmin } from "@/lib/hooks";
+import { usePolicy, usePolicyActions, useOperatorAdmin, useScreeningSummary, useScreeningPending, useScreeningActions } from "@/lib/hooks";
+import Link from "next/link";
 import { useOperator } from "@/lib/operator";
 import { usd } from "@/lib/format";
 
@@ -70,6 +70,9 @@ export default function ControlsPage() {
   const { set, applyRecommended } = usePolicyActions();
   const { operator, operators, isAdmin } = useOperator();
   const admin = useOperatorAdmin();
+  const screening = useScreeningSummary();
+  const pendingHits = useScreeningPending();
+  const { screenAll } = useScreeningActions();
   const [edited, setEdited] = useState<Policy | null>(null);
   // The draft is the saved policy until the admin edits a field.
   const draft: Policy | null = edited ?? policy ?? null;
@@ -171,6 +174,50 @@ export default function ControlsPage() {
             <p className="mt-3 text-xs text-muted-foreground">
               Current policy: dual approval {policy?.dualApprovalAboveCents === null ? "off" : `≥ ${usd(policy?.dualApprovalAboveCents)}`} · risk review {policy?.riskReviewAbove === null ? "off" : `≥ ${policy?.riskReviewAbove}`} · cooling-off {policy?.coolingOffHours ? `${policy.coolingOffHours}h` : "off"} · daily limit {policy?.maxPerVendorPerDayCents === null ? "off" : usd(policy?.maxPerVendorPerDayCents)} · ACH-first {policy?.blockWireForFirstPayment ? "on" : "off"} · screening block {policy?.blockOnScreeningHit ? "on" : "off"}
             </p>
+          </Section>
+          <Section
+            title={<span className="flex items-center gap-2"><Radar size={14} /> Sanctions screening</span>}
+            description={screening ? `List ${screening.listVersion} (${screening.listSize} entries, synthetic demo list; production loads OFAC SDN + consolidated). ${screening.screenedVendors} screened, ${screening.unscreened} not yet.` : "Loading…"}
+            actions={
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!operator}
+                onClick={async () => {
+                  if (!operator) return;
+                  try {
+                    const r = await screenAll({});
+                    setMsg(`Screened ${r.screened} vendors: ${r.potentialMatches} possible match${r.potentialMatches === 1 ? "" : "es"}.`);
+                  } catch (e) {
+                    setMsg(errorMessage(e));
+                  }
+                }}
+              >
+                Screen all vendors
+              </Button>
+            }
+          >
+            {screening && (
+              <dl className="grid grid-cols-3 gap-2 text-sm">
+                <div><dt className="text-xs text-muted-foreground">Possible matches</dt><dd className={`font-mono tabular-nums ${screening.potentialMatches ? "text-amber-800" : ""}`}>{screening.potentialMatches}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">Confirmed</dt><dd className={`font-mono tabular-nums ${screening.confirmed ? "text-red-800" : ""}`}>{screening.confirmed}</dd></div>
+                <div><dt className="text-xs text-muted-foreground">False positives</dt><dd className="font-mono tabular-nums">{screening.falsePositives}</dd></div>
+              </dl>
+            )}
+            {pendingHits && pendingHits.length > 0 && (
+              <ul className="mt-3 divide-y text-xs">
+                {pendingHits.map((h) => (
+                  <li key={h._id} className="flex items-center justify-between gap-2 py-1.5">
+                    <span>
+                      <Link href={`/vendors/${h.vendorId}`} className="font-medium text-slate-900 underline underline-offset-2">{h.vendorName}</Link>
+                      <span className="text-muted-foreground"> vs {h.matches[0]?.entry} · {h.matches[0]?.program}</span>
+                    </span>
+                    <span className="font-mono tabular-nums">{Math.round((h.matches[0]?.score ?? 0) * 100)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">Decisions (false positive / confirmed) are made on the vendor page by an approver. Turn on “Block on sanctions-screening match” above to make an open hit refuse payments.</p>
           </Section>
           <Section title="Operators and roles" description="Server-enforced roles. The top-bar picker stands in for SSO in this build.">
             <ul className="divide-y text-sm">

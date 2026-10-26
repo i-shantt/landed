@@ -2,13 +2,13 @@
 // guard's decision, computed with the same pure `canPay` the payment mutation uses. Nothing here
 // writes; "Run payable" on the page calls payments.send per line (human-initiated, sequential).
 import { query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import { canPay } from "./guard";
 import { evaluatePaymentPolicy, type PolicyDecision } from "./controls/policy";
 import { now } from "./clock";
 
-export const preview = query({
-  args: {},
-  handler: async (ctx) => {
+export async function computePaymentRun(ctx: QueryCtx) {
+  {
     const invoices = (await ctx.db.query("invoices").collect()).filter((i) => i.status !== "paid");
     const t = await now(ctx);
     const lines = [];
@@ -55,5 +55,10 @@ export const preview = query({
         needsApproval: needsApproval.length,
       },
     };
-  },
+  }
+}
+
+export const preview = query({
+  args: {},
+  handler: async (ctx) => computePaymentRun(ctx),
 });

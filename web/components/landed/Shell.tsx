@@ -24,6 +24,8 @@ import {
   SlidersHorizontal,
   LayoutDashboard,
   Receipt,
+  Code2,
+  FileText,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -42,6 +44,7 @@ const NAV = [
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
   { href: "/payment-run", label: "Payment run", icon: Banknote },
   { href: "/payments", label: "Payments", icon: Receipt },
+  { href: "/payment-files", label: "Payment files", icon: FileText },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/audit", label: "Audit log", icon: ScrollText },
 ];
@@ -53,6 +56,7 @@ const TOOLS = [
 ];
 const UTILITY = [
   { href: "/controls", label: "Controls", icon: SlidersHorizontal },
+  { href: "/developers", label: "Developers", icon: Code2 },
   { href: "/settings", label: "Settings", icon: Settings },
   { href: "/about", label: "About Landed", icon: Info },
 ];

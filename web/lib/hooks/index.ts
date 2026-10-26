@@ -185,6 +185,55 @@ export function useAttestLanded() {
   return useMutation(api.payments.attestLanded);
 }
 
+// ---- screening ----
+export function useScreeningForVendor(vendorId: Id<"vendors">) {
+  return useQuery(api.screening.screen.forVendor, { vendorId });
+}
+export function useScreeningSummary() {
+  return useQuery(api.screening.screen.summary, {});
+}
+export function useScreeningPending() {
+  return useQuery(api.screening.screen.pending, {});
+}
+export function useScreeningActions() {
+  return { screenVendor: useMutation(api.screening.screen.screenVendor), screenAll: useMutation(api.screening.screen.screenAll), review: useMutation(api.screening.screen.review) };
+}
+
+// ---- developers: API keys, webhooks ----
+export function useApiKeys() {
+  return useQuery(api.api.keys.list, {});
+}
+export function useApiKeyActions() {
+  return { create: useAction(api.api.keys.create), revoke: useMutation(api.api.keys.revoke) };
+}
+export function useWebhookEndpoints() {
+  return useQuery(api.webhooks.dispatch.endpoints, {});
+}
+export function useWebhookDeliveries() {
+  return useQuery(api.webhooks.dispatch.deliveries, { limit: 50 });
+}
+export function useWebhookInbox() {
+  return useQuery(api.webhooks.dispatch.inbox, {});
+}
+export function useWebhookActions() {
+  return {
+    create: useMutation(api.webhooks.dispatch.createEndpoint),
+    createInbox: useMutation(api.webhooks.dispatch.createInboxEndpoint),
+    setActive: useMutation(api.webhooks.dispatch.setActive),
+    remove: useMutation(api.webhooks.dispatch.remove),
+    pumpNow: useMutation(api.webhooks.dispatch.pumpNow),
+    sendTest: useAction(api.webhooks.dispatch.sendTest),
+  };
+}
+
+// ---- payment files ----
+export function usePaymentFiles() {
+  return useQuery(api.exports.paymentFiles.list, {});
+}
+export function useBuildPaymentFile() {
+  return useAction(api.exports.paymentFiles.build);
+}
+
 // ---- risk engine ----
 export function useRisk(caseId: Id<"cases">) {
   return useQuery(api.risk.assess.forCase, { caseId });

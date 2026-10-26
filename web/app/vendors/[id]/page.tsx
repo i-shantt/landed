@@ -31,6 +31,7 @@ import {
   InvoiceStatusBadge,
 } from "@/components/landed/badges";
 import { ContactList } from "@/components/landed/ContactList";
+import { ScreeningPanel } from "@/components/landed/ScreeningPanel";
 import { ReasonDialog, errorMessage } from "@/components/landed/ReasonDialog";
 import {
   useVendor,
@@ -211,6 +212,8 @@ export default function VendorPage({
           </div>
         </details>
       </Section>
+
+      <ScreeningPanel vendorId={vendorId} />
 
       <Section title="Bank accounts">
         <Table>

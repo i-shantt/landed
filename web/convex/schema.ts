@@ -354,6 +354,15 @@ export default defineSchema({
     .index("by_endpoint", ["endpointId"])
     .index("by_event", ["eventId"]),
 
+  // Idempotency records for POST /api/v1/* (24h), keyed by api key + Idempotency-Key.
+  apiRequests: defineTable({
+    scopeKey: v.string(),
+    requestHash: v.string(),
+    status: v.number(),
+    body: v.string(),
+    createdAt: v.number(),
+  }).index("by_scopeKey", ["scopeKey"]),
+
   // Built-in receiver for demos: what a customer's system would see.
   webhookInbox: defineTable({
     receivedAt: v.number(),

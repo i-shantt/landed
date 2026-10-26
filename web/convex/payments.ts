@@ -130,8 +130,9 @@ export const send = mutation({
       await ctx.db.patch(openCase._id, { paymentId });
       await transition(ctx, openCase._id, "PAID", { actor: "human", type: "case_paid", payload: { paymentId } });
     }
-    // Every payment is landing-tracked, with or without a case (the case, when present, drives the vendor call).
-    const timerCase = openCase && openCase.state === "PAID" ? openCase._id : undefined;
+    // Every payment is landing-tracked. The first payment of a case (VERIFIED -> PAID just above) binds the
+    // timers to the case so the vendor call and the recovery path run; later payments are tracked on their own.
+    const timerCase = openCase && openCase.state === "VERIFIED" ? openCase._id : undefined;
     await createTimer(ctx, { caseId: timerCase, kind: "landing_check", dueAt: landingCheckAt, payload: { paymentId } });
     await createTimer(ctx, { caseId: timerCase, kind: "landing_deadline", dueAt: landingDeadlineAt, payload: { paymentId } });
     await ctx.scheduler.runAfter(0, internal.payments.submitToRail, { paymentId });
