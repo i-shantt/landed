@@ -27,6 +27,7 @@ import {
   Code2,
   FileText,
   BadgeCheck,
+  Radar,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -45,6 +46,7 @@ const NAV = [
   { href: "/mailbox", label: "Mailbox", icon: Inbox },
   { href: "/payment-run", label: "Payment run", icon: Banknote },
   { href: "/payments", label: "Payments", icon: Receipt },
+  { href: "/monitoring", label: "Monitoring", icon: Radar },
   { href: "/payment-files", label: "Payment files", icon: FileText },
   { href: "/approvals", label: "Approvals", icon: ClipboardCheck },
   { href: "/audit", label: "Audit log", icon: ScrollText },

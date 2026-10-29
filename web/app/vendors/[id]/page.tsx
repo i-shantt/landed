@@ -32,9 +32,11 @@ import {
 } from "@/components/landed/badges";
 import { ContactList } from "@/components/landed/ContactList";
 import { ScreeningPanel } from "@/components/landed/ScreeningPanel";
+import { TrustBadge } from "@/components/landed/TrustBadge";
 import { ReasonDialog, errorMessage } from "@/components/landed/ReasonDialog";
 import {
   useVendor,
+  useVendorTrust,
   useVendorActions,
   useEnvPresence,
   useDevTools,
@@ -50,6 +52,7 @@ export default function VendorPage({
   const { id } = use(params);
   const vendorId = id as Id<"vendors">;
   const v = useVendor(vendorId);
+  const trust = useVendorTrust(vendorId);
   const { supersede, addRecord, manualEdit, discover } = useVendorActions();
   const [discovering, setDiscovering] = useState(false);
   const [discoverMsg, setDiscoverMsg] = useState<string | null>(null);
@@ -111,6 +114,7 @@ export default function VendorPage({
             {v.hasPortalLogin ? " · portal login" : ""}
           </span>
         }
+        actions={trust ? <Link href="/monitoring" title={trust.components.map((c) => `${c.points > 0 ? "+" : ""}${c.points} ${c.evidence}`).join("\n")}><TrustBadge score={trust.score} band={trust.band} /></Link> : undefined}
       />
 
       {editResult && (
