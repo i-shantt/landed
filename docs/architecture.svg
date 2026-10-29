@@ -1,109 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="640" viewBox="0 0 1120 640" font-family="ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="660" viewBox="0 0 1160 660" font-family="ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif" font-size="12">
   <title>Landed architecture: workspace and API clients call Convex; every payment passes the frozen boundary</title>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker>
     <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#166534"/></marker>
   </defs>
-  <rect width="1120" height="640" rx="12" fill="#ffffff"/>
-
-  <rect x="24" y="24" width="300" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
-  <text x="40" y="48" font-weight="600" fill="#0f172a">Next.js 16 workspace (Vercel)</text>
-  <text x="40" y="68" fill="#334155">dashboard · cases · vendors · mailbox · payment run</text>
-  <text x="40" y="86" fill="#334155">approvals · controls · monitoring · developers · audit</text>
-  <text x="40" y="104" fill="#64748b">Convex Auth session (httpOnly cookies) · proxy.ts gates routes</text>
-
-  <rect x="344" y="24" width="220" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
-  <text x="360" y="48" font-weight="600" fill="#0f172a">REST API clients</text>
-  <text x="360" y="68" fill="#334155">Bearer ld_live_sk_… (scoped, hashed)</text>
-  <text x="360" y="86" fill="#334155">/api/v1 · OpenAPI 3.1 · idempotent</text>
-  <text x="360" y="104" fill="#64748b">ERP · bank SFTP job (payment files)</text>
-
-  <rect x="584" y="24" width="220" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
-  <text x="600" y="48" font-weight="600" fill="#0f172a">Vendors</text>
-  <text x="600" y="68" fill="#334155">voice call to the number of record</text>
-  <text x="600" y="86" fill="#334155">(Vapi + Cartesia) · vendor portal</text>
-  <text x="600" y="104" fill="#64748b">read the probe amount back</text>
-
-  <rect x="824" y="24" width="272" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8"/>
-  <text x="840" y="48" font-weight="600" fill="#0f172a">Email intake</text>
-  <text x="840" y="68" fill="#334155">mailbox · .eml upload · ERP webhook</text>
-  <text x="840" y="86" fill="#334155">extractor: rules | Claude (no write path)</text>
-  <text x="840" y="104" fill="#64748b">SPF/DKIM/DMARC recorded, never assumed</text>
-
+  <rect width="1160" height="660" rx="12" fill="#ffffff"/>
+  <rect x="24" y="24" width="300" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+  <text x="36" y="44" font-weight="700" fill="#0f172a">Next.js 16 workspace (Vercel)</text>
+  <text x="36" y="61" fill="#334155">dashboard · cases · vendors · mailbox</text>
+  <text x="36" y="77" fill="#334155">pay run · approvals · controls · monitoring</text>
+  <text x="36" y="93" fill="#64748b">Convex Auth session · proxy.ts gates routes</text>
+  <rect x="340" y="24" width="244" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+  <text x="352" y="44" font-weight="700" fill="#0f172a">REST API clients</text>
+  <text x="352" y="61" fill="#334155">Bearer ld_live_sk_… scoped, hashed</text>
+  <text x="352" y="77" fill="#334155">/api/v1 · OpenAPI 3.1 · idempotent</text>
+  <text x="352" y="93" fill="#64748b">ERP · bank SFTP (payment files)</text>
+  <rect x="600" y="24" width="244" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+  <text x="612" y="44" font-weight="700" fill="#0f172a">Vendors</text>
+  <text x="612" y="61" fill="#334155">voice call to the number of record</text>
+  <text x="612" y="77" fill="#334155">(Vapi + Cartesia) · vendor portal</text>
+  <text x="612" y="93" fill="#64748b">they read the probe amount back</text>
+  <rect x="860" y="24" width="276" height="92" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+  <text x="872" y="44" font-weight="700" fill="#0f172a">Email intake</text>
+  <text x="872" y="61" fill="#334155">mailbox · .eml upload · ERP webhook</text>
+  <text x="872" y="77" fill="#334155">extractor: rules | Claude · no writes</text>
+  <text x="872" y="93" fill="#64748b">SPF/DKIM/DMARC recorded, never assumed</text>
   <line x1="174" y1="116" x2="174" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <line x1="454" y1="116" x2="454" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <line x1="694" y1="116" x2="694" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <line x1="960" y1="116" x2="960" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-
-  <rect x="24" y="150" width="1072" height="400" rx="10" fill="#fafaf9" stroke="#78716c" stroke-dasharray="6 4"/>
+  <line x1="462" y1="116" x2="462" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="722" y1="116" x2="722" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="998" y1="116" x2="998" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <rect x="24" y="150" width="1112" height="414" rx="10" fill="#fafaf9" stroke="#78716c" stroke-dasharray="6 4"/>
   <text x="40" y="174" font-weight="700" fill="#0f172a">Convex (serializable transactions, real-time queries, scheduler)</text>
-
-  <rect x="40" y="190" width="520" height="200" rx="8" fill="#f0fdf4" stroke="#166534" stroke-width="2"/>
-  <text x="56" y="212" font-weight="700" fill="#14532d">Frozen core: the payment boundary</text>
-  <text x="56" y="230" fill="#166534">changes only with a failing test first (core: commits)</text>
-  <rect x="56" y="244" width="150" height="36" rx="6" fill="#ffffff" stroke="#166534"/>
-  <text x="68" y="259" font-weight="600" fill="#14532d">bankAccounts</text>
-  <text x="68" y="273" fill="#166534" font-size="11">new version = unverified</text>
-  <rect x="226" y="244" width="150" height="36" rx="6" fill="#ffffff" stroke="#166534"/>
-  <text x="238" y="259" font-weight="600" fill="#14532d">cases · probes</text>
-  <text x="238" y="273" fill="#166534" font-size="11">HELD → PROBE → VERIFIED</text>
-  <rect x="396" y="244" width="150" height="36" rx="6" fill="#ffffff" stroke="#166534"/>
-  <text x="408" y="259" font-weight="600" fill="#14532d">confirmations</text>
-  <text x="408" y="273" fill="#166534" font-size="11">canRelease: 16 bound facts</text>
-  <line x1="206" y1="262" x2="226" y2="262" stroke="#166534" stroke-width="1.5" marker-end="url(#g)"/>
-  <line x1="376" y1="262" x2="396" y2="262" stroke="#166534" stroke-width="1.5" marker-end="url(#g)"/>
-  <rect x="56" y="300" width="490" height="74" rx="6" fill="#dcfce7" stroke="#166534" stroke-width="2"/>
-  <text x="68" y="320" font-weight="700" fill="#14532d">payments.send — the only writer of payments</text>
-  <text x="68" y="338" fill="#14532d">canPay: destination exists · belongs to this vendor · current version · verified</text>
-  <text x="68" y="354" fill="#14532d">then policy (can only add refusals) · idempotent per invoice+destination · fail closed</text>
-  <text x="68" y="368" fill="#166534" font-size="11">refusal = payment_refused event with the reason; nothing reaches the rail</text>
-
-  <rect x="580" y="190" width="250" height="94" rx="8" fill="#fff7ed" stroke="#c2410c"/>
-  <text x="596" y="212" font-weight="700" fill="#7c2d12">Controls</text>
-  <text x="596" y="230" fill="#9a3412">actor.ts: session → operator → role</text>
-  <text x="596" y="246" fill="#9a3412">approvals (maker-checker, one payment)</text>
-  <text x="596" y="262" fill="#9a3412">policy JSON · screening (OFAC parsers)</text>
-  <text x="596" y="278" fill="#9a3412">demo kill switch · invites by email</text>
-
-  <rect x="846" y="190" width="234" height="94" rx="8" fill="#eff6ff" stroke="#1d4ed8"/>
-  <text x="862" y="212" font-weight="700" fill="#1e3a8a">Risk (derived on read, no writes)</text>
-  <text x="862" y="230" fill="#1e40af">16 deterministic signals + evidence</text>
-  <text x="862" y="246" fill="#1e40af">payment LR (20 features) · email TF-IDF</text>
-  <text x="862" y="262" fill="#1e40af">combined = max(rules, model)</text>
-  <text x="862" y="278" fill="#1e40af">weights JSON trained in ml/ (Python)</text>
-
-  <rect x="580" y="296" width="250" height="94" rx="8" fill="#eff6ff" stroke="#1d4ed8"/>
-  <text x="596" y="318" font-weight="700" fill="#1e3a8a">Monitoring (vendor's own history)</text>
-  <text x="596" y="336" fill="#1e40af">velocity vs weekly median · robust z (MAD)</text>
-  <text x="596" y="352" fill="#1e40af">structuring under threshold (72 h)</text>
-  <text x="596" y="368" fill="#1e40af">dormant spike · trust score · 7/30-day trend</text>
-  <text x="596" y="384" fill="#1e40af" font-size="11">policy.monitoringReviewAbove → required approval</text>
-
-  <rect x="846" y="296" width="234" height="94" rx="8" fill="#fdf4ff" stroke="#7e22ce"/>
-  <text x="862" y="318" font-weight="700" fill="#581c87">Integration</text>
-  <text x="862" y="336" fill="#6b21a8">apiRoutes.ts · api keys · OpenAPI</text>
-  <text x="862" y="352" fill="#6b21a8">signed webhooks (HMAC, retries, SSRF guard)</text>
-  <text x="862" y="368" fill="#6b21a8">Nacha ACH · ISO 20022 pain.001 files</text>
-  <text x="862" y="384" fill="#6b21a8" font-size="11">full file server-side, masked preview in browser</text>
-
-  <line x1="580" y1="337" x2="546" y2="337" stroke="#c2410c" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="563" y="330" fill="#9a3412" font-size="10" text-anchor="middle">policy</text>
-
-  <rect x="40" y="406" width="1040" height="60" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
-  <text x="56" y="428" font-weight="600" fill="#0f172a">Shared services</text>
-  <text x="56" y="448" fill="#334155">events (append-only, redacted at insert, hash chain) · clock + timers.tick (SLA, availability, landing) · crypto (HMAC + AES-256-GCM account numbers) · seed/eval endpoints (key-gated) · Convex Auth tables</text>
-
-  <rect x="40" y="480" width="330" height="54" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
-  <text x="56" y="502" font-weight="600" fill="#0f172a">Rails</text>
-  <text x="56" y="520" fill="#334155">SimRail ledger · Capital One Nessie · same Rail interface</text>
-  <rect x="386" y="480" width="330" height="54" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
-  <text x="402" y="502" font-weight="600" fill="#0f172a">Channels</text>
-  <text x="402" y="520" fill="#334155">SimVoice · Vapi + Cartesia (secret-bound webhook) · portal</text>
-  <rect x="732" y="480" width="348" height="54" rx="8" fill="#f8fafc" stroke="#94a3b8"/>
-  <text x="748" y="502" font-weight="600" fill="#0f172a">Quality gate</text>
-  <text x="748" y="520" fill="#334155">268 vitest · 40-run scenario suite · drift checks · Playwright · CI</text>
-
-  <text x="24" y="580" fill="#334155">Rule under everything: <tspan font-weight="700" fill="#14532d">no payment to a bank account that has not been verified for that specific vendor</tspan>, enforced in the transaction that would write it.</text>
-  <text x="24" y="600" fill="#64748b">Intelligence (extractor, risk, model, monitoring) informs people and policy; none of it can import or schedule a release function (static test). Probe amounts never leave the server.</text>
-  <text x="24" y="622" fill="#94a3b8" font-size="11">docs/architecture.svg · see ARCHITECTURE.md for the module table and data model</text>
+  <rect x="40" y="190" width="520" height="206" rx="8" fill="#f0fdf4" stroke="#dcfce7" stroke-width="0"/>
+  <rect x="40" y="190" width="520" height="206" rx="8" fill="#f0fdf4" stroke="#166534" stroke-width="2"/>
+  <text x="52" y="210" font-weight="700" fill="#14532d">Frozen core: the payment boundary</text>
+  <text x="52" y="227" fill="#166534" font-size="10.5">changes only with a failing test first (core: commits)</text>
+  <rect x="52" y="240" width="156" height="38" rx="6" fill="#ffffff" stroke="#166534" stroke-width="1"/>
+  <text x="64" y="260" font-weight="700" fill="#14532d">bankAccounts</text>
+  <text x="64" y="277" fill="#166534" font-size="10.5">new version = unverified</text>
+  <rect x="222" y="240" width="170" height="38" rx="6" fill="#ffffff" stroke="#166534" stroke-width="1"/>
+  <text x="234" y="260" font-weight="700" fill="#14532d">cases · probes</text>
+  <text x="234" y="277" fill="#166534" font-size="10.5">HELD → PROBE → VERIFIED</text>
+  <rect x="406" y="240" width="142" height="38" rx="6" fill="#ffffff" stroke="#166534" stroke-width="1"/>
+  <text x="418" y="260" font-weight="700" fill="#14532d">confirmations</text>
+  <text x="418" y="277" fill="#166534" font-size="10.5">canRelease: 16 facts</text>
+  <line x1="208" y1="259" x2="222" y2="259" stroke="#166534" stroke-width="1.5" marker-end="url(#g)"/>
+  <line x1="392" y1="259" x2="406" y2="259" stroke="#166534" stroke-width="1.5" marker-end="url(#g)"/>
+  <rect x="52" y="296" width="496" height="86" rx="6" fill="#dcfce7" stroke="#166534" stroke-width="2"/>
+  <text x="64" y="316" font-weight="700" fill="#14532d">payments.send — the only writer of payments</text>
+  <text x="64" y="333" fill="#14532d" font-size="10.5">canPay: destination exists · belongs to this vendor · current version · verified</text>
+  <text x="64" y="347" fill="#14532d" font-size="10.5">then policy, which can only add refusals · idempotent per invoice + destination</text>
+  <text x="64" y="361" fill="#166534" font-size="10.5">thrown error = refusal · refusal = payment_refused event · nothing reaches the rail</text>
+  <rect x="576" y="190" width="272" height="98" rx="8" fill="#fff7ed" stroke="#c2410c" stroke-width="1"/>
+  <text x="588" y="210" font-weight="700" fill="#7c2d12">Controls</text>
+  <text x="588" y="227" fill="#9a3412">actor.ts: session → operator → role</text>
+  <text x="588" y="243" fill="#9a3412">approvals: maker-checker, one payment</text>
+  <text x="588" y="259" fill="#9a3412">policy JSON · screening (OFAC parsers)</text>
+  <text x="588" y="275" fill="#9a3412">demo kill switch · invites by email</text>
+  <rect x="864" y="190" width="256" height="98" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="876" y="210" font-weight="700" fill="#1e3a8a">Risk (derived on read, no writes)</text>
+  <text x="876" y="227" fill="#1e40af">16 deterministic signals + evidence</text>
+  <text x="876" y="243" fill="#1e40af">payment LR (20 feats) · email TF-IDF</text>
+  <text x="876" y="259" fill="#1e40af">combined = max(rules, model)</text>
+  <text x="876" y="275" fill="#1e40af">weights JSON trained in ml/ (Python)</text>
+  <rect x="576" y="298" width="272" height="98" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="588" y="318" font-weight="700" fill="#1e3a8a">Monitoring (vendor's own history)</text>
+  <text x="588" y="335" fill="#1e40af">velocity vs weekly median · robust z</text>
+  <text x="588" y="351" fill="#1e40af">structuring under the threshold (72 h)</text>
+  <text x="588" y="367" fill="#1e40af">dormant spike · trust score · trend API</text>
+  <text x="588" y="383" fill="#1e40af" font-size="10.5">monitoringReviewAbove → approval required</text>
+  <rect x="864" y="298" width="256" height="98" rx="8" fill="#fdf4ff" stroke="#7e22ce" stroke-width="1"/>
+  <text x="876" y="318" font-weight="700" fill="#581c87">Integration</text>
+  <text x="876" y="335" fill="#6b21a8">apiRoutes.ts · API keys · OpenAPI</text>
+  <text x="876" y="351" fill="#6b21a8">webhooks: HMAC, retries, SSRF guard</text>
+  <text x="876" y="367" fill="#6b21a8">Nacha ACH · ISO 20022 pain.001 files</text>
+  <text x="876" y="383" fill="#6b21a8" font-size="10.5">full file server-side, masked in browser</text>
+  <line x1="576" y1="340" x2="548" y2="340" stroke="#c2410c" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="562" y="333" fill="#9a3412" font-size="9.5" text-anchor="middle">policy</text>
+  <rect x="40" y="410" width="1080" height="56" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+  <text x="52" y="430" font-weight="700" fill="#0f172a">Shared services</text>
+  <text x="52" y="447" fill="#334155" font-size="10.5">events (append-only, redacted at insert, hash chain) · clock + timers.tick (SLA, availability, landing) · crypto (HMAC + AES-256-GCM) · key-gated seed/eval · auth tables</text>
+  <rect x="40" y="480" width="330" height="56" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+  <text x="52" y="500" font-weight="700" fill="#0f172a">Rails</text>
+  <text x="52" y="517" fill="#334155" font-size="10.5">SimRail ledger · Capital One Nessie · one Rail interface</text>
+  <rect x="386" y="480" width="330" height="56" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+  <text x="398" y="500" font-weight="700" fill="#0f172a">Channels</text>
+  <text x="398" y="517" fill="#334155" font-size="10.5">SimVoice · Vapi + Cartesia (secret-bound hook) · portal</text>
+  <rect x="732" y="480" width="388" height="56" rx="8" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+  <text x="744" y="500" font-weight="700" fill="#0f172a">Quality gate</text>
+  <text x="744" y="517" fill="#334155" font-size="10.5">268 vitest · 40-run scenarios · drift checks · Playwright · CI</text>
+  <text x="24" y="594" fill="#334155">Rule under everything: <tspan font-weight="700" fill="#14532d">no payment to a bank account that has not been verified for that specific vendor</tspan>, enforced in the transaction that would write it.</text>
+  <text x="24" y="614" fill="#64748b">Intelligence (extractor, risk, model, monitoring) informs people and policy; none of it can import or schedule a release function (static test). Probe amounts never leave the server.</text>
+  <text x="24" y="638" fill="#94a3b8" font-size="10.5">docs/architecture.svg · generated layout; see ARCHITECTURE.md for the module table and data model</text>
 </svg>
