@@ -80,7 +80,7 @@ export default function DevelopersPage() {
               e.preventDefault();
               if (!operator) return;
               try {
-                const r = await create({ operatorId: operator._id, name: keyName, scopes });
+                const r = await create({ name: keyName, scopes });
                 setMinted({ key: r.key, name: keyName });
               } catch (err) {
                 setMsg(errorMessage(err));
@@ -123,7 +123,7 @@ export default function DevelopersPage() {
                   {k.revokedAt ? (
                     <span className="rounded border px-1.5 text-[10px] text-muted-foreground">revoked</span>
                   ) : (
-                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && revoke({ operatorId: operator._id, apiKeyId: k._id }).catch((e) => setMsg(errorMessage(e)))}>
+                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && revoke({ apiKeyId: k._id }).catch((e) => setMsg(errorMessage(e)))}>
                       Revoke
                     </Button>
                   )}
@@ -164,10 +164,10 @@ if (!crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected))) throw new E
           description="Every audit event is a candidate. Signed with HMAC-SHA256; retried at 1m, 10m, 1h, 4h, 12h, 24h, 72h."
           actions={
             <>
-              <Button size="sm" variant="outline" disabled={!isAdmin} onClick={() => operator && wh.createInbox({ operatorId: operator._id }).then(() => setMsg("Built-in inbox endpoint added (receives every event, signed).")).catch((e) => setMsg(errorMessage(e)))}>
+              <Button size="sm" variant="outline" disabled={!isAdmin} onClick={() => operator && wh.createInbox({}).then(() => setMsg("Built-in inbox endpoint added (receives every event, signed).")).catch((e) => setMsg(errorMessage(e)))}>
                 Add built-in inbox
               </Button>
-              <Button size="sm" variant="outline" disabled={!isAdmin} onClick={() => operator && wh.pumpNow({ operatorId: operator._id }).then(() => setMsg("Dispatching now.")).catch((e) => setMsg(errorMessage(e)))}>
+              <Button size="sm" variant="outline" disabled={!isAdmin} onClick={() => operator && wh.pumpNow({}).then(() => setMsg("Dispatching now.")).catch((e) => setMsg(errorMessage(e)))}>
                 Deliver now
               </Button>
             </>
@@ -185,7 +185,7 @@ if (!crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected))) throw new E
               e.preventDefault();
               if (!operator) return;
               try {
-                const r = await wh.create({ operatorId: operator._id, url: url.trim(), eventTypes: types.split(",").map((s) => s.trim()).filter(Boolean) });
+                const r = await wh.create({ url: url.trim(), eventTypes: types.split(",").map((s) => s.trim()).filter(Boolean) });
                 setSecretShown(r.secret);
                 setUrl("");
               } catch (err) {
@@ -224,13 +224,13 @@ if (!crypto.timingSafeEqual(Buffer.from(v1), Buffer.from(expected))) throw new E
                     </span>
                   </span>
                   <span className="flex gap-1">
-                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.sendTest({ operatorId: operator._id, endpointId: e._id }).then((r) => setMsg(r.ok ? `Test delivered (HTTP ${r.status}).` : `Test failed: ${r.error ?? `HTTP ${r.status}`}`))}>
+                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.sendTest({ endpointId: e._id }).then((r) => setMsg(r.ok ? `Test delivered (HTTP ${r.status}).` : `Test failed: ${r.error ?? `HTTP ${r.status}`}`))}>
                       Send test
                     </Button>
-                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.setActive({ operatorId: operator._id, endpointId: e._id, active: !e.active })}>
+                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.setActive({ endpointId: e._id, active: !e.active })}>
                       {e.active ? "Pause" : "Resume"}
                     </Button>
-                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.remove({ operatorId: operator._id, endpointId: e._id })}>
+                    <Button size="sm" variant="ghost" disabled={!isAdmin} onClick={() => operator && wh.remove({ endpointId: e._id })}>
                       Delete
                     </Button>
                   </span>

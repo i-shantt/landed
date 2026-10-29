@@ -114,12 +114,11 @@ export const screenAll = mutation({
 export const review = mutation({
   args: {
     screeningId: v.id("screenings"),
-    operatorId: v.optional(v.id("operators")),
     decision: v.union(v.literal("false_positive"), v.literal("confirmed_match")),
     note: v.optional(v.string()),
   },
-  handler: async (ctx, { screeningId, operatorId, decision, note }) => {
-    const op = await requireActor(ctx, ["approver", "admin"], operatorId);
+  handler: async (ctx, { screeningId, decision, note }) => {
+    const op = await requireActor(ctx, ["approver", "admin"]);
     const s = await ctx.db.get(screeningId);
     if (!s) throw new ConvexError("screening_not_found");
     if (s.status === "clear") throw new ConvexError("screening_is_clear_nothing_to_review");

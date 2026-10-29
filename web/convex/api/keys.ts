@@ -23,9 +23,9 @@ export const insert = internalMutation({
 
 /** Admin creates a key; the plaintext is returned exactly once. */
 export const create = action({
-  args: { operatorId: v.optional(v.id("operators")), name: v.string(), scopes: v.array(v.string()) },
-  handler: async (ctx, { operatorId, name, scopes }): Promise<{ id: Id<"apiKeys">; key: string; prefix: string }> => {
-    const op = await ctx.runQuery(internal.controls.actor.resolve, { roles: ["admin"], operatorId });
+  args: { name: v.string(), scopes: v.array(v.string()) },
+  handler: async (ctx, { name, scopes }): Promise<{ id: Id<"apiKeys">; key: string; prefix: string }> => {
+    const op = await ctx.runQuery(internal.controls.actor.resolve, { roles: ["admin"] });
     if (!name.trim()) throw new ConvexError("name_required");
     const bad = scopes.filter((s) => !(SCOPES as readonly string[]).includes(s));
     if (bad.length) throw new ConvexError(`unknown_scopes_${bad.join(",")}`);
@@ -51,9 +51,9 @@ export const list = query({
 });
 
 export const revoke = mutation({
-  args: { operatorId: v.optional(v.id("operators")), apiKeyId: v.id("apiKeys") },
-  handler: async (ctx, { operatorId, apiKeyId }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: { apiKeyId: v.id("apiKeys") },
+  handler: async (ctx, { apiKeyId }) => {
+    const op = await requireActor(ctx, ["admin"]);
     const k = await ctx.db.get(apiKeyId);
     if (!k) throw new ConvexError("key_not_found");
     if (k.revokedAt) return;

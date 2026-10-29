@@ -53,9 +53,9 @@ export function isAllowedWebhookUrl(url: string, siteUrl: string | undefined): {
 }
 
 export const createEndpoint = mutation({
-  args: { operatorId: v.optional(v.id("operators")), url: v.string(), description: v.optional(v.string()), eventTypes: v.array(v.string()) },
-  handler: async (ctx, { operatorId, url, description, eventTypes }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: { url: v.string(), description: v.optional(v.string()), eventTypes: v.array(v.string()) },
+  handler: async (ctx, { url, description, eventTypes }) => {
+    const op = await requireActor(ctx, ["admin"]);
     const check = isAllowedWebhookUrl(url, process.env.CONVEX_SITE_URL);
     if (!check.ok) throw new ConvexError(`webhook_url_${check.reason}`);
     if (!eventTypes.length) throw new ConvexError("event_types_required");
@@ -69,9 +69,9 @@ export const createEndpoint = mutation({
 
 /** Convenience for demos: an endpoint pointing at this deployment's own signed inbox. */
 export const createInboxEndpoint = mutation({
-  args: { operatorId: v.optional(v.id("operators")) },
-  handler: async (ctx, { operatorId }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: {},
+  handler: async (ctx) => {
+    const op = await requireActor(ctx, ["admin"]);
     const site = process.env.CONVEX_SITE_URL;
     if (!site) throw new ConvexError("CONVEX_SITE_URL_unset");
     const url = `${site}/webhooks/inbox`;
@@ -85,17 +85,17 @@ export const createInboxEndpoint = mutation({
 });
 
 export const setActive = mutation({
-  args: { operatorId: v.optional(v.id("operators")), endpointId: v.id("webhookEndpoints"), active: v.boolean() },
-  handler: async (ctx, { operatorId, endpointId, active }) => {
-    await requireActor(ctx, ["admin"], operatorId);
+  args: { endpointId: v.id("webhookEndpoints"), active: v.boolean() },
+  handler: async (ctx, { endpointId, active }) => {
+    await requireActor(ctx, ["admin"]);
     await ctx.db.patch(endpointId, { active });
   },
 });
 
 export const remove = mutation({
-  args: { operatorId: v.optional(v.id("operators")), endpointId: v.id("webhookEndpoints") },
-  handler: async (ctx, { operatorId, endpointId }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: { endpointId: v.id("webhookEndpoints") },
+  handler: async (ctx, { endpointId }) => {
+    const op = await requireActor(ctx, ["admin"]);
     const e = await ctx.db.get(endpointId);
     if (!e) return;
     await ctx.db.delete(endpointId);
@@ -179,9 +179,9 @@ export const pump = internalMutation({
 
 /** Admin: run the pump now instead of waiting for the cron. */
 export const pumpNow = mutation({
-  args: { operatorId: v.optional(v.id("operators")) },
-  handler: async (ctx, { operatorId }) => {
-    await requireActor(ctx, ["admin"], operatorId);
+  args: {},
+  handler: async (ctx) => {
+    await requireActor(ctx, ["admin"]);
     await ctx.scheduler.runAfter(0, internal.webhooks.dispatch.pump, {});
   },
 });
@@ -258,9 +258,9 @@ export const deliver = internalAction({
 
 /** Admin: send a synthetic `ping` event to one endpoint right now. */
 export const sendTest = action({
-  args: { operatorId: v.optional(v.id("operators")), endpointId: v.id("webhookEndpoints") },
-  handler: async (ctx, { operatorId, endpointId }): Promise<{ ok: boolean; status?: number; error?: string }> => {
-    const ctxInfo = await ctx.runQuery(internal.webhooks.dispatch.testContext, { operatorId, endpointId });
+  args: { endpointId: v.id("webhookEndpoints") },
+  handler: async (ctx, { endpointId }): Promise<{ ok: boolean; status?: number; error?: string }> => {
+    const ctxInfo = await ctx.runQuery(internal.webhooks.dispatch.testContext, { endpointId });
     if (!ctxInfo) throw new ConvexError("endpoint_not_found_or_not_admin");
     const body = JSON.stringify({ id: `evt_test_${randomHex(6)}`, object: "event", type: "ping", created: Math.floor(Date.now() / 1000), livemode: false, data: { object: { message: "Landed webhook test" } } });
     const t = Math.floor(Date.now() / 1000);
@@ -275,9 +275,9 @@ export const sendTest = action({
 });
 
 export const testContext = internalQuery({
-  args: { operatorId: v.optional(v.id("operators")), endpointId: v.id("webhookEndpoints") },
-  handler: async (ctx, { operatorId, endpointId }) => {
-    await requireActor(ctx, ["admin"], operatorId);
+  args: { endpointId: v.id("webhookEndpoints") },
+  handler: async (ctx, { endpointId }) => {
+    await requireActor(ctx, ["admin"]);
     const e = await ctx.db.get(endpointId);
     return e ? { url: e.url, secret: e.secret } : null;
   },

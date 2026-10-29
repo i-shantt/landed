@@ -12,9 +12,9 @@ import { canPay } from "../guard";
 import { currentVersionForIdentity } from "../payments";
 
 export const request = mutation({
-  args: { invoiceId: v.id("invoices"), operatorId: v.optional(v.id("operators")), note: v.optional(v.string()) },
-  handler: async (ctx, { invoiceId, operatorId, note }) => {
-    const op = await requireActor(ctx, undefined, operatorId);
+  args: { invoiceId: v.id("invoices"), note: v.optional(v.string()) },
+  handler: async (ctx, { invoiceId, note }) => {
+    const op = await requireActor(ctx);
     const invoice = await ctx.db.get(invoiceId);
     if (!invoice) throw new ConvexError("invoice_not_found");
     const destination = await ctx.db.get(invoice.remitAccountId);
@@ -48,9 +48,9 @@ export const request = mutation({
 });
 
 export const decide = mutation({
-  args: { approvalId: v.id("approvals"), operatorId: v.optional(v.id("operators")), decision: v.union(v.literal("approved"), v.literal("rejected")), note: v.optional(v.string()) },
-  handler: async (ctx, { approvalId, operatorId, decision, note }) => {
-    const op = await requireActor(ctx, ["approver", "admin"], operatorId);
+  args: { approvalId: v.id("approvals"), decision: v.union(v.literal("approved"), v.literal("rejected")), note: v.optional(v.string()) },
+  handler: async (ctx, { approvalId, decision, note }) => {
+    const op = await requireActor(ctx, ["approver", "admin"]);
     const a = await ctx.db.get(approvalId);
     if (!a) throw new ConvexError("approval_not_found");
     if (a.status !== "pending") throw new ConvexError(`approval_already_${a.status}`);

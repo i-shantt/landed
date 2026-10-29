@@ -91,7 +91,7 @@ export function ScreeningPanel({ vendorId }: { vendorId: Id<"vendors"> }) {
                 onClick={async () => {
                   if (!operator) return;
                   try {
-                    await review({ screeningId: latest._id, operatorId: operator._id, decision: "confirmed_match" });
+                    await review({ screeningId: latest._id, decision: "confirmed_match" });
                   } catch (e) {
                     setMsg(errorMessage(e));
                   }
@@ -117,7 +117,7 @@ export function ScreeningPanel({ vendorId }: { vendorId: Id<"vendors"> }) {
         confirmLabel="Dismiss"
         onConfirm={async (note) => {
           if (!operator || !latest) return;
-          await review({ screeningId: latest._id, operatorId: operator._id, decision: "false_positive", note });
+          await review({ screeningId: latest._id, decision: "false_positive", note });
         }}
       />
     </Section>

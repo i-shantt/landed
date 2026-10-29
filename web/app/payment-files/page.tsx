@@ -26,7 +26,7 @@ export default function PaymentFilesPage() {
     setBusy(format);
     setMsg(null);
     try {
-      const r = await build({ operatorId: operator._id, format });
+      const r = await build({ format });
       setMsg(`${format === "nacha" ? "Nacha ACH" : "ISO 20022 pain.001"} file built: ${r.entryCount} entries, ${usd(r.totalCents)}. SHA-256 ${r.sha256.slice(0, 12)}…`);
       setOpen(r.id);
     } catch (e) {

@@ -37,6 +37,12 @@ describe("security surface", () => {
     // onboarding requires a written reason from a named human
     expect(src["onboarding.ts"]).toMatch(/reason\.trim\(\)\.length < 15/);
   });
+  it("no function takes a client-supplied operator id: who acts comes from the session (controls/actor.ts)", () => {
+    // payments.ts is frozen core and moves to requireActor in its own core: commit; schema.ts links users to operators.
+    const hits = Object.entries(src).filter(([, s]) => /operatorId:\s*v\./.test(s)).map(([f]) => f).sort();
+    expect(hits).toEqual(["payments.ts", "schema.ts"]);
+    expect(src["controls/actor.ts"]).toMatch(/throw new ConvexError\("unauthenticated"\)/);
+  });
   it("no public mutation patches account status directly outside the documented human actions", () => {
     // files that patch bankAccounts status
     const hits = Object.entries(src).filter(([, s]) => /status:\s*"(disputed|rejected|superseded|verified|unverified|probing)"/.test(s) && /ctx\.db\.patch/.test(s)).map(([f]) => f).sort();

@@ -30,9 +30,9 @@ export const check = internalQuery({
 });
 
 export const setDemoControls = mutation({
-  args: { operatorId: v.optional(v.id("operators")), enabled: v.boolean() },
-  handler: async (ctx, { operatorId, enabled }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: { enabled: v.boolean() },
+  handler: async (ctx, { enabled }) => {
+    const op = await requireActor(ctx, ["admin"]);
     await setSetting(ctx, KEY, enabled ? "on" : "off");
     await append(ctx, { actor: "human", type: "demo_controls_changed", payload: { by: op.name, operatorId: op._id, enabled } });
     return enabled;

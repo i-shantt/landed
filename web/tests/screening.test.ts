@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, pay, actors } from "./harness";
+import { setup, pay, actors, asUser } from "./harness";
 import { normalizeName, jaroWinkler, tokenSortRatio, scoreNames, classify, POTENTIAL_MATCH_THRESHOLD, STRONG_MATCH_THRESHOLD } from "../convex/screening/match";
 import { DEMO_WATCHLIST, DEMO_LIST_VERSION, watchlistNames, parseSdnCsv, parseAltCsv, buildWatchlist } from "../convex/screening/watchlist";
 import { screenName } from "../convex/screening/screen";
@@ -287,9 +287,10 @@ describe("screening: Convex functions", () => {
 
   it("onboarding: createVendor screens the new vendor automatically", async () => {
     const { t } = await setup();
-    const clearId = await t.mutation(api.onboarding.createVendor, { name: "Juniper Creative Studio", domain: "junipercreative.example", onboardedBy: "test" });
+    const ob = await asUser(t, "clerk");
+    const clearId = await ob.as.mutation(api.onboarding.createVendor, { name: "Juniper Creative Studio", domain: "junipercreative.example" });
     expect((await t.query(api.screening.screen.forVendor, { vendorId: clearId })).latest).toMatchObject({ status: "clear", subject: "Juniper Creative Studio" });
-    const hitId = await t.mutation(api.onboarding.createVendor, { name: "Granite Ridge Packaging", domain: "graniteridge.example", onboardedBy: "test" });
+    const hitId = await ob.as.mutation(api.onboarding.createVendor, { name: "Granite Ridge Packaging", domain: "graniteridge.example" });
     const fv = await t.query(api.screening.screen.forVendor, { vendorId: hitId });
     expect(fv.latest).toMatchObject({ status: "potential_match" });
     expect(fv.latest!.matches[0].entry).toBe("Granite Ridge Packaging Intl");

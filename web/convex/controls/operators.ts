@@ -4,8 +4,9 @@
 import { mutation, query } from "../_generated/server";
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { currentActor, requireActor } from "./actor";
-import type { MutationCtx, QueryCtx } from "../_generated/server";
-import type { Doc, Id } from "../_generated/dataModel";
+import { append } from "../events";
+import type { MutationCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 
 export type Role = Doc<"operators">["role"];
@@ -20,13 +21,6 @@ export async function seedOperators(ctx: MutationCtx) {
   const existing = await ctx.db.query("operators").collect();
   if (existing.length) return;
   for (const o of DEFAULT_OPERATORS) await ctx.db.insert("operators", { ...o, active: true });
-}
-
-export async function requireOperator(ctx: QueryCtx | MutationCtx, operatorId: Id<"operators">, roles?: Role[]): Promise<Doc<"operators">> {
-  const op = await ctx.db.get(operatorId);
-  if (!op || !op.active) throw new ConvexError("operator_unknown_or_inactive");
-  if (roles && !roles.includes(op.role)) throw new ConvexError(`role_${op.role}_cannot_do_this_requires_${roles.join("_or_")}`);
-  return op;
 }
 
 /** The operator behind the current session (null when signed out); drives the workspace header and role gating. */
@@ -47,20 +41,26 @@ export const list = query({
 });
 
 export const create = mutation({
-  args: { operatorId: v.optional(v.id("operators")), name: v.string(), role: v.union(v.literal("clerk"), v.literal("approver"), v.literal("admin")), email: v.optional(v.string()) },
-  handler: async (ctx, { operatorId, name, role, email }) => {
-    await requireActor(ctx, ["admin"], operatorId);
+  args: { name: v.string(), role: v.union(v.literal("clerk"), v.literal("approver"), v.literal("admin")), email: v.string() },
+  handler: async (ctx, { name, role, email }) => {
+    // Adding an operator is the invitation: they sign up at /signin with this email (authCallbacks.ts).
+    const by = await requireActor(ctx, ["admin"]);
     const trimmed = name.trim();
     if (trimmed.length < 2) throw new ConvexError("name_too_short");
+    const e = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new ConvexError("invalid_email");
+    if ((await ctx.db.query("operators").withIndex("by_email", (q) => q.eq("email", e)).collect()).some((o) => o.active)) throw new ConvexError("email_taken");
     const initials = trimmed.split(/\s+/).map((p) => p[0]?.toUpperCase() ?? "").join("").slice(0, 2);
-    return ctx.db.insert("operators", { name: trimmed, initials, role, email: email?.trim() || undefined, active: true });
+    const id = await ctx.db.insert("operators", { name: trimmed, initials, role, email: e, active: true });
+    await append(ctx, { actor: "human", type: "operator_invited", payload: { operatorId: id, name: trimmed, role, email: e, by: by.name, byOperatorId: by._id } });
+    return id;
   },
 });
 
 export const deactivate = mutation({
-  args: { operatorId: v.optional(v.id("operators")), target: v.id("operators") },
-  handler: async (ctx, { operatorId, target }) => {
-    const me = await requireActor(ctx, ["admin"], operatorId);
+  args: { target: v.id("operators") },
+  handler: async (ctx, { target }) => {
+    const me = await requireActor(ctx, ["admin"]);
     if (me._id === target) throw new ConvexError("cannot_deactivate_self");
     const admins = (await ctx.db.query("operators").collect()).filter((o) => o.active && o.role === "admin");
     const t = await ctx.db.get(target);

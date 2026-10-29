@@ -77,7 +77,7 @@ export default function PaymentRunPage() {
   async function requestApproval(invoiceId: Id<"invoices">) {
     if (!operator) return;
     try {
-      await request({ invoiceId, operatorId: operator._id });
+      await request({ invoiceId });
       setResults((prev) => ({ ...prev, [invoiceId]: { kind: "duplicate", text: `approval requested by ${operator.name}; see Approvals` } }));
     } catch (e) {
       setResults((prev) => ({ ...prev, [invoiceId]: { kind: "error", text: errorMessage(e) } }));

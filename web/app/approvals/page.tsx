@@ -38,7 +38,7 @@ export default function ApprovalsPage() {
   async function approve(id: Id<"approvals">) {
     if (!operator) return;
     try {
-      await decide({ approvalId: id, operatorId: operator._id, decision: "approved" });
+      await decide({ approvalId: id, decision: "approved" });
       setMsg((m) => ({ ...m, [id]: "Approved. The payment run can now send this line." }));
     } catch (e) {
       setMsg((m) => ({ ...m, [id]: errorMessage(e) }));
@@ -162,7 +162,7 @@ export default function ApprovalsPage() {
         destructive
         onConfirm={async (reason) => {
           if (!operator || !rejecting) return;
-          await decide({ approvalId: rejecting, operatorId: operator._id, decision: "rejected", note: reason });
+          await decide({ approvalId: rejecting, decision: "rejected", note: reason });
         }}
       />
     </div>

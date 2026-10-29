@@ -170,7 +170,6 @@ export const get = query({
 
 export const set = mutation({
   args: {
-    operatorId: v.optional(v.id("operators")),
     patch: v.object({
       dualApprovalAboveCents: v.optional(v.union(v.number(), v.null())),
       riskReviewAbove: v.optional(v.union(v.number(), v.null())),
@@ -181,8 +180,8 @@ export const set = mutation({
       monitoringReviewAbove: v.optional(v.union(v.number(), v.null())),
     }),
   },
-  handler: async (ctx, { operatorId, patch }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  handler: async (ctx, { patch }) => {
+    const op = await requireActor(ctx, ["admin"]);
     const before = await getPolicy(ctx);
     const next: Policy = { ...before };
     for (const [k, val] of Object.entries(patch)) if (val !== undefined) (next as unknown as Record<string, unknown>)[k] = val;
@@ -194,9 +193,9 @@ export const set = mutation({
 });
 
 export const applyRecommended = mutation({
-  args: { operatorId: v.optional(v.id("operators")) },
-  handler: async (ctx, { operatorId }) => {
-    const op = await requireActor(ctx, ["admin"], operatorId);
+  args: {},
+  handler: async (ctx) => {
+    const op = await requireActor(ctx, ["admin"]);
     const before = await getPolicy(ctx);
     await setSetting(ctx, "policy", JSON.stringify(RECOMMENDED_POLICY));
     await append(ctx, { actor: "human", type: "policy_changed", payload: { by: op.name, operatorId: op._id, before, after: RECOMMENDED_POLICY, preset: "recommended" } });

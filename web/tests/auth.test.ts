@@ -126,11 +126,16 @@ describe("requireActor: identity resolves to the operator; roles and segregation
     expect(await t.query(api.controls.operators.me, {})).toBeNull();
   });
 
-  it("a signed-in identity wins over a client-supplied operatorId; a deactivated operator is refused on the next call", async () => {
+  it("operators are invited by email (admin only, unique, lowercased); a deactivated operator is refused on the next call", async () => {
     const { t } = await setup();
     const { clerk, admin } = await actors(t);
-    // the clerk cannot borrow the admin's id
-    await expect(clerk.as.mutation(api.controls.policy.set, { operatorId: admin.operatorId, patch: { riskReviewAbove: 50 } })).rejects.toThrow(/role_clerk/);
+    await expect(clerk.as.mutation(api.controls.operators.create, { name: "Jordan Lee", role: "clerk", email: "jordan@meridianoutdoor.example" })).rejects.toThrow(/role_clerk/);
+    await expect(admin.as.mutation(api.controls.operators.create, { name: "Jordan Lee", role: "clerk", email: "not-an-email" })).rejects.toThrow(/invalid_email/);
+    await expect(admin.as.mutation(api.controls.operators.create, { name: "Jordan Lee", role: "clerk", email: clerk.operator.email!.toUpperCase() })).rejects.toThrow(/email_taken/);
+    const invited = await admin.as.mutation(api.controls.operators.create, { name: "Jordan Lee", role: "approver", email: "Jordan@MeridianOutdoor.example" });
+    expect((await t.run(async (ctx) => ctx.db.get(invited)))!.email).toBe("jordan@meridianoutdoor.example");
+    const inviteEv = await t.run(async (ctx) => (await ctx.db.query("events").collect()).find((e) => e.type === "operator_invited"));
+    expect(inviteEv!.payload).toMatchObject({ operatorId: invited, by: admin.operator.name, role: "approver" });
     await admin.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: false });
     const other = await t.run(async (ctx) => ctx.db.insert("operators", { name: "Second Admin", initials: "SA", role: "admin", email: "second@meridianoutdoor.example", active: true }));
     const second = await asUser(t, "admin", { operatorId: other });

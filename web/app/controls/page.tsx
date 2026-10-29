@@ -91,7 +91,7 @@ export default function ControlsPage() {
     setBusy(true);
     setMsg(null);
     try {
-      await set({ operatorId: operator._id, patch: draft });
+      await set({ patch: draft });
       setEdited(null);
       setMsg("Policy saved. Every change is in the audit log.");
     } catch (e) {
@@ -116,7 +116,7 @@ export default function ControlsPage() {
                 if (!operator) return;
                 setBusy(true);
                 try {
-                  await applyRecommended({ operatorId: operator._id });
+                  await applyRecommended({});
                   setEdited(null);
                   setMsg("Recommended controls applied.");
                 } catch (e) {
@@ -243,7 +243,7 @@ export default function ControlsPage() {
                     onClick={async () => {
                       if (!operator) return;
                       try {
-                        await admin.deactivate({ operatorId: operator._id, target: o._id });
+                        await admin.deactivate({ target: o._id });
                       } catch (e) {
                         setMsg(errorMessage(e));
                       }
@@ -260,7 +260,7 @@ export default function ControlsPage() {
                 e.preventDefault();
                 if (!operator) return;
                 try {
-                  await admin.create({ operatorId: operator._id, name: newName, role: newRole, email: newEmail });
+                  await admin.create({ name: newName, role: newRole, email: newEmail });
                   setNewName("");
                   setNewEmail("");
                   setMsg(`Added ${newName}. They can now create their password at /signin with ${newEmail.trim().toLowerCase()}.`);

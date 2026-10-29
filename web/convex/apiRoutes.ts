@@ -130,9 +130,9 @@ export function registerApiRoutes(http: HttpRouter) {
     const name = String(body.name ?? "").trim();
     const domain = String(body.domain ?? "").trim().toLowerCase();
     if (!name || !domain) return apiError(400, "invalid_request", "name and domain are required");
-    const vendorId = await ctx.runMutation(api.onboarding.createVendor, { name, domain, onboardedBy: `api:${key.name}` });
+    const vendorId = await ctx.runMutation(internal.onboarding.createVendorFromApi, { name, domain, onboardedBy: `api:${key.name}` });
     if (typeof body.contact_of_record_phone === "string" && body.contact_of_record_phone.trim()) {
-      await ctx.runMutation(api.onboarding.attestRecordContact, { vendorId, kind: "phone", value: body.contact_of_record_phone.trim(), attestedBy: `api:${key.name}`, reason: String(body.contact_attestation ?? "contact of record supplied at onboarding through the API") });
+      await ctx.runMutation(internal.onboarding.attestRecordContactFromApi, { vendorId, kind: "phone", value: body.contact_of_record_phone.trim(), attestedBy: `api:${key.name}`, reason: String(body.contact_attestation ?? "contact of record supplied at onboarding through the API") });
     }
     const vnd = await ctx.runQuery(api.vendors.get, { vendorId });
     return json(vnd ? { ...vendorOut(vnd), accounts: vnd.accounts.map(accountOut) } : { id: vendorId, object: "vendor" }, 201);

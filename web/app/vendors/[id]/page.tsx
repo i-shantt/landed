@@ -43,6 +43,7 @@ import {
 } from "@/lib/hooks";
 import { usd, absDate, absTime } from "@/lib/format";
 import { triggerLabel, CONTACT_KIND_LABELS } from "@/lib/labels";
+import { useOperator } from "@/lib/operator";
 
 export default function VendorPage({
   params,
@@ -75,6 +76,8 @@ export default function VendorPage({
   const [newKind, setNewKind] = useState<"phone" | "portal" | "email">("phone");
   const [newValue, setNewValue] = useState("");
   const [attested, setAttested] = useState("");
+  const { operator } = useOperator();
+  const attestedBy = attested.trim() || operator?.name || "";
   const [addError, setAddError] = useState<string | null>(null);
 
   if (v === undefined)
@@ -495,7 +498,7 @@ export default function VendorPage({
                 id="new-attested"
                 value={attested}
                 onChange={(e) => setAttested(e.target.value)}
-                placeholder="your name"
+                placeholder={operator?.name ?? "your name"}
               />
             </div>
             {addError && (
@@ -509,7 +512,7 @@ export default function VendorPage({
               Cancel
             </Button>
             <Button
-              disabled={busy || !newValue || !attested}
+              disabled={busy || !newValue || !attestedBy}
               onClick={async () => {
                 setBusy(true);
                 setAddError(null);
@@ -518,7 +521,7 @@ export default function VendorPage({
                     vendorId,
                     kind: newKind,
                     value: newValue,
-                    attestedBy: attested,
+                    attestedBy,
                   });
                   setAddOpen(false);
                   setNewValue("");
