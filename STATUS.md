@@ -41,9 +41,12 @@ Updated 2026-10-29 (learned model + transaction monitoring build). `main` carrie
 |---|---|
 | App (public) | https://landed-blue.vercel.app |
 | Backend | Convex prod `tremendous-malamute-864` (HTTP: `https://tremendous-malamute-864.convex.site`, `/health` is public) |
+| CI | https://github.com/i-shantt/landed/actions (lint, typecheck, vitest, drift checks, build, ML unit tests on every push; manual ML reproduction) |
 | Demo state | reset creates three demo cases (legit landed, fraud + package, bank+phone → human); CleanCo open $42,000 invoice; extractor `claude` |
 
 ## Phases
+
+- **Oct 27–29 build (resume-grade)**: A data registry + resumable fetch (`ml/data`), B training/evaluation/export with model card, C in-app scoring with parity fixtures, D transaction monitoring + trust + trend, E Convex Auth (email + password, invites, roles from the session), F CI (`.github/workflows`), Dockerfile/compose, Playwright smoke, G resume kit (`docs/CASE_STUDY.md`, `docs/RESUME_BULLETS.md`, `docs/architecture.svg`, README highlights). Plan: `~/.claude/plans/golden-rolling-melody.md`.
 
 - **D (judge-proofed)**: five walkthroughs (`JUDGE_WALKTHROUGH.md`), fixes shipped: demo cases on reset, one-click Fast-forward on the case page, right-rail order, hover definitions (`Term`), first-screen explainer, "What the agent cannot do" link, About additions, judge scenario pack (`judge_01…05`, validated), attachment evidence, bank-letter PDF fixture, fixture dates clamped. `JUDGE_QA.md` (25). `DEMO.md` pitches at 2:00 / 0:60 / 4:00.
 - **E (assets)**: `assets/video/landed-raw.webm` + `judge-run.webm` + `NARRATION.md`; `assets/screenshots/` (six); `/pitch` deck + `assets/pitch.pdf`; `RUNBOOK.md`; `TEAM_ONBOARDING.md`; demo-state seeding.
