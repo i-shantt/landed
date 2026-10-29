@@ -1,5 +1,7 @@
 # Landed
 
+[![CI](https://github.com/i-shantt/landed/actions/workflows/ci.yml/badge.svg)](https://github.com/i-shantt/landed/actions/workflows/ci.yml) [![ML pipeline](https://github.com/i-shantt/landed/actions/workflows/ml.yml/badge.svg)](https://github.com/i-shantt/landed/actions/workflows/ml.yml) [![Live](https://img.shields.io/badge/live-landed--blue.vercel.app-2f6f4e)](https://landed-blue.vercel.app)
+
 **Payment controls for accounts payable: no payment can be sent to a bank account that has not been verified for that specific vendor, even when the AI misses the email.**
 
 Business email compromise works by getting one field changed: a fraudster writes to AP from a compromised or lookalike vendor address saying "we switched banks." The invoice is real, the vendor is real, only the destination changed. Landed holds every new destination, verifies it with a randomized sub-dollar probe deposit that the vendor's **contact of record** (a phone number established at onboarding, never a contact from the request) must read back, and only then lets a payment go out. After payment it confirms the money landed; if it did not, it assembles the bank-recall and FBI IC3 response package.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-10-29 — CI, container, browser smoke
+
+- **GitHub Actions** (`.github/workflows/ci.yml`): on every push and pull request, lint, typecheck, the vitest suite, the measured-numbers and model-metrics drift checks and `next build` for the web app; the ML unit tests and an eval-runner compile check for Python. A Playwright job runs when repository variables point at a dev deployment. `ml.yml` (manual) reproduces the learned layer from public data on a clean runner and fails if the committed `metrics.json`, weights or README block differ.
+- **Docker** (`web/Dockerfile`, `docker-compose.yml`): multi-stage image on `node:24-alpine` with Next's standalone output; Convex stays hosted, the image takes the two public deployment URLs as build args and carries no secrets.
+- **Playwright smoke** (`web/e2e/smoke.spec.ts`, `npm run e2e`): the sign-in gate, the demo approver's dashboard, a case's risk panel with the learned-model block, the monitoring page, sign-out, and the public OpenAPI document.
+- `web/convex/_generated` is committed (the Convex CLI needs a deployment to regenerate it, which CI and Docker builds do not have); `CONTRIBUTING.md`; CI and live badges in the README.
+
 ## 2026-10-29 — sign-in: operators are who the session says they are
 
 Convex Auth (email + password, self-hosted) replaces the browser-side operator picker. Two `core:` commits (schema, `payments.ts`), each with a failing test first; everything else additive.
