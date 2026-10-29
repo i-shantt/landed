@@ -7,3 +7,4 @@ kagglehub>=0.3
 pyarrow>=17
 matplotlib>=3.9
 pytest>=8
+joblib>=1.4
