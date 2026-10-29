@@ -7,6 +7,7 @@ import { ConvexError } from "convex/values";
 import { clientKey } from "./rateLimit";
 import { safeEqual } from "./api/util";
 import { registerApiRoutes } from "./apiRoutes";
+import { auth } from "./auth";
 
 // Rate limits (token buckets in settings): portal login 10/min per client, portal confirm 30/min per client,
 // eval endpoints 300/min global (keyed callers; protects prod from runaway scripts).
@@ -16,6 +17,7 @@ async function limited(ctx: Parameters<Parameters<typeof httpAction>[0]>[0], req
 }
 
 const http = httpRouter();
+auth.addHttpRoutes(http); // /.well-known/openid-configuration and /.well-known/jwks.json for token verification
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json", "access-control-allow-origin": "*" } });
