@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, pay } from "./harness";
+import { setup, pay, actors } from "./harness";
 import { normalizeName, jaroWinkler, tokenSortRatio, scoreNames, classify, POTENTIAL_MATCH_THRESHOLD, STRONG_MATCH_THRESHOLD } from "../convex/screening/match";
 import { DEMO_WATCHLIST, DEMO_LIST_VERSION, watchlistNames, parseSdnCsv, parseAltCsv, buildWatchlist } from "../convex/screening/watchlist";
 import { screenName } from "../convex/screening/screen";
@@ -9,10 +9,7 @@ import fixtureData from "../convex/fixtureData.json";
 
 type T = Awaited<ReturnType<typeof setup>>["t"];
 
-async function operators(t: T) {
-  const ops = await t.query(api.controls.operators.list, {});
-  return { clerk: ops.find((o) => o.role === "clerk")!, approver: ops.find((o) => o.role === "approver")!, admin: ops.find((o) => o.role === "admin")! };
-}
+const operators = actors; // signed-in clerk / approver / admin
 
 // A vendor whose name is a deliberate near-miss of a demo watchlist entry, with a verified account
 // and an open invoice so the payment path can be exercised. Shape copied from seed.insertFixture.
@@ -225,25 +222,25 @@ describe("screening: Convex functions", () => {
     const { clerk, approver } = await operators(t);
     const { vendorId } = await insertNearMissVendor(t);
     const { screeningId } = await t.mutation(api.screening.screen.screenVendor, { vendorId });
-    await expect(t.mutation(api.screening.screen.review, { screeningId, operatorId: clerk._id, decision: "false_positive", note: "Different company" })).rejects.toThrow(/role_clerk/);
+    await expect(clerk.as.mutation(api.screening.screen.review, { screeningId, decision: "false_positive", note: "Different company" })).rejects.toThrow(/role_clerk/);
     // dismissing a hit needs a written reason
-    await expect(t.mutation(api.screening.screen.review, { screeningId, operatorId: approver._id, decision: "false_positive", note: "ok" })).rejects.toThrow(/note/);
-    const d = await t.mutation(api.screening.screen.review, { screeningId, operatorId: approver._id, decision: "false_positive", note: "Domestic freight broker; different legal entity and address" });
+    await expect(approver.as.mutation(api.screening.screen.review, { screeningId, decision: "false_positive", note: "ok" })).rejects.toThrow(/note/);
+    const d = await approver.as.mutation(api.screening.screen.review, { screeningId, decision: "false_positive", note: "Domestic freight broker; different legal entity and address" });
     expect(d).toBe("false_positive");
     const row = await t.run(async (ctx) => ctx.db.get(screeningId));
-    expect(row).toMatchObject({ status: "false_positive", reviewedBy: approver._id, note: "Domestic freight broker; different legal entity and address" });
+    expect(row).toMatchObject({ status: "false_positive", reviewedBy: approver.operatorId, note: "Domestic freight broker; different legal entity and address" });
     expect(typeof row!.reviewedAt).toBe("number");
     // cannot be reviewed twice
-    await expect(t.mutation(api.screening.screen.review, { screeningId, operatorId: approver._id, decision: "confirmed_match" })).rejects.toThrow(/already/);
+    await expect(approver.as.mutation(api.screening.screen.review, { screeningId, decision: "confirmed_match" })).rejects.toThrow(/already/);
     const ev = await t.run(async (ctx) => ctx.db.query("events").collect());
     const reviewed = ev.find((e) => e.type === "screening_reviewed")!;
     expect(reviewed.actor).toBe("human");
-    expect(reviewed.payload).toMatchObject({ decision: "false_positive", reviewedBy: approver.name, vendorName: NEAR_MISS_NAME });
+    expect(reviewed.payload).toMatchObject({ decision: "false_positive", reviewedBy: approver.operator.name, vendorName: NEAR_MISS_NAME });
     // the resolved row is not re-opened by re-screening against the same list
     const again = await t.mutation(api.screening.screen.screenVendor, { vendorId });
     expect(again).toEqual({ screeningId, status: "false_positive", inserted: false });
     expect((await t.query(api.screening.screen.pending, {})).length).toBe(0);
-    expect((await t.query(api.screening.screen.forVendor, { vendorId })).latest).toMatchObject({ reviewedByName: approver.name });
+    expect((await t.query(api.screening.screen.forVendor, { vendorId })).latest).toMatchObject({ reviewedByName: approver.operator.name });
   });
 
   it("review: an admin can confirm a match; a clear screening cannot be reviewed", async () => {
@@ -251,16 +248,16 @@ describe("screening: Convex functions", () => {
     const { admin } = await operators(t);
     const { vendorId } = await insertNearMissVendor(t);
     const { screeningId } = await t.mutation(api.screening.screen.screenVendor, { vendorId });
-    expect(await t.mutation(api.screening.screen.review, { screeningId, operatorId: admin._id, decision: "confirmed_match" })).toBe("confirmed_match");
+    expect(await admin.as.mutation(api.screening.screen.review, { screeningId, decision: "confirmed_match" })).toBe("confirmed_match");
     expect((await t.query(api.screening.screen.summary, {})).confirmed).toBe(1);
     const clear = await t.mutation(api.screening.screen.screenVendor, { vendorId: ids.vendors.cleanco as Id<"vendors"> });
-    await expect(t.mutation(api.screening.screen.review, { screeningId: clear.screeningId, operatorId: admin._id, decision: "false_positive", note: "nothing to see" })).rejects.toThrow(/clear/);
+    await expect(admin.as.mutation(api.screening.screen.review, { screeningId: clear.screeningId, decision: "false_positive", note: "nothing to see" })).rejects.toThrow(/clear/);
   });
 
   it("policy blockOnScreeningHit: an unresolved potential match refuses payment; a clear vendor still pays; a false positive unblocks", async () => {
     const { t, ids } = await setup();
     const { admin, approver } = await operators(t);
-    await t.mutation(api.controls.policy.set, { operatorId: admin._id, patch: { blockOnScreeningHit: true } });
+    await admin.as.mutation(api.controls.policy.set, { patch: { blockOnScreeningHit: true } });
     const { vendorId, invoiceId } = await insertNearMissVendor(t);
     const { screeningId } = await t.mutation(api.screening.screen.screenVendor, { vendorId });
     await t.mutation(api.screening.screen.screenVendor, { vendorId: ids.vendors.cleanco as Id<"vendors"> });
@@ -274,17 +271,17 @@ describe("screening: Convex functions", () => {
     expect((await pay(t, ids.invoices["CC-2026-0412"] as Id<"invoices">)).ok).toBe(true);
 
     // a confirmed match stays blocked; a false positive releases the hold
-    await t.mutation(api.screening.screen.review, { screeningId, operatorId: approver._id, decision: "false_positive", note: "Reviewed registration documents; unrelated domestic entity" });
+    await approver.as.mutation(api.screening.screen.review, { screeningId, decision: "false_positive", note: "Reviewed registration documents; unrelated domestic entity" });
     expect((await pay(t, invoiceId)).ok).toBe(true);
   });
 
   it("policy blockOnScreeningHit: a confirmed match keeps the payment blocked", async () => {
     const { t } = await setup();
     const { admin } = await operators(t);
-    await t.mutation(api.controls.policy.set, { operatorId: admin._id, patch: { blockOnScreeningHit: true } });
+    await admin.as.mutation(api.controls.policy.set, { patch: { blockOnScreeningHit: true } });
     const { vendorId, invoiceId } = await insertNearMissVendor(t);
     const { screeningId } = await t.mutation(api.screening.screen.screenVendor, { vendorId });
-    await t.mutation(api.screening.screen.review, { screeningId, operatorId: admin._id, decision: "confirmed_match", note: "Matches listed party" });
+    await admin.as.mutation(api.screening.screen.review, { screeningId, decision: "confirmed_match", note: "Matches listed party" });
     expect(await pay(t, invoiceId)).toEqual({ ok: false, reason: "policy_screening_hit" });
   });
 

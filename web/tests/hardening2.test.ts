@@ -6,7 +6,7 @@ import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { canRelease } from "../convex/guard";
 import { mkAccount, mkCase, mkConfirmation, mkContact, mkProbe, T0 } from "./fixtures";
-import { setup, pay, drain, manualEdit, advanceToAvailability, vendorStatement, probeAmount, events, getCase, getAccount, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT } from "./harness";
+import { setup, pay, drain, manualEdit, advanceToAvailability, vendorStatement, probeAmount, events, getCase, getAccount, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT, actors } from "./harness";
 
 const NOW = T0 + 7400_000;
 
@@ -265,17 +265,15 @@ describe("case hygiene", () => {
 describe("demo controls kill switch", () => {
   it("an admin can disable clock, simulated answers and re-seed; a clerk cannot", async () => {
     const { t, ids } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
-    const admin = ops.find((o) => o.role === "admin")!;
-    const clerk = ops.find((o) => o.role === "clerk")!;
-    await expect(t.mutation(api.controls.demoGuard.setDemoControls, { operatorId: clerk._id, enabled: false })).rejects.toThrow();
-    await t.mutation(api.controls.demoGuard.setDemoControls, { operatorId: admin._id, enabled: false });
+    const { admin, clerk } = await actors(t);
+    await expect(clerk.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: false })).rejects.toThrow();
+    await admin.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: false });
     await expect(t.mutation(api.clock.advance, { ms: 1000 })).rejects.toThrow(/demo_controls_disabled/);
     const cleanco = ids.vendors.cleanco as Id<"vendors">;
     const r = await manualEdit(t, cleanco, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber, ids.accounts.cleanco_main as Id<"bankAccounts">);
     await expect(t.mutation(api.channels.simVoice.answer, { caseId: r.caseId, statedAmountCents: 12 })).rejects.toThrow(/demo_controls_disabled/);
     await expect(t.action(api.seed.reseed, {})).rejects.toThrow(/demo_controls_disabled/);
-    await t.mutation(api.controls.demoGuard.setDemoControls, { operatorId: admin._id, enabled: true });
+    await admin.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: true });
     expect((await t.mutation(api.clock.advance, { ms: 1000 })).now).toBeGreaterThan(0);
   });
 });

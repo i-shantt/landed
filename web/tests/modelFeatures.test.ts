@@ -2,17 +2,14 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, setupFull, pay, manualEdit, VENDOR_B_ACCOUNT } from "./harness";
+import { setup, setupFull, pay, manualEdit, VENDOR_B_ACCOUNT, asUser } from "./harness";
 import { loadHistory } from "../convex/risk/model/history";
 import { buildPaymentFeatures } from "../convex/risk/model/features";
 import { assessPayment } from "../convex/risk/model/assessPayment";
 
 const CC = "CC-2026-0412"; // cleanco, open, $42,000
 
-async function admin(t: Awaited<ReturnType<typeof setup>>["t"]) {
-  const ops = await t.query(api.controls.operators.list, {});
-  return ops.find((o) => o.role === "admin")!;
-}
+const admin = (t: Awaited<ReturnType<typeof setup>>["t"]) => asUser(t, "admin");
 
 describe("payment history (payments + paid invoices without a payment row)", () => {
   it("seeded paid invoices appear as invoice_history; a live payment replaces its invoice and is tagged payment", async () => {
@@ -95,7 +92,7 @@ describe("Landed feature mapping", () => {
     const a0 = await t.run(async (ctx) => assessPayment(ctx, { invoice: inv, destination: dest, at: clock.now, rail: "ach" }));
     expect(a0.contributions.find((k) => k.feature === "just_under_threshold")!.value).toBe(0);
     const adm = await admin(t);
-    await t.mutation(api.controls.policy.set, { operatorId: adm._id, patch: { dualApprovalAboveCents: 4_400_000 } }); // $42,000 is within 90% of $44,000
+    await adm.as.mutation(api.controls.policy.set, { patch: { dualApprovalAboveCents: 4_400_000 } }); // $42,000 is within 90% of $44,000
     const a1 = await t.run(async (ctx) => assessPayment(ctx, { invoice: inv, destination: dest, at: clock.now, rail: "ach" }));
     expect(a1.contributions.find((k) => k.feature === "just_under_threshold")!.value).toBe(1);
     expect(a1.probability).not.toBe(a0.probability); // the feature carries weight (negative on the public data: structuring is an AP pattern the rules/monitoring layer owns)

@@ -3,14 +3,13 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, drain, VENDOR_B_ACCOUNT } from "./harness";
+import { setup, drain, VENDOR_B_ACCOUNT, asUser, actors } from "./harness";
 import { signWebhook, verifyWebhookSignature } from "../convex/api/util";
 import { buildEventBody, isAllowedWebhookUrl } from "../convex/webhooks/dispatch";
 
 async function keyFor(t: Awaited<ReturnType<typeof setup>>["t"], scopes: string[]) {
-  const ops = await t.query(api.controls.operators.list, {});
-  const admin = ops.find((o) => o.role === "admin")!;
-  const r = await t.action(api.api.keys.create, { operatorId: admin._id, name: "erp", scopes });
+  const admin = await asUser(t, "admin");
+  const r = await admin.as.action(api.api.keys.create, { name: "erp", scopes });
   return { key: r.key, admin, prefix: r.prefix };
 }
 const H = (key: string, extra: Record<string, string> = {}) => ({ authorization: `Bearer ${key}`, "content-type": "application/json", ...extra });
@@ -81,17 +80,15 @@ describe("REST API", () => {
     const keys = await t.query(api.api.keys.list, {});
     expect(keys[0].prefix.startsWith("ld_live_sk_")).toBe(true);
     expect(JSON.stringify(keys)).not.toContain(key);
-    await t.mutation(api.api.keys.revoke, { operatorId: admin._id, apiKeyId: keys[0]._id });
+    await admin.as.mutation(api.api.keys.revoke, { apiKeyId: keys[0]._id });
     expect((await t.fetch("/api/v1/ping", { headers: H(key) })).status).toBe(401);
   });
 
   it("only an admin can mint keys and unknown scopes are refused", async () => {
     const { t } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
-    const clerk = ops.find((o) => o.role === "clerk")!;
-    const admin = ops.find((o) => o.role === "admin")!;
-    await expect(t.action(api.api.keys.create, { operatorId: clerk._id, name: "x", scopes: ["read"] })).rejects.toThrow();
-    await expect(t.action(api.api.keys.create, { operatorId: admin._id, name: "x", scopes: ["root"] })).rejects.toThrow(/unknown_scopes/);
+    const { clerk, admin } = await actors(t);
+    await expect(clerk.as.action(api.api.keys.create, { name: "x", scopes: ["read"] })).rejects.toThrow();
+    await expect(admin.as.action(api.api.keys.create, { name: "x", scopes: ["root"] })).rejects.toThrow(/unknown_scopes/);
   });
 
   it("lists vendors with cursor pagination and serves the OpenAPI document without a key", async () => {
@@ -193,11 +190,9 @@ describe("webhooks", () => {
 
   it("pump fans events out to subscribed endpoints, deliveries are signed, the inbox verifies them, and failures back off", async () => {
     const { t, ids } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
-    const admin = ops.find((o) => o.role === "admin")!;
-    const clerk = ops.find((o) => o.role === "clerk")!;
-    await expect(t.mutation(api.webhooks.dispatch.createEndpoint, { operatorId: clerk._id, url: "https://erp.example.com/h", eventTypes: ["*"] })).rejects.toThrow();
-    const ep = await t.mutation(api.webhooks.dispatch.createEndpoint, { operatorId: admin._id, url: "https://erp.example.com/landed", description: "ERP", eventTypes: ["payment_sent", "payment_refused"] });
+    const { admin, clerk } = await actors(t);
+    await expect(clerk.as.mutation(api.webhooks.dispatch.createEndpoint, { url: "https://erp.example.com/h", eventTypes: ["*"] })).rejects.toThrow();
+    const ep = await admin.as.mutation(api.webhooks.dispatch.createEndpoint, { url: "https://erp.example.com/landed", description: "ERP", eventTypes: ["payment_sent", "payment_refused"] });
     expect(ep.secret.startsWith("whsec_")).toBe(true);
     // first pump sets the cursor after existing events
     await t.mutation(internal.webhooks.dispatch.pump, {});
@@ -227,7 +222,7 @@ describe("webhooks", () => {
 
     // the receiver side: our inbox verifies with the endpoint's secret
     process.env.CONVEX_SITE_URL = "https://test.convex.site";
-    const inboxEp = await t.mutation(api.webhooks.dispatch.createInboxEndpoint, { operatorId: admin._id });
+    const inboxEp = await admin.as.mutation(api.webhooks.dispatch.createInboxEndpoint, {});
     expect(inboxEp.id).toBeTruthy();
     const endpoints = await t.query(api.webhooks.dispatch.endpoints, {});
     const inboxUrl = endpoints.find((e) => e._id === inboxEp.id)!.url;

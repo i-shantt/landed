@@ -2,16 +2,13 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, setupFull, pay, drain } from "./harness";
+import { setup, setupFull, pay, drain, actors } from "./harness";
 import { evaluateCandidateFor, computeMonitoring, computeVendorTrust } from "../convex/monitoring/evaluate";
 
 const CC = "CC-2026-0412"; // cleanco, $42,000 open, cleanco_main verified
 const NP = "NP-77102"; // northpeak, $18,250 open
 
-async function roles(t: Awaited<ReturnType<typeof setup>>["t"]) {
-  const ops = await t.query(api.controls.operators.list, {});
-  return { admin: ops.find((o) => o.role === "admin")!, approver: ops.find((o) => o.role === "approver")!, clerk: ops.find((o) => o.role === "clerk")! };
-}
+const roles = actors; // signed-in admin / approver / clerk
 
 describe("monitoring read model", () => {
   it("a sent payment is scored with the history before it and shows up in the overview; every monitoring query writes nothing", async () => {
@@ -82,8 +79,8 @@ describe("policy.monitoringReviewAbove", () => {
   it("set to 0 (every payment flags) refuses with policy_monitoring_review_required, an approval consumes, 101 is rejected", async () => {
     const { t, ids } = await setup();
     const { admin, approver, clerk } = await roles(t);
-    await expect(t.mutation(api.controls.policy.set, { operatorId: admin._id, patch: { monitoringReviewAbove: 101 } })).rejects.toThrow(/monitoringReviewAbove/);
-    await t.mutation(api.controls.policy.set, { operatorId: admin._id, patch: { monitoringReviewAbove: 0 } });
+    await expect(admin.as.mutation(api.controls.policy.set, { patch: { monitoringReviewAbove: 101 } })).rejects.toThrow(/monitoringReviewAbove/);
+    await admin.as.mutation(api.controls.policy.set, { patch: { monitoringReviewAbove: 0 } });
     const invoiceId = ids.invoices[NP] as Id<"invoices">;
     const refused = await pay(t, invoiceId);
     expect(refused).toEqual({ ok: false, reason: "policy_monitoring_review_required" });
@@ -91,10 +88,10 @@ describe("policy.monitoringReviewAbove", () => {
     const line = run.lines.find((l) => l.number === NP)!;
     expect(line.policy.ok).toBe(false);
     expect(line.policy.ok === false && line.policy.reason).toBe("policy_monitoring_review_required");
-    const approvalId = await t.mutation(api.controls.approvals.request, { invoiceId, operatorId: clerk._id });
+    const approvalId = await clerk.as.mutation(api.controls.approvals.request, { invoiceId });
     const a = await t.run(async (ctx) => ctx.db.get(approvalId));
     expect(a!.requiredBy).toContain("policy_monitoring_review_required");
-    await t.mutation(api.controls.approvals.decide, { approvalId, operatorId: approver._id, decision: "approved" });
+    await approver.as.mutation(api.controls.approvals.decide, { approvalId, decision: "approved" });
     await drain(t);
     expect((await pay(t, invoiceId)).ok).toBe(true);
   });
@@ -102,7 +99,7 @@ describe("policy.monitoringReviewAbove", () => {
   it("a threshold above the candidate's score does not interfere", async () => {
     const { t, ids } = await setup();
     const { admin } = await roles(t);
-    await t.mutation(api.controls.policy.set, { operatorId: admin._id, patch: { monitoringReviewAbove: 100 } });
+    await admin.as.mutation(api.controls.policy.set, { patch: { monitoringReviewAbove: 100 } });
     expect((await pay(t, ids.invoices[CC] as Id<"invoices">)).ok).toBe(true);
   });
 });
