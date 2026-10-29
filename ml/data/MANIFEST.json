@@ -1,0 +1,121 @@
+{
+  "generated_by": "ml/data/fetch.py",
+  "sources": {
+    "clair": {
+      "citation": "Radev, D. (2008). CLAIR collection of fraud email (419 / advance-fee scams).",
+      "domain": "payment-pressure scam emails vs. ordinary email",
+      "fetched_at": "2026-10-29T07:13:34+00:00",
+      "files": [
+        {
+          "bytes": 11262553,
+          "name": "train.json",
+          "sha256": "c5bb34807e6446ae888093ed0ae979b8dbe7e9396c065f863b258dc48ac1170d"
+        },
+        {
+          "bytes": 1195632,
+          "name": "dev.json",
+          "sha256": "cf5b759339b0cd3c6a43ccafd384ad3815727a5782c0ece1d5d5b6e0e4f697db"
+        },
+        {
+          "bytes": 2454503,
+          "name": "test.json",
+          "sha256": "699fe81da82809da905b3b69eae2629525896c7d3b63675bdccf9bc86c009a6d"
+        }
+      ],
+      "key": "clair",
+      "kind": "hf_file",
+      "label": {
+        "col": "label",
+        "positive": "FRAUD",
+        "positives": 5171,
+        "prevalence": 0.4344282953877174
+      },
+      "license": "CC BY 3.0",
+      "optional": false,
+      "repo": "tasksource/CLAIR_email_fraud",
+      "rows": 11903,
+      "upstream": null
+    },
+    "paysim": {
+      "citation": "Lopez-Rojas, Elmir, Axelsson (2016). PaySim: a financial mobile money simulator for fraud detection. EMSS.",
+      "domain": "synthetic mobile-money transfers (payer, beneficiary, amount, hourly step, type)",
+      "fetched_at": "2026-10-29T07:13:07+00:00",
+      "files": [
+        {
+          "bytes": 493534783,
+          "name": "paysim.csv",
+          "sha256": "16910f90577b0d981bf8ff289714510bb89bc71bff7d3f220f024e287e4eea6b"
+        }
+      ],
+      "key": "paysim",
+      "kind": "hf_file",
+      "label": {
+        "col": "isFraud",
+        "positive": 1,
+        "positives": 8213,
+        "prevalence": 0.001290820448180152
+      },
+      "license": "CC BY-SA 4.0 (upstream Kaggle ealaxi/paysim1 governs; the mirror's MIT tag does not)",
+      "optional": false,
+      "repo": "theman10/paysim",
+      "rows": 6362620,
+      "upstream": "kaggle:ealaxi/paysim1"
+    },
+    "phishing": {
+      "citation": "Kaggle subhajournal/phishingemails, mirrored by zefang-liu. Enron-derived ham plus phishing bodies.",
+      "domain": "email bodies labelled phishing / safe",
+      "fetched_at": "2026-10-29T07:13:31+00:00",
+      "files": [
+        {
+          "bytes": 52034604,
+          "name": "Phishing_Email.csv",
+          "sha256": "18ef4fff1acb8986f0ab01e83ede6025420c829656af5a377560fce17e153b97"
+        }
+      ],
+      "key": "phishing",
+      "kind": "hf_file",
+      "label": {
+        "col": "Email Type",
+        "positive": "Phishing Email",
+        "positives": 7328,
+        "prevalence": 0.39292225201072384
+      },
+      "license": "LGPL-3.0",
+      "optional": false,
+      "repo": "zefang-liu/phishing-email-dataset",
+      "rows": 18650,
+      "upstream": "kaggle:subhajournal/phishingemails"
+    },
+    "sparkov": {
+      "citation": "Shenoy, K. (2020). Credit Card Transactions Fraud Detection Dataset, generated with Sparkov (Harris, B.).",
+      "domain": "synthetic card transactions with merchant, category, timestamp, 1,000 payers x 800 merchants, 2019-2020",
+      "fetched_at": "2026-10-29T07:13:29+00:00",
+      "files": [
+        {
+          "bytes": 354147665,
+          "name": "credit_card_transaction_train.csv",
+          "sha256": "1a100d7d1e5e77442a5ce632293657c099d70ea0991797e92b55eb987da59f9f"
+        },
+        {
+          "bytes": 151595117,
+          "name": "credit_card_transaction_test.csv",
+          "sha256": "05fbcc2d99d2463d189a916532c3db4179f21dbe8e5aa8810699a45cee60574f"
+        }
+      ],
+      "key": "sparkov",
+      "kind": "hf_file",
+      "label": {
+        "col": "is_fraud",
+        "positive": 1,
+        "positives": 9651,
+        "prevalence": 0.005210014716091717
+      },
+      "license": "CC0 1.0 (upstream Kaggle kartik2112/fraud-detection)",
+      "optional": false,
+      "repo": "pointe77/credit-card-transaction",
+      "rows": 1852394,
+      "upstream": "kaggle:kartik2112/fraud-detection"
+    }
+  },
+  "updated_at": "2026-10-29T07:13:34+00:00"
+}
