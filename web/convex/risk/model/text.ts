@@ -19,7 +19,6 @@ export type TokenContribution = { token: string; contribution: number };
 export type TextScore = { probability: number; flagged: boolean; topTokens: TokenContribution[]; tokens: number };
 
 export function tokenize(s: string): string[] {
-  // eslint-disable-next-line no-control-regex
   const folded = s.replace(/[^\x00-\x7f]/g, " ").toLowerCase();
   return folded.match(/[a-z0-9_]{2,}/g) ?? [];
 }

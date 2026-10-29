@@ -15,6 +15,32 @@ async function keyFor(t: Awaited<ReturnType<typeof setup>>["t"], scopes: string[
 }
 const H = (key: string, extra: Record<string, string> = {}) => ({ authorization: `Bearer ${key}`, "content-type": "application/json", ...extra });
 
+describe("REST API: payment risk", () => {
+  it("GET /payments/{id} and /payments/{id}/risk return the learned-model assessment with a read key", async () => {
+    const { t, ids } = await setup();
+    const { key } = await keyFor(t, ["read", "write:payments"]);
+    const sent = await t.fetch("/api/v1/payments", { method: "POST", headers: H(key), body: JSON.stringify({ invoice_id: ids.invoices["CC-2026-0412"] }) });
+    expect(sent.status).toBe(201);
+    const pid = (await sent.json()).id as string;
+    const one = await t.fetch(`/api/v1/payments/${pid}`, { headers: H(key) });
+    expect(one.status).toBe(200);
+    expect((await one.json()).amount_cents).toBe(4_200_000);
+    const risk = await t.fetch(`/api/v1/payments/${pid}/risk`, { headers: H(key) });
+    expect(risk.status).toBe(200);
+    const body = await risk.json();
+    expect(body.object).toBe("payment_risk");
+    expect(body.model_version).toMatch(/^transaction_lr-/);
+    expect(body.probability).toBeGreaterThanOrEqual(0);
+    expect(body.probability).toBeLessThanOrEqual(1);
+    expect(body.contributions.length).toBe(20);
+    expect((await t.fetch(`/api/v1/payments/${pid}/nope`, { headers: H(key) })).status).toBe(404);
+    expect((await t.fetch(`/api/v1/payments/${pid}/risk`)).status).toBe(401);
+    const spec = await (await t.fetch("/api/v1/openapi.json", { headers: H(key) })).json();
+    expect(spec.paths["/payments/{id}/risk"]).toBeDefined();
+    expect(spec.components.schemas.PaymentRisk).toBeDefined();
+  });
+});
+
 describe("REST API", () => {
   it("rejects missing, malformed, unknown and revoked keys; enforces scopes", async () => {
     const { t } = await setup();

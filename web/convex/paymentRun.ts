@@ -6,6 +6,7 @@ import type { QueryCtx } from "./_generated/server";
 import { canPay } from "./guard";
 import { evaluatePaymentPolicy, type PolicyDecision } from "./controls/policy";
 import { now } from "./clock";
+import { assessPayment, type ModelAssessment } from "./risk/model";
 
 export async function computePaymentRun(ctx: QueryCtx) {
   {
@@ -33,8 +34,18 @@ export async function computePaymentRun(ctx: QueryCtx) {
         }
         policy = policy.ok ? { ok: true } : { ok: false, reason: policy.reason };
       }
+      // Learned layer, informational: scored only for lines the guard would pay, with history before now.
+      let risk: ModelAssessment | null = null;
+      if (decision.ok && dest) {
+        try {
+          risk = await assessPayment(ctx, { invoice: inv, destination: dest, at: t, rail: "ach" });
+        } catch {
+          risk = null;
+        }
+      }
       lines.push({
         policy,
+        risk,
         invoiceId: inv._id, number: inv.number, vendorId: inv.vendorId, vendorName: vendor?.name ?? "?", amountCents: inv.amountCents, dueAt: inv.dueAt, status: inv.status,
         destination: dest ? { routing: dest.routing, last4: dest.accountLast4, version: dest.version, status: dest.status, currentVersion: current } : null,
         decision, caseId: openCase?._id ?? null, caseState: openCase?.state ?? null,

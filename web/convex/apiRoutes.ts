@@ -217,6 +217,21 @@ export function registerApiRoutes(http: HttpRouter) {
     return json({ ...(row ? paymentOut(row) : { id: res.paymentId, object: "payment" }), duplicate: res.duplicate }, res.duplicate ? 200 : 201);
   }, { idempotent: true }) });
 
+  http.route({ pathPrefix: "/api/v1/payments/", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
+    const parts = url.pathname.split("/").filter(Boolean); // api v1 payments :id [risk]
+    const paymentId = parts[3] as Id<"payments">;
+    const rows = await ctx.runQuery(api.payments.list, {});
+    const row = rows.find((x) => x._id === paymentId);
+    if (!row) return apiError(404, "not_found", "No such payment");
+    if (parts[4] === "risk") {
+      const r = await ctx.runQuery(api.risk.model.assessPayment.forPayment, { paymentId }).catch(() => null);
+      if (!r) return apiError(404, "not_found", "No such payment");
+      return json({ object: "payment_risk", payment_id: paymentId, model_version: r.version, probability: r.probability, score: r.score, flagged: r.flagged, threshold: r.threshold, contributions: r.contributions.map((k) => ({ feature: k.feature, value: k.value, contribution: k.contribution })) });
+    }
+    if (parts[4]) return apiError(404, "not_found", "Unknown payment sub-resource");
+    return json(paymentOut(row));
+  }) });
+
   // ---- events (audit feed with cursor) ----
   http.route({ path: "/api/v1/events", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const limit = Math.min(100, Number(url.searchParams.get("limit") ?? 50) || 50);

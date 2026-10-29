@@ -3,6 +3,8 @@
 // humans and the policy engine's "needs review" threshold).
 //
 // Every signal carries the evidence it was computed from so an auditor can reproduce it.
+import type { ModelAssessment } from "./model/assessPayment";
+import type { TextScore } from "./model/text";
 
 export type RiskSignalId =
   | "email_auth_failed"
@@ -32,12 +34,21 @@ export type RiskSignal = {
 export type RiskTier = "low" | "elevated" | "high" | "critical";
 
 export type RiskAssessment = {
-  score: number; // 0..100
+  score: number; // 0..100, rules only: the policy input and what the 40-run suite asserts on
   tier: RiskTier;
   signals: RiskSignal[];
   recommendation: string;
   /** Signals that were evaluated and did not fire, for the "what we checked" list. */
   checked: RiskSignalId[];
+  /** Learned layer (risk/model), attached by assessCase. Raises attention via combinedScore; never lowers the rules score. */
+  model?: ModelBlock;
+};
+
+export type ModelBlock = {
+  payment: ModelAssessment | null;
+  text: (TextScore & { version: string }) | null;
+  /** max(rules score, round(100 * max(p_payment, p_text))). The model may raise attention, never dilute a rule hit. */
+  combinedScore: number;
 };
 
 export type RiskInput = {

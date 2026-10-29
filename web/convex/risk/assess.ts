@@ -5,7 +5,9 @@ import { query } from "../_generated/server";
 import type { QueryCtx, MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { v } from "convex/values";
-import { scoreRisk, type RiskAssessment } from "./score";
+import { scoreRisk, type RiskAssessment, type ModelBlock } from "./score";
+import { now } from "../clock";
+import { assessPayment, EMAIL_WEIGHTS, scoreEmail } from "./model";
 
 const DAY = 86_400_000;
 
@@ -43,7 +45,7 @@ export async function assessCase(ctx: QueryCtx | MutationCtx, c: Doc<"cases">): 
     accountUsedByOtherVendors = new Set(sameHash.filter((a) => a.vendorId !== newAccount.vendorId).map((a) => a.vendorId as string)).size;
   }
 
-  return scoreRisk({
+  const rules = scoreRisk({
     triggerType: c.triggerType,
     message: msg ? { from: msg.from, subject: msg.subject, body: msg.body, sentAt: msg.sentAt, authResult: msg.authResult, replyTo } : null,
     senderMismatchReason,
@@ -59,6 +61,24 @@ export async function assessCase(ctx: QueryCtx | MutationCtx, c: Doc<"cases">): 
     caseOpenedAt: c.openedAt,
     timezone: company?.timezone ?? "America/Los_Angeles",
   });
+  return { ...rules, model: await modelBlock(ctx, c, newAccount, msg, invoices, rules.score) };
+}
+
+/** Learned layer: text model on the trigger message, payment model on the largest open invoice that would follow the new account. */
+async function modelBlock(
+  ctx: QueryCtx | MutationCtx,
+  c: Doc<"cases">,
+  newAccount: Doc<"bankAccounts"> | null,
+  msg: Doc<"messages"> | null,
+  invoices: Doc<"invoices">[],
+  rulesScore: number,
+): Promise<ModelBlock> {
+  const text = msg ? { ...scoreEmail(msg.subject, msg.body), version: EMAIL_WEIGHTS.version } : null;
+  let payment = null;
+  const candidate = invoices.filter((i) => i.status !== "paid" && i.remitAccountId === c.newAccountId).sort((a, b) => b.amountCents - a.amountCents)[0];
+  if (candidate && newAccount) payment = await assessPayment(ctx, { invoice: candidate, destination: newAccount, at: await now(ctx), rail: "ach" });
+  const p = Math.max(payment?.probability ?? 0, text?.probability ?? 0);
+  return { payment, text, combinedScore: Math.max(rulesScore, Math.round(100 * p)) };
 }
 
 export const forCase = query({
