@@ -21,6 +21,12 @@ Built at Cal Hacks 13.0 (Oct 2026) and extended afterwards into a fuller control
 
 ![Landed architecture](docs/architecture.svg)
 
+<details><summary>Demo: sign in as the demo approver, open a case with the learned-model block, then transaction monitoring (GIF, 2.9 MB)</summary>
+
+![Landed demo](docs/demo.gif)
+
+</details>
+
 ## What is in the product
 
 | Area | What it does | Where |
