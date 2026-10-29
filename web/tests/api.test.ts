@@ -38,6 +38,31 @@ describe("REST API: payment risk", () => {
     const spec = await (await t.fetch("/api/v1/openapi.json", { headers: H(key) })).json();
     expect(spec.paths["/payments/{id}/risk"]).toBeDefined();
     expect(spec.components.schemas.PaymentRisk).toBeDefined();
+    // monitoring, trust and trend
+    const mon = await t.fetch(`/api/v1/payments/${pid}/monitoring`, { headers: H(key) });
+    expect(mon.status).toBe(200);
+    const mb = await mon.json();
+    expect(mb.object).toBe("payment_monitoring");
+    expect(mb.checked.length).toBe(9);
+    expect(typeof mb.flag_score).toBe("number");
+    const trust = await t.fetch(`/api/v1/vendors/${ids.vendors.cleanco}/trust`, { headers: H(key) });
+    expect(trust.status).toBe(200);
+    const tb = await trust.json();
+    expect(tb.object).toBe("vendor_trust");
+    expect(["new", "building", "established", "trusted"]).toContain(tb.band);
+    expect((await t.fetch(`/api/v1/vendors/${ids.vendors.cleanco}/nope`, { headers: H(key) })).status).toBe(404);
+    expect((await t.fetch(`/api/v1/vendors/${ids.vendors.cleanco}`, { headers: H(key) })).status).toBe(200);
+    const trend = await t.fetch("/api/v1/risk/trend?window=30d", { headers: H(key) });
+    expect(trend.status).toBe(200);
+    const trb = await trend.json();
+    expect(trb.object).toBe("risk_trend");
+    expect(trb.data.length).toBe(30);
+    expect(trb.data[29].payments).toBe(1);
+    expect((await t.fetch("/api/v1/risk/trend?window=90d", { headers: H(key) })).status).toBe(400);
+    expect((await t.fetch("/api/v1/risk/trend")).status).toBe(401);
+    expect(spec.paths["/risk/trend"]).toBeDefined();
+    expect(spec.paths["/vendors/{id}/trust"]).toBeDefined();
+    expect(spec.components.schemas.PaymentRefused.properties.error.properties.reason.enum).toContain("policy_monitoring_review_required");
   });
 });
 
