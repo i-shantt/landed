@@ -2,6 +2,10 @@
 
 Landed is a payment-control plane for accounts payable. One structural rule sits under everything: **no payment to a bank account that has not been verified for that specific vendor**, enforced in the database transaction that writes the payment, not in a prompt, a UI, or a policy that can be switched off. Everything else in the product (risk scoring, approvals, policy, screening, the API) layers on top of that boundary and can refine it, never relax it.
 
+![Landed architecture](docs/architecture.svg)
+
+<details><summary>Text diagram (same picture, for terminals)</summary>
+
 ```
                 ┌────────────────────────────────────────────────────────────────────────┐
                 │                           Next.js 16 workspace (Vercel)               │
@@ -32,6 +36,8 @@ Landed is a payment-control plane for accounts payable. One structural rule sits
                         │                                   │ signed POST (Landed-Signature)
                         └───────────────────────────────────▼──────── customer webhook receivers
 ```
+
+</details>
 
 ## Layers
 
