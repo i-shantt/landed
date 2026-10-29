@@ -1,0 +1,9 @@
+pandas>=2.2
+numpy>=2.0
+scikit-learn>=1.6
+datasets>=3.0
+huggingface_hub>=0.30
+kagglehub>=0.3
+pyarrow>=17
+matplotlib>=3.9
+pytest>=8
