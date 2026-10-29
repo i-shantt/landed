@@ -8,7 +8,7 @@ for a in "$@"; do
   case "$a" in --skip-eval) SKIP_EVAL=1;; --skip-build) SKIP_BUILD=1;; esac
 done
 echo "== vitest"
-(cd "$ROOT/web" && npx vitest run 2>&1 | tail -6 | grep -E "Tests |Test Files" ) || { echo "vitest FAILED"; exit 1; }
+(cd "$ROOT/web" && npx vitest run 2>&1 | grep -E "^ +(Tests|Test Files) ") || { echo "vitest FAILED"; exit 1; }
 (cd "$ROOT/web" && npx vitest run >/dev/null 2>&1) || { echo "vitest FAILED"; exit 1; }
 if [ "$SKIP_EVAL" = "0" ]; then
   echo "== eval"
