@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export const caseState = v.union(
   v.literal("HELD"),
@@ -285,7 +286,25 @@ export default defineSchema({
     role: v.union(v.literal("clerk"), v.literal("approver"), v.literal("admin")),
     email: v.optional(v.string()),
     active: v.boolean(),
-  }).index("by_name", ["name"]),
+  })
+    .index("by_name", ["name"])
+    .index("by_email", ["email"]),
+
+  // Convex Auth (email + password). A signed-in user is linked to exactly one operator row; role,
+  // audit identity and the frozen foreign keys (approvals, screenings, apiKeys) stay on `operators`.
+  ...authTables,
+  users: defineTable({
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.optional(v.string()),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.optional(v.string()),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    operatorId: v.optional(v.id("operators")),
+  })
+    .index("email", ["email"])
+    .index("by_operatorId", ["operatorId"]),
 
   approvals: defineTable({
     invoiceId: v.id("invoices"),
