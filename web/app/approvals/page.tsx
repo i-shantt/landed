@@ -67,7 +67,7 @@ export default function ApprovalsPage() {
         <StatCard label="Risk review threshold" value={policy ? (policy.riskReviewAbove === null ? "off" : `${policy.riskReviewAbove}/100`) : "…"} hint="cases scoring at or above this need sign-off" />
       </div>
 
-      <Section title="Pending" description={canApprove ? `You are acting as ${operator?.name}, who may approve. You cannot approve your own requests.` : `You are acting as ${operator?.name ?? "nobody"}, who cannot approve. Switch operator in the top bar to decide.`}>
+      <Section title="Pending" description={canApprove ? `You are signed in as ${operator?.name}, who may approve. You cannot approve your own requests.` : `You are signed in as ${operator?.name ?? "nobody"}, who cannot approve. Only an approver or administrator can decide.`}>
         {all === undefined ? (
           <Loading />
         ) : pending.length === 0 ? (

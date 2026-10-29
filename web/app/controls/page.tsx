@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { errorMessage } from "@/components/landed/ReasonDialog";
-import { ROLE_LABEL } from "@/components/landed/OperatorMenu";
-import { usePolicy, usePolicyActions, useOperatorAdmin, useScreeningSummary, useScreeningPending, useScreeningActions } from "@/lib/hooks";
+import { usePolicy, usePolicyActions, useOperatorAdmin, useOperators, useScreeningSummary, useScreeningPending, useScreeningActions } from "@/lib/hooks";
 import Link from "next/link";
 import { useOperator } from "@/lib/operator";
 import { usd } from "@/lib/format";
+import { ROLE_LABEL } from "@/lib/labels";
 
 type Policy = NonNullable<ReturnType<typeof usePolicy>>;
 
@@ -68,7 +68,8 @@ function Threshold({ id, label, help, value, onChange, unit, disabled, max }: { 
 export default function ControlsPage() {
   const policy = usePolicy();
   const { set, applyRecommended } = usePolicyActions();
-  const { operator, operators, isAdmin } = useOperator();
+  const { operator, isAdmin } = useOperator();
+  const operators = useOperators();
   const admin = useOperatorAdmin();
   const screening = useScreeningSummary();
   const pendingHits = useScreeningPending();
@@ -80,6 +81,7 @@ export default function ControlsPage() {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<"clerk" | "approver" | "admin">("clerk");
 
   const dirty = policy && draft && JSON.stringify(policy) !== JSON.stringify(draft);
@@ -134,7 +136,7 @@ export default function ControlsPage() {
       />
       {!isAdmin && (
         <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          You are acting as {operator?.name ?? "nobody"} ({operator ? ROLE_LABEL[operator.role] : "no role"}). Only an administrator can change policy or manage operators. Switch operator in the top bar.
+          You are acting as {operator?.name ?? "nobody"} ({operator ? ROLE_LABEL[operator.role] : "no role"}). Only an administrator can change policy or manage operators.
         </p>
       )}
       {msg && (
@@ -220,7 +222,7 @@ export default function ControlsPage() {
             )}
             <p className="mt-2 text-xs text-muted-foreground">Decisions (false positive / confirmed) are made on the vendor page by an approver. Turn on “Block on sanctions-screening match” above to make an open hit refuse payments.</p>
           </Section>
-          <Section title="Operators and roles" description="Server-enforced roles. The top-bar picker stands in for SSO in this build.">
+          <Section title="Operators and roles" description="Server-enforced roles. Adding an operator with their email is the invitation: they create their password at /signin with that email.">
             <ul className="divide-y text-sm">
               {(operators ?? []).map((o) => (
                 <li key={o._id} className="flex items-center justify-between gap-2 py-2">
@@ -258,9 +260,10 @@ export default function ControlsPage() {
                 e.preventDefault();
                 if (!operator) return;
                 try {
-                  await admin.create({ operatorId: operator._id, name: newName, role: newRole });
+                  await admin.create({ operatorId: operator._id, name: newName, role: newRole, email: newEmail });
                   setNewName("");
-                  setMsg(`Added ${newName}.`);
+                  setNewEmail("");
+                  setMsg(`Added ${newName}. They can now create their password at /signin with ${newEmail.trim().toLowerCase()}.`);
                 } catch (err) {
                   setMsg(errorMessage(err));
                 }
@@ -273,6 +276,12 @@ export default function ControlsPage() {
                 <Input id="op-name" className="h-8 w-44 text-xs" value={newName} disabled={!isAdmin} onChange={(e) => setNewName(e.target.value)} placeholder="Jordan Lee" />
               </div>
               <div className="space-y-1">
+                <Label htmlFor="op-email" className="text-xs">
+                  Email (sign-in)
+                </Label>
+                <Input id="op-email" type="email" className="h-8 w-56 text-xs" value={newEmail} disabled={!isAdmin} onChange={(e) => setNewEmail(e.target.value)} placeholder="jordan@company.example" />
+              </div>
+              <div className="space-y-1">
                 <Label htmlFor="op-role" className="text-xs">
                   Role
                 </Label>
@@ -282,7 +291,7 @@ export default function ControlsPage() {
                   <option value="admin">Administrator</option>
                 </select>
               </div>
-              <Button type="submit" size="sm" variant="outline" disabled={!isAdmin || newName.trim().length < 2}>
+              <Button type="submit" size="sm" variant="outline" disabled={!isAdmin || newName.trim().length < 2 || !/^\S+@\S+\.\S+$/.test(newEmail.trim())}>
                 <ShieldCheck size={14} /> Add operator
               </Button>
             </form>

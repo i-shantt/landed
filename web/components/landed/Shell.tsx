@@ -36,7 +36,7 @@ import { Brand } from "./Brand";
 import { ClockChip } from "./ClockChip";
 import { ModeChips } from "./ModeChips";
 import { WorkspaceSearch } from "./WorkspaceSearch";
-import { OperatorMenu } from "./OperatorMenu";
+import { UserMenu } from "./UserMenu";
 import { usePendingApprovalCount } from "@/lib/hooks";
 
 const NAV = [
@@ -204,7 +204,7 @@ export function TopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
             <span />
             Demo environment
           </span>
-          <OperatorMenu />
+          <UserMenu />
         </div>
       </div>
     </header>
@@ -231,7 +231,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [menu, setMenu] = useState(false);
-  if (path === "/") return <>{children}</>;
+  if (path === "/" || path === "/signin") return <>{children}</>;
   if (path?.startsWith("/portal") || path?.startsWith("/confirm"))
     return <PortalShell>{children}</PortalShell>;
   if (path?.startsWith("/pitch"))

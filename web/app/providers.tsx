@@ -1,5 +1,6 @@
 "use client";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ConvexReactClient } from "convex/react";
+import { ConvexAuthNextjsProvider } from "@convex-dev/auth/nextjs";
 import { ReactNode, useMemo } from "react";
 import { OperatorProvider } from "@/lib/operator";
 import { ConnectionBanner } from "@/components/landed/ConnectionBanner";
@@ -25,9 +26,9 @@ export function Providers({ children }: { children: ReactNode }) {
   const client = useMemo(() => (CONVEX_URL ? new ConvexReactClient(CONVEX_URL) : null), []);
   if (!client) return <ConfigError />;
   return (
-    <ConvexProvider client={client}>
+    <ConvexAuthNextjsProvider client={client}>
       <ConnectionBanner />
       <OperatorProvider>{children}</OperatorProvider>
-    </ConvexProvider>
+    </ConvexAuthNextjsProvider>
   );
 }

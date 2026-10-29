@@ -59,7 +59,7 @@ export default function DevelopersPage() {
   return (
     <div className="space-y-4">
       <PageHeader title="Developers" description="REST API with scoped keys, idempotent writes and cursor pagination; signed outbound webhooks with retries. The API cannot release a payment the boundary would refuse." actions={<Button variant="outline" size="sm" nativeButton={false} render={<a href={`${SITE}/api/v1/openapi.json`} target="_blank" rel="noreferrer" />}><BookOpen size={14} /> OpenAPI 3.1</Button>} />
-      {!isAdmin && <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Acting as {operator?.name ?? "nobody"}. Only an administrator can mint keys or manage endpoints; everything else here is readable.</p>}
+      {!isAdmin && <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Signed in as {operator?.name ?? "nobody"}. Only an administrator can mint keys or manage endpoints; everything else here is readable.</p>}
       {msg && (
         <p className="text-sm" role="status">
           {msg}

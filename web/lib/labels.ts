@@ -1,6 +1,19 @@
 // The single source of plain-English copy. No raw enum string should reach the screen
 // except as a secondary monospace token next to its label.
 
+export const ROLE_LABEL: Record<string, string> = { clerk: "AP clerk", approver: "Approver", admin: "Administrator" };
+
+/** Sign-in and sign-up error tokens (ConvexError data or Auth.js messages) to plain English. */
+export function authErrorMessage(raw: string): string {
+  if (/signup_not_invited/.test(raw)) return "No operator with this email has been invited. Ask an administrator to add you under Controls → Operators.";
+  if (/password_too_short/.test(raw)) return "Password must be at least 12 characters.";
+  if (/operator_unknown_or_inactive|operator_already_linked/.test(raw)) return "This account is deactivated or already linked. Ask an administrator.";
+  if (/already exists/i.test(raw)) return "An account with this email already exists. Sign in instead.";
+  if (/Invalid credentials|InvalidSecret|InvalidAccountId|Could not verify/i.test(raw)) return "Email or password is wrong.";
+  if (/email_required|Invalid email/i.test(raw)) return "Enter a valid email address.";
+  return raw.length > 160 ? "Sign-in failed. Try again." : raw;
+}
+
 export const EVENT_LABELS: Record<string, string> = {
   case_opened: "Case opened",
   invoices_held: "Open invoices held",

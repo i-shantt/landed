@@ -7,14 +7,9 @@ import { v } from "convex/values";
 import { createAccount } from "@convex-dev/auth/server";
 import type { DataModel, Id } from "./_generated/dataModel";
 import { initialsOf } from "./authCallbacks";
+import { DEMO_ACCOUNTS } from "./demoAccounts";
 
-export type DemoAccount = { email: string; name: string; role: "approver" | "clerk"; password: string; blurb: string };
-
-/** Public by design: reviewers use these. An approver cannot change policy, mint keys, manage webhooks or operators. */
-export const DEMO_ACCOUNTS: DemoAccount[] = [
-  { email: "demo@landed.example", name: "Demo Approver", role: "approver", password: "landed-demo-approver", blurb: "Approve requests, review screening hits, attest landings, build payment files." },
-  { email: "clerk@landed.example", name: "Demo Clerk", role: "clerk", password: "landed-demo-clerk-2026", blurb: "Request approvals and run the payment run; a second browser for maker-checker." },
-];
+export { DEMO_ACCOUNTS } from "./demoAccounts";
 
 const roleV = v.union(v.literal("clerk"), v.literal("approver"), v.literal("admin"));
 

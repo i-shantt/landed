@@ -155,6 +155,10 @@ export function usePolicy() {
 export function usePolicyActions() {
   return { set: useMutation(api.controls.policy.set), applyRecommended: useMutation(api.controls.policy.applyRecommended) };
 }
+/** Active operators (the invite list: an operator signs in with the email recorded here). */
+export function useOperators() {
+  return useQuery(api.controls.operators.list, {});
+}
 export function useOperatorAdmin() {
   return { create: useMutation(api.controls.operators.create), deactivate: useMutation(api.controls.operators.deactivate) };
 }

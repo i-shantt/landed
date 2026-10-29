@@ -1,63 +1,39 @@
 "use client";
-// Current operator. There is no auth provider in this build: the workspace picks a named operator
-// (persisted per browser) and passes its id to controls mutations; the server enforces roles and
-// segregation of duties. Production replaces this picker with SSO and keeps the same rules.
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { useQuery } from "convex/react";
+// Current operator = the operator row linked to the signed-in user (Convex Auth, api.controls.operators.me).
+// The server enforces roles and segregation of duties on every call; this context only shapes the UI.
+import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Doc, Id } from "@/convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 
-export type Operator = Doc<"operators">;
-const KEY = "landed.operatorId";
+export type Operator = Doc<"operators"> & { userEmail: string | null };
 
 type Ctx = {
-  operators: Operator[] | undefined;
+  /** The signed-in operator, or null when signed out or not linked to an operator. */
   operator: Operator | null;
-  setOperatorId: (id: Id<"operators">) => void;
+  /** True while the session or the operator row is still loading. */
+  loading: boolean;
+  signedIn: boolean;
   /** True when the current operator may approve (approver or admin). */
   canApprove: boolean;
   isAdmin: boolean;
 };
 
-const OperatorContext = createContext<Ctx>({ operators: undefined, operator: null, setOperatorId: () => {}, canApprove: false, isAdmin: false });
-
-// localStorage as an external store (no setState in effects; SSR snapshot is null).
-const EVENT = "landed:operator";
-function subscribe(cb: () => void) {
-  window.addEventListener("storage", cb);
-  window.addEventListener(EVENT, cb);
-  return () => {
-    window.removeEventListener("storage", cb);
-    window.removeEventListener(EVENT, cb);
-  };
-}
-function readStored(): string | null {
-  try {
-    return window.localStorage.getItem(KEY);
-  } catch {
-    return null;
-  }
-}
+const OperatorContext = createContext<Ctx>({ operator: null, loading: true, signedIn: false, canApprove: false, isAdmin: false });
 
 export function OperatorProvider({ children }: { children: ReactNode }) {
-  const operators = useQuery(api.controls.operators.list, {});
-  const stored = useSyncExternalStore(subscribe, readStored, () => null);
-  const setOperatorId = useCallback((id: Id<"operators">) => {
-    try {
-      window.localStorage.setItem(KEY, id);
-    } catch {
-      /* private mode: selection lives for this render tree only */
-    }
-    window.dispatchEvent(new Event(EVENT));
-  }, []);
-  const operator = useMemo(() => {
-    if (!operators || operators.length === 0) return null;
-    return operators.find((o) => o._id === stored) ?? operators.find((o) => o.role === "clerk") ?? operators[0];
-  }, [operators, stored]);
-  const value = useMemo<Ctx>(
-    () => ({ operators, operator, setOperatorId, canApprove: operator?.role === "approver" || operator?.role === "admin", isAdmin: operator?.role === "admin" }),
-    [operators, operator, setOperatorId]
-  );
+  const { isAuthenticated, isLoading } = useConvexAuth();
+  const me = useQuery(api.controls.operators.me, isAuthenticated ? {} : "skip");
+  const value = useMemo<Ctx>(() => {
+    const operator = isAuthenticated && me ? me : null;
+    return {
+      operator,
+      loading: isLoading || (isAuthenticated && me === undefined),
+      signedIn: isAuthenticated,
+      canApprove: operator?.role === "approver" || operator?.role === "admin",
+      isAdmin: operator?.role === "admin",
+    };
+  }, [isAuthenticated, isLoading, me]);
   return <OperatorContext.Provider value={value}>{children}</OperatorContext.Provider>;
 }
 
