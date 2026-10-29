@@ -137,9 +137,17 @@ export function registerApiRoutes(http: HttpRouter) {
     const vnd = await ctx.runQuery(api.vendors.get, { vendorId });
     return json(vnd ? { ...vendorOut(vnd), accounts: vnd.accounts.map(accountOut) } : { id: vendorId, object: "vendor" }, 201);
   }, { idempotent: true }) });
-  http.route({ pathPrefix: "/api/v1/vendors/", method: "GET", handler: route("read", async (ctx, _req, _key, { id }) => {
+  http.route({ pathPrefix: "/api/v1/vendors/", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
+    const parts = url.pathname.split("/").filter(Boolean); // api v1 vendors :id [trust]
+    const id = parts[3];
     const vnd = await ctx.runQuery(api.vendors.get, { vendorId: id as Id<"vendors"> }).catch(() => null);
     if (!vnd) return apiError(404, "not_found", "No such vendor");
+    if (parts[4] === "trust") {
+      const tr = await ctx.runQuery(api.monitoring.queries.vendorTrust, { vendorId: id as Id<"vendors"> });
+      if (!tr) return apiError(404, "not_found", "No such vendor");
+      return json({ object: "vendor_trust", vendor_id: id, score: tr.score, band: tr.band, components: tr.components, computed_at: new Date(tr.computedAt).toISOString() });
+    }
+    if (parts[4]) return apiError(404, "not_found", "Unknown vendor sub-resource");
     const risk = await ctx.runQuery(api.risk.assess.forAll, {});
     return json({
       ...vendorOut(vnd),
@@ -223,6 +231,11 @@ export function registerApiRoutes(http: HttpRouter) {
     const rows = await ctx.runQuery(api.payments.list, {});
     const row = rows.find((x) => x._id === paymentId);
     if (!row) return apiError(404, "not_found", "No such payment");
+    if (parts[4] === "monitoring") {
+      const m = await ctx.runQuery(api.monitoring.queries.forPayment, { paymentId });
+      if (!m) return apiError(404, "not_found", "No such payment");
+      return json({ object: "payment_monitoring", payment_id: paymentId, flag_score: m.monitoring.flagScore, flagged: m.monitoring.flagged, signals: m.monitoring.signals, checked: m.monitoring.checked, model_probability: m.modelProbability, model_version: m.modelVersion });
+    }
     if (parts[4] === "risk") {
       const r = await ctx.runQuery(api.risk.model.assessPayment.forPayment, { paymentId }).catch(() => null);
       if (!r) return apiError(404, "not_found", "No such payment");
@@ -230,6 +243,14 @@ export function registerApiRoutes(http: HttpRouter) {
     }
     if (parts[4]) return apiError(404, "not_found", "Unknown payment sub-resource");
     return json(paymentOut(row));
+  }) });
+
+  // ---- risk trend (7/30 local days, company timezone) ----
+  http.route({ path: "/api/v1/risk/trend", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
+    const w = url.searchParams.get("window") ?? "7d";
+    if (w !== "7d" && w !== "30d") return apiError(400, "invalid_request", "window must be 7d or 30d");
+    const r = await ctx.runQuery(api.monitoring.queries.trend, { window: w });
+    return json({ object: "risk_trend", window: w, as_of: new Date(r.now).toISOString(), data: r.data.map((d) => ({ date: d.date, payments: d.payments, flagged: d.flagged, avg_risk: d.avgRisk, sent_cents: d.sentCents, held_cents: d.heldCents })) });
   }) });
 
   // ---- events (audit feed with cursor) ----

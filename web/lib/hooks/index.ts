@@ -233,6 +233,14 @@ export function useRiskForAll() {
   return useQuery(api.risk.assess.forAll, {});
 }
 
+// ---- transaction monitoring ----
+export function useMonitoring() {
+  return useQuery(api.monitoring.queries.overview, {});
+}
+export function useVendorTrust(vendorId: Id<"vendors">) {
+  return useQuery(api.monitoring.queries.vendorTrust, { vendorId });
+}
+
 export function useOnboarding() {
   return {
     createVendor: useMutation(api.onboarding.createVendor),
