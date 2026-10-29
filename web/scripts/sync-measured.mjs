@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Single source for the "measured" numbers quoted in README.md and DEVPOST.md.
+// Single source for the "measured" numbers quoted in README.md, DEVPOST.md and docs/CASE_STUDY.md.
 // Reads eval/results.json (written by eval/runner.py, the same data the /eval page shows) and the
 // vitest test count, renders the two paragraphs, and writes them between the
 // <!-- measured:start --> / <!-- measured:end --> markers. `--check` only verifies and exits 1 on drift
 // (scripts/verify.sh runs it). `--tests N` skips running vitest.
-import { readFileSync, writeFileSync, mkdtempSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdtempSync } from "node:fs";
 import { execSync } from "node:child_process";
 import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
@@ -55,8 +55,9 @@ const devpostText = `${tests} unit and invariant tests (convex-test), a scripted
 
 const START = "<!-- measured:start -->", END = "<!-- measured:end -->";
 let drift = false;
-for (const [file, text] of [["README.md", readmeText], ["DEVPOST.md", devpostText]]) {
+for (const [file, text] of [["README.md", readmeText], ["DEVPOST.md", devpostText], ["docs/CASE_STUDY.md", readmeText]]) {
   const p = join(root, file);
+  if (!existsSync(p)) continue;
   const src = readFileSync(p, "utf8");
   const a = src.indexOf(START), b = src.indexOf(END);
   if (a === -1 || b === -1 || b < a) throw new Error(`${file}: measured markers missing`);
