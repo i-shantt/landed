@@ -4,6 +4,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { Section } from "@/components/landed/primitives";
 import { useRisk } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
+import { ModelSection } from "@/components/landed/ModelPanel";
 
 export type RiskTier = "low" | "elevated" | "high" | "critical";
 
@@ -83,6 +84,7 @@ export function RiskPanel({ caseId }: { caseId: Id<"cases"> }) {
       <p className="mt-2 text-[11px] text-muted-foreground">
         {risk.checked.length} checks: {risk.checked.length - risk.signals.length} clear, {risk.signals.length} fired.
       </p>
+      {risk.model && <ModelSection payment={risk.model.payment} text={risk.model.text} combinedScore={risk.model.combinedScore} rulesScore={risk.score} />}
     </Section>
   );
 }

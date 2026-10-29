@@ -34,6 +34,7 @@ import { useOperator } from "@/lib/operator";
 import { usd, absDate } from "@/lib/format";
 import { refusalLabel } from "@/lib/labels";
 import { errorMessage } from "@/components/landed/ReasonDialog";
+import { ModelBadge } from "@/components/landed/ModelPanel";
 import type { Id } from "@/convex/_generated/dataModel";
 
 type LineResult = {
@@ -241,8 +242,11 @@ export default function PaymentRunPage() {
                           )}
                         </span>
                       ) : l.decision.ok ? (
-                        <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 text-xs text-emerald-900">
-                          payable
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          <span className="rounded border border-emerald-200 bg-emerald-50 px-1.5 text-xs text-emerald-900">
+                            payable
+                          </span>
+                          <ModelBadge risk={l.risk} />
                         </span>
                       ) : (
                         <span className="inline-flex flex-wrap items-center gap-1.5">
