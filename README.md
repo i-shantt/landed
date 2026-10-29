@@ -11,6 +11,16 @@ Built at Cal Hacks 13.0 (Oct 2026) and extended afterwards into a fuller control
 - **Live:** https://landed-blue.vercel.app (demo workspace; simulated bank, clock and vendor answers unless Settings says otherwise)
 - **API:** `https://tremendous-malamute-864.convex.site/api/v1/openapi.json`
 
+## Highlights
+
+- **The control is in the transaction.** `payments.send` is the only writer of payments; it refuses any destination not verified for that vendor, idempotently and fail-closed, with a static test proving the AI paths cannot reach a release function. 40/40 scripted scenarios, zero false releases, also with the extractor off.
+- **Verification by evidence, not by email.** A probe deposit read back by the contact of record over voice or a vendor portal; sixteen bound checks before an account is `verified`; the probe amount never leaves the server.
+- **Learned risk trained in Python, scored in TypeScript.** Logistic regression on 4.6 M public transactions and a TF-IDF email model, exported as JSON weights with per-feature contributions; 100 parity fixtures match to 1e-6; a model card and a GitHub Actions workflow reproduce the artifacts from public data.
+- **Controls that hold up to review.** Email + password sign-in with invite-by-email and server-resolved roles, maker-checker approvals, policy evaluated inside the boundary, sanctions screening, transaction monitoring with beneficiary trust, signed webhooks, Nacha and ISO 20022 files, and a controls matrix for SOC 2, NIST CSF 2.0 and COSO.
+- **Numbers that cannot drift.** The measured and model paragraphs in this README are generated from `eval/results.json` and `ml/artifacts/metrics.json`; the gate and CI fail when they are stale. Read the [engineering case study](docs/CASE_STUDY.md) and the [résumé bullets](docs/RESUME_BULLETS.md).
+
+![Landed architecture](docs/architecture.svg)
+
 ## What is in the product
 
 | Area | What it does | Where |
