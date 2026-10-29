@@ -25,7 +25,7 @@ async function evalGet(path) {
   const r = await fetch(`${SITE}${path}`, { headers: { "x-eval-key": EVAL_KEY } });
   return r.json();
 }
-const ATT = { routing: "011000015", accountNumber: "900012345678" };
+const ATT = { routing: "011000015", accountNumber: "900055512345" }; // distinct from the demo fraud case (900012345678) so the cross-vendor reuse rule does not pre-empt the probe path
 const LEGIT = { routing: "031000503", accountNumber: "55501234567" };
 
 async function nextDueAdvance(kind) {

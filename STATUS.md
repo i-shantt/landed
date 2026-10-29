@@ -1,22 +1,23 @@
 # STATUS.md
 
-Updated 2026-10-25 (post-judging platform build). The hackathon demo is no longer locked; `main` carries the full platform: risk engine, controls (operators, approvals, policy, demo kill switch), sanctions screening, dashboard and payments ledger, REST API v1 + signed webhooks, Nacha/ISO 20022 payment files, controls matrix, security hardening and the frontend review fixes. See `CHANGELOG.md` (what), `ARCHITECTURE.md` (how), `SECURITY.md` (public surface).
+Updated 2026-10-29 (learned model + transaction monitoring build). `main` carries the full platform plus the ML pipeline (`ml/`), in-app model scoring (`convex/risk/model/`), transaction monitoring and beneficiary trust (`convex/monitoring/`). See `CHANGELOG.md` (what), `ARCHITECTURE.md` (how), `SECURITY.md` (public surface), `ml/artifacts/MODEL_CARD.md` (model).
 
 ## Live now
 
-- **Repo:** https://github.com/i-shantt/landed — `main` at the platform build (gate green: 213 vitest, 40/40 eval, measured check, next build).
-- **Production has NOT been redeployed yet with the platform build.** Vercel is still `dpl_DfnsVAjSqH4TJpoZ6eHiN8R6M7zn` (https://landed-blue.vercel.app) and Convex prod functions are still at `ea5fd57` (hackathon demo + voice fix). Prod env already has `VAPI_WEBHOOK_SECRET` set (random, recorded as `PROD_VAPI_WEBHOOK_SECRET` in `web/.env.local`).
-- **To deploy** (from a clean checkout of `main`; the prepared worktree is the scratchpad `deploytree`):
+- **Repo:** https://github.com/i-shantt/landed — `main` at `792535e` (gate green: 256 vitest, 40/40 eval, measured + model-metrics checks, next build).
+- **Production (deployed 2026-10-29 from a clean worktree of `792535e`):** Vercel `dpl_764SeVqkAd8HTanjfQLYSnnBsxoQ` (https://landed-blue.vercel.app) and Convex prod functions at `792535e`. `node scripts/checkpoint2.mjs --prod` passed; prod reseeded to the clean demo state (20 vendors, 3 demo cases, operators). Prod env has `VAPI_WEBHOOK_SECRET` (recorded as `PROD_VAPI_WEBHOOK_SECRET` in `web/.env.local`). No new env vars were needed for this build.
+- **To deploy again** (from a clean checkout of `main`; the prepared worktree is the scratchpad `deploytree`):
   ```bash
   cd web && npm ci
-  npx convex deploy -y                              # schema adds 9 tables; no data migration needed
+  npx convex deploy -y --typecheck disable
   npx vercel --prod --yes                           # note the dpl_ id for rollback
-  npx convex run --prod controls/operators:ensureSeeded   # operators on the existing prod data (reseed also does it)
-  node scripts/checkpoint2.mjs --prod               # smoke test
+  npx convex run --prod controls/operators:ensureSeeded
+  node scripts/checkpoint2.mjs --prod               # smoke test (resets prod with demo cases first)
   node scripts/prod-seed.mjs                        # clean demo state (20 vendors, 3 demo cases, operators)
   ```
-  Then on prod: pick an administrator in the top-bar operator menu, `/controls` → Apply recommended, `/developers` → Add built-in inbox (webhooks), `/controls` → Screen all vendors.
-- **Rollback:** `cd web && npx vercel rollback dpl_DfnsVAjSqH4TJpoZ6eHiN8R6M7zn`; functions: `git checkout ea5fd57 -- web/convex && (cd web && npx convex deploy -y) && git checkout main -- web/convex`.
+  Then on prod: pick an administrator in the top-bar operator menu, `/controls` → Apply recommended (and a Monitoring review threshold if wanted), `/developers` → Add built-in inbox (webhooks), `/controls` → Screen all vendors.
+- **Rollback:** `cd web && npx vercel rollback dpl_DfnsVAjSqH4TJpoZ6eHiN8R6M7zn` (previous production, hackathon build); functions: `git checkout ea5fd57 -- web/convex && (cd web && npx convex deploy -y) && git checkout main -- web/convex`.
+- **Smoke-test note:** `checkpoint2.mjs` uses attacker account `900055512345`; the demo fraud case uses `900012345678`. They must stay different or the cross-vendor reuse rule sends the scripted case to a human before the probe path (that was the cause of the 7 failures seen on the first run today).
 
 ## What to do next (suggested)
 
