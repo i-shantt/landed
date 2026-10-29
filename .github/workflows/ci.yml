@@ -33,6 +33,8 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: Lint
         run: npx eslint app components lib convex tests e2e proxy.ts playwright.config.ts next.config.ts --max-warnings=0
+      - name: Route types (RouteContext, PageProps come from .next/types)
+        run: npx next typegen
       - name: Typecheck
         run: npx tsc --noEmit -p .
       - name: Unit and invariant tests
