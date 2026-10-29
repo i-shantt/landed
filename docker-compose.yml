@@ -1,0 +1,18 @@
+# Runs the Landed web app against a hosted Convex deployment.
+#   NEXT_PUBLIC_CONVEX_URL=https://<dep>.convex.cloud NEXT_PUBLIC_CONVEX_SITE_URL=https://<dep>.convex.site docker compose up --build
+# (or put both in a .env file next to this compose file). The deployment needs the usual env
+# (node web/scripts/sync-env.mjs --generate) and SITE_URL set to where this container is reached.
+services:
+  web:
+    build:
+      context: ./web
+      args:
+        NEXT_PUBLIC_CONVEX_URL: ${NEXT_PUBLIC_CONVEX_URL:?set NEXT_PUBLIC_CONVEX_URL}
+        NEXT_PUBLIC_CONVEX_SITE_URL: ${NEXT_PUBLIC_CONVEX_SITE_URL:?set NEXT_PUBLIC_CONVEX_SITE_URL}
+    image: landed-web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_CONVEX_URL: ${NEXT_PUBLIC_CONVEX_URL}
+      NEXT_PUBLIC_CONVEX_SITE_URL: ${NEXT_PUBLIC_CONVEX_SITE_URL}
+    restart: unless-stopped
