@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-10-29 — learned model and transaction monitoring
+
+Trained offline on public data, scored inside Convex on read. Nothing here writes to the database or touches the frozen payment boundary (`tests/modelCannotRelease.test.ts` walks `convex/risk/` and `convex/monitoring/` for writes, schedulers and imports of `guard`/`payments`/`cases`).
+
+### Added
+
+- **ML pipeline** (`ml/`): declarative data registry with resumable, sha-verified fetch from Hugging Face (PaySim, Sparkov credit-card transactions, phishing emails, CLAIR fraud emails; Kaggle fallback) and a committed `MANIFEST.json`; one 20-feature contract shared by Python and TypeScript (amount, hour, weekday, rail, new beneficiary, 24 h / 7 d velocity, amount vs beneficiary and payer medians, beneficiary age, round amount, just-under-threshold); leakage-free time splits; logistic regression (shipped) against HistGradientBoosting (reported ceiling) with a cost-ratio threshold chosen on validation; email TF-IDF (1–2 grams, ASCII tokenizer that TypeScript reproduces exactly) + logistic regression; SVG evaluation plots; synthetic AP scenario set (bank change then pay, duplicate invoice, structuring, new vendor, lookalike domain) reported separately from public-data metrics; model card; `make -C ml all` reproduces `metrics.json` byte-for-byte.
+- **In-app scoring** (`convex/risk/model/`): pure linear and text scorers over bundled JSON weights with per-feature contributions; Landed feature builder over a merged payment history (live `payments` plus seeded paid invoices); `assessCase` gains a `model` block (payment model on the invoice that would follow the new account, text model on the request email) and `combinedScore = max(rules, model)` so the model can raise attention and never dilute a rule hit; payment-run lines carry a model assessment; `GET /api/v1/payments/{id}` and `/payments/{id}/risk`. 50 + 50 parity fixtures scored with the exported rounded weights match within 1e-6.
+- **Transaction monitoring** (`convex/monitoring/`): nine signals evaluated against the vendor's own history, cut strictly before the candidate (velocity 24 h / 7 d vs the vendor's weekly median, robust z-score with MAD, amount vs median, structuring clusters just under the approval threshold within 72 h, dormant-vendor spike, first payment to a recently verified account, round amount, off-hours initiation); beneficiary trust score 0–100 with audited components; 7/30-day trend in the company timezone. `policy.monitoringReviewAbove` (off by default) turns a flag into a required approval (`policy_monitoring_review_required`). Monitoring page, trust badge on the vendor page, `GET /api/v1/risk/trend`, `/vendors/{id}/trust`, `/payments/{id}/monitoring`.
+- `web/scripts/sync-model-metrics.mjs` renders the model's held-out numbers into the README from `ml/artifacts/metrics.json`; the gate fails when they drift.
+
+### Changed
+
+- `scripts/verify.sh` reads the vitest summary from the whole output (vitest 5 appends an isolate hint after it).
+- Tests 213 → 256 (vitest) plus 14 Python tests under `ml/tests`.
+
 ## 2026-10-25 — from hackathon demo to payment-control platform
 
 Built after Cal Hacks 13.0 judging on top of the `v2-overnight-3` engine and the redesigned workspace from PR #1. Everything is additive to the frozen payment boundary except the `core:`/`core-fix:` commits listed, each of which was made with a failing test first.
