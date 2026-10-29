@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-10-29 — sign-in: operators are who the session says they are
+
+Convex Auth (email + password, self-hosted) replaces the browser-side operator picker. Two `core:` commits (schema, `payments.ts`), each with a failing test first; everything else additive.
+
+### Added
+
+- **Convex Auth** (`convex/auth.ts`, `authCallbacks.ts`, `authSetup.ts`): Password provider with a 12-character minimum; auth tables plus `users.operatorId` linking a user to an `operators` row; invite-by-email (an admin creates the operator row with the email, sign-up with that email links it, anything else is `signup_not_invited`); the first user of an empty deployment bootstraps the admin; `beforeSessionCreation` refuses unlinked or deactivated operators; `inviteAdmin` / `setupAdmin` / `ensureDemoAccounts` for provisioning; `operator_account_linked` and `operator_invited` audit events.
+- **`controls/actor.ts`**: `requireActor(ctx, roles?)` resolves the session to an active operator with the same error tokens as before plus `unauthenticated`; actions resolve through `internal.controls.actor.resolve`. `controls.operators.me` for the UI.
+- **Web**: `proxy.ts` gates the workspace (marketing pages, `/signin`, the vendor portal and `/api/auth` stay public), `/signin` with sign-in, invite sign-up and one-click demo accounts, `UserMenu` replaces the operator picker, `useOperator()` reads the signed-in user.
+- **Tests**: `asUser(t, role)` / `actors(t)` harness; auth, callbacks, segregation-of-duties, deactivation, identity propagation into actions, reseed survival; a static rule that no function takes `operatorId` as an argument. 256 → 268 vitest.
+- **Ops**: `scripts/sync-env.mjs --generate` creates and sets `SITE_URL`, `JWT_PRIVATE_KEY` and `JWKS` per deployment (RS256 via `jose`, never shared between dev and prod); `prod-seed.mjs` ensures operators and the demo accounts; `record-demo.mjs` signs in.
+
+### Changed
+
+- 19 functions no longer take `operatorId`; onboarding records the signed-in operator (the REST path keeps `api:<key name>` attribution through internal mutations); `payments.attestLanded` takes the operator from the session and `payments.send` stamps the signed-in operator's name over the client label (scripted callers keep their label).
+- `SECURITY.md`: "No end-user authentication" is gone from Known limits; what remains open is that public queries are readable without a session.
+
 ## 2026-10-29 — learned model and transaction monitoring
 
 Trained offline on public data, scored inside Convex on read. Nothing here writes to the database or touches the frozen payment boundary (`tests/modelCannotRelease.test.ts` walks `convex/risk/` and `convex/monitoring/` for writes, schedulers and imports of `guard`/`payments`/`cases`).

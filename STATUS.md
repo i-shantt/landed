@@ -21,7 +21,7 @@ Updated 2026-10-29 (learned model + transaction monitoring build). `main` carrie
 
 ## What to do next (suggested)
 
-1. **Real identity**: add Convex auth (Clerk or WorkOS) and map identities to `operators`; keep every server rule. This closes the one known structural gap (see `SECURITY.md` → Known limits).
+1. **Gate reads**: public queries (cases, vendors, audit) are still readable without a session because the eval runner, `/pitch` and `/health` depend on them; move them behind `requireActor` with key-authenticated equivalents for the runner (see `SECURITY.md` → Known limits). Identity itself shipped: Convex Auth email + password, invite by email, roles from the session.
 2. **Bulk actions and saved views** on `/cases`; an `/invoices` page; a NEEDS_HUMAN decision helper card.
 3. **Production watchlist**: load OFAC `SDN.CSV`/`ALT.CSV` with the parsers in `convex/screening/watchlist.ts` on a schedule and re-screen the vendor master on every list change.
 4. **Bank connector**: pull `GET /api/v1/payment-files/{id}` with a `files:read` key from the bank's SFTP job; probe deposits as `ACCTVERIFY` Micro-Entries through the same builder.

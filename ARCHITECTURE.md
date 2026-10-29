@@ -68,7 +68,7 @@ The release gate `cases.tryRelease` is the mirror image on the verification side
 
 ## Controls
 
-* **Operators** are a role table (`clerk`, `approver`, `admin`). The browser picks one; the server enforces who may approve, change policy, mint keys or manage endpoints, and that a requester never approves their own request. SSO replaces the picker without changing a rule.
+* **Operators** are a role table (`clerk`, `approver`, `admin`) linked to Convex Auth users (`users.operatorId`). An admin invites an operator by email; sign-up with that email links the account (the first user of an empty deployment bootstraps the admin). `controls/actor.ts` → `requireActor(ctx, roles?)` resolves the session to an active operator inside every mutation and action, and enforces who may approve, change policy, mint keys or manage endpoints, and that a requester never approves their own request. No function takes an operator id from the client (a static test enforces this). SSO would replace the Password provider without changing a rule.
 * **Approvals** bind one invoice to one destination; `payments.send` consumes exactly one.
 * **Policy** is a JSON setting with validated fields, off by default, with a “recommended” preset. Every change is an audit event with before/after.
 * **Screening** runs at vendor onboarding and on demand; dispositions are human and audited; the policy can refuse payments while a hit is open.

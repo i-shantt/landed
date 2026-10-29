@@ -16,7 +16,7 @@ Built at Cal Hacks 13.0 (Oct 2026) and extended afterwards into a fuller control
 | **Verification engine** | Holds every bank change, probes the account (11–99¢, Nacha Micro-Entry `ACCTVERIFY`), requires the contact of record to read the amount back on a trusted channel (voice, portal), re-points and holds open invoices, lands the payment, builds the recovery package | `/cases`, `/vendors`, `/mailbox` |
 | **Payment boundary** | `payments.send` is the only writer of payments; refuses anything not verified for that vendor; idempotent; fail closed; every refusal is an audit event | `/payment-run` |
 | **Risk engine** | Deterministic 0–100 score from 16 signals (lookalike sender, DMARC failure, phone changed with the bank, urgency and secrecy language, ABA checksum, account reused across vendors, …) with the evidence for each | case page, queue, API |
-| **Controls** | Named operators with server-enforced roles; maker-checker approvals; policy evaluated inside the boundary: dual approval above $X, risk review above a score, cooling-off after verification, rolling daily vendor limit, ACH-first for new accounts, block on screening hits | `/controls`, `/approvals` |
+| **Controls** | Email + password sign-in (Convex Auth) with invite-by-email; operators with server-enforced roles resolved from the session; maker-checker approvals; policy evaluated inside the boundary: dual approval above $X, risk review above a score, cooling-off after verification, rolling daily vendor limit, ACH-first for new accounts, block on screening hits | `/controls`, `/approvals` |
 | **Sanctions screening** | Jaro-Winkler + token-sort name matching at onboarding and on demand; approver dispositions; OFAC SDN/ALT parsers for production lists (demo list is synthetic) | vendor page, `/controls` |
 | **Dashboard and ledger** | Money held and money protected, median time to verify, pipeline, risk tiers, 30-day trend, a cross-module "needs you" queue; payments ledger with landing state and attestation | `/dashboard`, `/payments` |
 | **REST API + webhooks** | Scoped keys, idempotent writes, cursor pagination, OpenAPI 3.1; signed webhooks (`Landed-Signature`, HMAC-SHA256) with retries and a built-in signed inbox | `/developers` |
@@ -35,8 +35,9 @@ The two demonstrations that matter most:
 cd web && npm ci
 npx convex dev            # creates/attaches a dev deployment, writes .env.local
 cp .env.example .env.local 2>/dev/null; # or set NEXT_PUBLIC_CONVEX_URL / NEXT_PUBLIC_CONVEX_SITE_URL
-npx convex env set ACCOUNT_HMAC_KEY $(openssl rand -hex 32) ACCOUNT_ENC_KEY $(openssl rand -hex 32) EVAL_KEY $(openssl rand -hex 16)
-npm run dev               # http://localhost:3000 → Settings → Re-seed fixtures
+node scripts/sync-env.mjs --generate   # ACCOUNT_HMAC_KEY, ACCOUNT_ENC_KEY, EVAL_KEY, SITE_URL and the Convex Auth JWT keys
+npm run dev               # http://localhost:3000/signin → "Create account" (the first user becomes admin) → Settings → Re-seed fixtures
+npx convex run authSetup:ensureDemoAccounts   # optional: the two public demo accounts shown on /signin
 npx vitest run            # 209 unit and invariant tests (in-memory)
 bash ../scripts/verify.sh # full gate: tests + 40-run scenario suite + measured numbers + build
 ```
@@ -111,7 +112,7 @@ When it asks for a human: wrong or missing vendor statement (`NEEDS_HUMAN`), ban
 
 ## Security model in one paragraph
 
-Account numbers are HMAC-hashed and AES-256-GCM encrypted at rest and never reach the browser; the probe amount lives in one table and is compared in one mutation; the audit log is append-only and redacted at insert; the AI paths cannot import or schedule any release function (a static test enforces this); the Vapi webhook needs a shared secret and binds only to calls Landed placed; statements that are not accepted never reach the release gate, so nothing can probe for the amount; API keys are scoped and hashed; webhooks are signed; the eval endpoints fail closed without a key. Identity is a server-enforced operator role table behind a picker in this build; production replaces the picker with SSO and keeps every rule. Details and the public-surface table are in `SECURITY.md`; the controls-to-framework mapping is on `/compliance`.
+Account numbers are HMAC-hashed and AES-256-GCM encrypted at rest and never reach the browser; the probe amount lives in one table and is compared in one mutation; the audit log is append-only and redacted at insert; the AI paths cannot import or schedule any release function (a static test enforces this); the Vapi webhook needs a shared secret and binds only to calls Landed placed; statements that are not accepted never reach the release gate, so nothing can probe for the amount; API keys are scoped and hashed; webhooks are signed; the eval endpoints fail closed without a key. Identity is Convex Auth (email + password, scrypt, RS256 session JWTs in httpOnly cookies) resolved on the server to an operator role table; no function takes an operator id from the client. Public queries remain readable without a session (next step). Details and the public-surface table are in `SECURITY.md`; the controls-to-framework mapping is on `/compliance`.
 
 ## Path from prototype to production
 

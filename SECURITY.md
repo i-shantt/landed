@@ -64,15 +64,16 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 
 | Function | Changes | Why safe |
 |---|---|---|
-| `controls.operators.*` | operator rows (admin only for create/deactivate) | roles enforced on the server; the browser's operator picker is a stand-in for SSO (see Known limits) |
+| `controls.operators.*` | operator rows (admin only for `create`, which is an invite by email, and `deactivate`); `me` reads the signed-in operator | who acts comes from the Convex Auth session (`controls/actor.ts` → `requireActor`), never from a client-supplied id; a static test fails if any function takes `operatorId` as an argument |
 | `controls.approvals.request` / `decide` | approval rows; `decide` needs role approver/admin and a different operator than the requester | an approval never substitutes for verification: it can only be requested for a destination `canPay` already accepts, and `payments.send` consumes it only after the guard passes |
 | `controls.policy.set` / `applyRecommended` (admin) | the policy JSON (validated) | policy can only add refusals inside `payments.send`; logged with before/after |
-| `controls.demoGuard.setDemoControls` (admin) | kill switch for clock, simulated answers, re-seed | reduces the public surface; cannot be flipped on without an admin operator id |
+| `controls.demoGuard.setDemoControls` (admin) | kill switch for clock, simulated answers, re-seed | reduces the public surface; cannot be flipped on without an admin session |
 | `screening.screen.screenVendor` / `screenAll` / `review` | screening rows; `review` needs approver/admin | screening can only block (through policy), never release |
 | `api.keys.create` (admin action), `revoke` | API keys stored as SHA-256; plaintext returned once | scoped; per-key 600/min; `touch` updates last-used at most once a minute |
 | `webhooks.dispatch.createEndpoint` / `createInboxEndpoint` / `setActive` / `remove` / `pumpNow` / `sendTest` (admin) | endpoints (secret server-only), deliveries | HTTPS only, private hosts refused (SSRF), payloads are the redacted audit payloads, HMAC-signed, bounded retries |
 | `exports.paymentFiles.build` (any active operator) | a `paymentFiles` row + a storage blob | built only from lines that pass guard **and** policy; the full file (account numbers) stays in storage and is served only to a `files:read` API key; the browser gets a masked preview; building moves no money |
-| `payments.attestLanded` (any active operator, note required) | `landingState` of a payment | landing is an after-the-fact reconciliation; it cannot create or release a payment; logged with the operator's name |
+| `payments.attestLanded` (any signed-in active operator, note required) | `landingState` of a payment | landing is an after-the-fact reconciliation; it cannot create or release a payment; logged with the operator's name and id from the session |
+| `auth.signIn` / `auth.signOut` (Convex Auth, Password provider) | `users`, `authAccounts`, `authSessions`, `authRefreshTokens` | passwords are scrypt-hashed by the library (12+ characters); sign-up succeeds only for an email an admin invited (an active, unlinked `operators` row) or, once, for the first user of an empty deployment who becomes admin; `beforeSessionCreation` refuses unlinked or deactivated operators; sessions are RS256 JWTs (1 h) with refresh tokens in httpOnly cookies set by `proxy.ts`; `requireActor` re-checks `active` on every call so deactivation is immediate |
 | `analytics.*`, `paymentQueries.listDetailed`, `risk.assess.*`, `screening.screen.forVendor/summary/pending`, `api.keys.list`, `webhooks.dispatch.endpoints/deliveries/inbox`, `exports.paymentFiles.list` (queries) | nothing | read-only projections; no ciphertext, no probe amounts, no key plaintext, no webhook secrets (a hint only) |
 
 ### REST API `/api/v1/*`
@@ -90,8 +91,8 @@ Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `wri
 
 ## Known limits (prototype)
 
-- **No end-user authentication.** Public mutations are callable by any client that knows the deployment URL. Mitigations in this build: the payment boundary and release gate are unaffected by who calls them; controls actions require an operator id with the right role; demo-only functions have an admin kill switch; `/eval/*` and `/vapi/webhook` are key-gated. Production adds Convex auth (Clerk/WorkOS) and checks `ctx.auth` in every public function, mapping identities to `operators`.
-- Operators are chosen in the browser (localStorage); the server enforces roles and segregation of duties for the chosen id, not that the human behind the browser is that operator. This is the SSO gap above.
+- **Identity.** Operators sign in with email and password (Convex Auth, self-hosted; no third-party identity provider). Every mutation and action that acts as an operator resolves the signed-in user to an active `operators` row and checks the role on the server; the browser never names an operator. Still open: **public queries** (case views, vendor lists, the audit log) are readable by any client that knows the deployment URL because the eval runner, `/pitch` and `/health` rely on them; gating reads behind the same session is the next step. SSO (SAML/OIDC) would replace the Password provider without changing a rule.
+- **Demo accounts are public by design.** `demo@landed.example` (approver) and `clerk@landed.example` (clerk) with the passwords printed on `/signin` let a reviewer use the deployed app. An approver cannot change policy, mint API keys, manage webhooks or operators, or flip the demo kill switch; the admin account is invited by email and its password is set by its owner at sign-up.
 
 - The portal "login" is a seeded credential table, not an identity provider.
 - `/eval/*` on prod is reachable with the key; the key lives only in `web/.env.local` and the deployment env. Rotate with `scripts/sync-env.mjs --prod --generate` after deleting `PROD_EVAL_KEY` from `.env.local`.

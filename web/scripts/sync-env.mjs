@@ -3,11 +3,15 @@
 // Usage (from web/):
 //   node scripts/sync-env.mjs            # dev deployment
 //   node scripts/sync-env.mjs --prod     # production deployment
-//   add --generate to create random ACCOUNT_HMAC_KEY / ACCOUNT_ENC_KEY / EVAL_KEY when the
-//   target has none (prod values are recorded in .env.local as PROD_* so scripts can reach prod).
+//   add --generate to create random ACCOUNT_HMAC_KEY / ACCOUNT_ENC_KEY / EVAL_KEY and the Convex Auth
+//   signing keys (JWT_PRIVATE_KEY RS256 PKCS8 + JWKS) when the target has none (prod values are recorded
+//   in .env.local as PROD_* so scripts can reach prod; dev and prod never share a signing key).
+//   SITE_URL (Convex Auth redirects) is http://localhost:3000 for dev and SITE_URL_PROD from .env.local
+//   (default https://landed-blue.vercel.app) for prod.
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { execSync, execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
+import { exportJWK, exportPKCS8, generateKeyPair } from "jose";
 
 const PROD = process.argv.includes("--prod");
 const GENERATE = process.argv.includes("--generate");
@@ -28,7 +32,16 @@ const env = Object.fromEntries(
 const flag = PROD ? "--prod" : "";
 const existing = execSync(`npx convex env list ${flag}`, { encoding: "utf8" }).split("\n").map((l) => l.trim()).filter(Boolean);
 const has = (k) => existing.some((l) => l === k || l.startsWith(`${k}=`));
-const set = (k, v) => execSync(`npx convex env set ${flag} ${k} ${JSON.stringify(v)}`, { stdio: "ignore" });
+// No shell: PEM text has spaces and starts with "-", JWKS is JSON. "--" ends option parsing.
+const set = (k, v) => execFileSync("npx", ["convex", "env", "set", ...(PROD ? ["--prod"] : []), "--", k, v], { stdio: "ignore" });
+
+async function generateAuthKeys() {
+  const keys = await generateKeyPair("RS256", { extractable: true });
+  const privateKey = await exportPKCS8(keys.privateKey);
+  const publicKey = await exportJWK(keys.publicKey);
+  const jwks = JSON.stringify({ keys: [{ use: "sig", ...publicKey }] });
+  return { privateKey: privateKey.trimEnd().replace(/\n/g, " "), jwks };
+}
 
 const prefix = PROD ? "PROD_" : "";
 let synced = 0;
@@ -48,6 +61,27 @@ for (const k of KEYS) {
   set(k, v);
   console.log(`[sync-env] set ${k}${PROD ? " (prod)" : ""}`);
   synced++;
+}
+// Convex Auth (email + password sessions): site URL and the JWT signing key pair, per deployment.
+const siteUrl = PROD ? env.SITE_URL_PROD || "https://landed-blue.vercel.app" : "http://localhost:3000";
+set("SITE_URL", siteUrl);
+console.log(`[sync-env] set SITE_URL=${siteUrl}${PROD ? " (prod)" : ""}`);
+let jwtKey = env[`${prefix}JWT_PRIVATE_KEY`];
+let jwks = env[`${prefix}JWKS`];
+if ((!jwtKey || !jwks) && GENERATE && !(has("JWT_PRIVATE_KEY") && has("JWKS"))) {
+  const g = await generateAuthKeys();
+  jwtKey = g.privateKey;
+  jwks = g.jwks;
+  raw += `\n${prefix}JWT_PRIVATE_KEY=${jwtKey}\n${prefix}JWKS=${jwks}`;
+  console.log(`[sync-env] generated ${prefix}JWT_PRIVATE_KEY and ${prefix}JWKS (recorded in .env.local)`);
+}
+if (jwtKey && jwks) {
+  set("JWT_PRIVATE_KEY", jwtKey);
+  set("JWKS", jwks);
+  console.log(`[sync-env] set JWT_PRIVATE_KEY and JWKS${PROD ? " (prod)" : ""}`);
+  synced += 2;
+} else if (!(has("JWT_PRIVATE_KEY") && has("JWKS"))) {
+  console.log("[sync-env] WARNING: no JWT_PRIVATE_KEY/JWKS on the target and none in .env.local; sign-in will fail. Re-run with --generate.");
 }
 if (!has("ANTHROPIC_MODEL")) { set("ANTHROPIC_MODEL", "claude-sonnet-5-5"); console.log("[sync-env] set ANTHROPIC_MODEL default"); }
 if (!has("RAIL")) set("RAIL", "sim");

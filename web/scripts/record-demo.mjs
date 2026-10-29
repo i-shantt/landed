@@ -29,6 +29,15 @@ if (!fraud || !legit) throw new Error("demo cases missing after reset");
 const cleanco = (await get("/eval/vendor/slug/cleanco")).vendor._id;
 
 const browser = await chromium.launch();
+// The workspace is behind Convex Auth; every take signs in as the public demo approver (convex/demoAccounts.ts).
+const DEMO = { email: "demo@landed.example", password: "landed-demo-approver" };
+async function signIn(page) {
+  await page.goto(`${BASE}/signin`, { waitUntil: "networkidle" });
+  await page.getByLabel(/^email/i).fill(DEMO.email);
+  await page.getByLabel(/^password/i).fill(DEMO.password);
+  await page.getByRole("button", { name: /^sign in$/i }).click();
+  await page.waitForURL((u) => !u.pathname.startsWith("/signin"), { timeout: 20000 });
+}
 const t0 = Date.now();
 const marks = [];
 const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), label]); console.log(`[${marks.at(-1)[0]}s] ${label}`); };
@@ -37,6 +46,7 @@ const mark = (label) => { marks.push([((Date.now() - t0) / 1000).toFixed(1), lab
 if (!SHOTS_ONLY) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, recordVideo: { dir: VID, size: { width: 1280, height: 800 } }, reducedMotion: "no-preference" });
   const page = await ctx.newPage();
+  await signIn(page);
   await page.goto(`${BASE}/cases`, { waitUntil: "networkidle" });
   mark("cases list with demo cases");
   await sleep(2500);
@@ -85,6 +95,7 @@ await post("/eval/setting", { key: "extractorMode", value: "claude" });
 {
   const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
   const page = await ctx.newPage();
+  await signIn(page);
   await page.goto(`${BASE}/cases/${fraud}`, { waitUntil: "networkidle" }); await sleep(1500);
   await page.screenshot({ path: `${SHOT}/01-fraud-case-needs-human.png` });
   await page.goto(`${BASE}/cases/${legit}`, { waitUntil: "networkidle" }); await sleep(1500);
@@ -100,6 +111,7 @@ await post("/eval/setting", { key: "extractorMode", value: "claude" });
 if (!SHOTS_ONLY) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, recordVideo: { dir: VID, size: { width: 1280, height: 800 } } });
   const page = await ctx.newPage();
+  await signIn(page);
   await page.goto(`${BASE}/judge`, { waitUntil: "networkidle" });
   await sleep(1500);
   await page.getByRole("button", { name: /^run$/i }).first().click();
