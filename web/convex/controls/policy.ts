@@ -11,6 +11,8 @@ import { getSetting, setSetting } from "../settings";
 import { append } from "../events";
 import { requireOperator } from "./operators";
 import { assessCase } from "../risk/assess";
+import { now as clockNow } from "../clock";
+import { evaluateCandidateFor, destinationVerifiedAt } from "../monitoring/evaluate";
 
 export type Policy = {
   /** Payments at or above this amount need a second, distinct approver. null = off. */
@@ -25,6 +27,8 @@ export type Policy = {
   blockWireForFirstPayment: boolean;
   /** Refuse payments to vendors with an unresolved sanctions-screening match. */
   blockOnScreeningHit: boolean;
+  /** Payments whose transaction-monitoring flag score is at or above this need an approval. null = off. */
+  monitoringReviewAbove: number | null;
 };
 
 export const DEFAULT_POLICY: Policy = {
@@ -34,6 +38,7 @@ export const DEFAULT_POLICY: Policy = {
   maxPerVendorPerDayCents: null,
   blockWireForFirstPayment: false,
   blockOnScreeningHit: false,
+  monitoringReviewAbove: null,
 };
 
 /** A sensible starting point for a mid-market AP team; applied by the "Recommended" button. */
@@ -44,11 +49,13 @@ export const RECOMMENDED_POLICY: Policy = {
   maxPerVendorPerDayCents: 25_000_000,
   blockWireForFirstPayment: true,
   blockOnScreeningHit: true,
+  monitoringReviewAbove: null,
 };
 
 export type PolicyRefusal =
   | "policy_approval_required"
   | "policy_risk_review_required"
+  | "policy_monitoring_review_required"
   | "policy_cooling_off"
   | "policy_velocity_exceeded"
   | "policy_wire_blocked_for_new_account"
@@ -76,18 +83,13 @@ function validate(p: Policy) {
   nonNeg(p.dualApprovalAboveCents, "dualApprovalAboveCents");
   nonNeg(p.maxPerVendorPerDayCents, "maxPerVendorPerDayCents");
   if (p.riskReviewAbove !== null && (p.riskReviewAbove < 0 || p.riskReviewAbove > 100)) throw new ConvexError("policy_riskReviewAbove_must_be_0_to_100_or_null");
+  if (p.monitoringReviewAbove !== null && (p.monitoringReviewAbove < 0 || p.monitoringReviewAbove > 100)) throw new ConvexError("policy_monitoringReviewAbove_must_be_0_to_100_or_null");
   if (!Number.isFinite(p.coolingOffHours) || p.coolingOffHours < 0 || p.coolingOffHours > 24 * 30) throw new ConvexError("policy_coolingOffHours_must_be_0_to_720");
 }
 
 /** When was this destination verified (bound confirmation or exceptional release)? */
 async function verifiedAt(ctx: QueryCtx | MutationCtx, destination: Doc<"bankAccounts">): Promise<number | null> {
-  const cases = await ctx.db.query("cases").withIndex("by_newAccount", (q) => q.eq("newAccountId", destination._id)).collect();
-  let latest: number | null = null;
-  for (const c of cases) {
-    const evs = await ctx.db.query("events").withIndex("by_case", (q) => q.eq("caseId", c._id)).collect();
-    for (const e of evs) if ((e.type === "account_verified" || e.type === "exceptional_release") && (latest === null || e.at > latest)) latest = e.at;
-  }
-  return latest;
+  return destinationVerifiedAt(ctx, destination._id);
 }
 
 async function approvedApproval(ctx: QueryCtx | MutationCtx, invoiceId: Id<"invoices">, destinationAccountId: Id<"bankAccounts">) {
@@ -96,9 +98,10 @@ async function approvedApproval(ctx: QueryCtx | MutationCtx, invoiceId: Id<"invo
 }
 
 /** Which policy reasons currently require an approval for this invoice/destination (ignoring existing approvals). */
-export async function approvalReasons(ctx: QueryCtx | MutationCtx, policy: Policy, invoice: Doc<"invoices">, destination: Doc<"bankAccounts">): Promise<{ reasons: PolicyRefusal[]; riskScore: number | null }> {
+export async function approvalReasons(ctx: QueryCtx | MutationCtx, policy: Policy, invoice: Doc<"invoices">, destination: Doc<"bankAccounts">, at?: number): Promise<{ reasons: PolicyRefusal[]; riskScore: number | null; monitoringScore: number | null }> {
   const reasons: PolicyRefusal[] = [];
   let riskScore: number | null = null;
+  let monitoringScore: number | null = null;
   if (policy.dualApprovalAboveCents !== null && invoice.amountCents >= policy.dualApprovalAboveCents) reasons.push("policy_approval_required");
   if (policy.riskReviewAbove !== null) {
     const cases = await ctx.db.query("cases").withIndex("by_newAccount", (q) => q.eq("newAccountId", destination._id)).collect();
@@ -108,7 +111,13 @@ export async function approvalReasons(ctx: QueryCtx | MutationCtx, policy: Polic
       if (riskScore >= policy.riskReviewAbove) reasons.push("policy_risk_review_required");
     }
   }
-  return { reasons, riskScore };
+  if (policy.monitoringReviewAbove !== null) {
+    const t = at ?? (await clockNow(ctx));
+    const m = await evaluateCandidateFor(ctx, { invoice, destination, at: t, rail: "ach", thresholdCents: policy.dualApprovalAboveCents });
+    monitoringScore = m.flagScore;
+    if (monitoringScore >= policy.monitoringReviewAbove) reasons.push("policy_monitoring_review_required");
+  }
+  return { reasons, riskScore, monitoringScore };
 }
 
 /**
@@ -145,7 +154,7 @@ export async function evaluatePaymentPolicy(
     if (sent + invoice.amountCents > policy.maxPerVendorPerDayCents) return { ok: false, reason: "policy_velocity_exceeded", detail: { sentLast24hCents: sent, limitCents: policy.maxPerVendorPerDayCents } };
   }
 
-  const { reasons } = await approvalReasons(ctx, policy, invoice, destination);
+  const { reasons } = await approvalReasons(ctx, policy, invoice, destination, now);
   if (reasons.length) {
     const approval = await approvedApproval(ctx, invoice._id, destination._id);
     if (!approval) return { ok: false, reason: reasons[0], detail: { required: reasons } };
@@ -169,6 +178,7 @@ export const set = mutation({
       maxPerVendorPerDayCents: v.optional(v.union(v.number(), v.null())),
       blockWireForFirstPayment: v.optional(v.boolean()),
       blockOnScreeningHit: v.optional(v.boolean()),
+      monitoringReviewAbove: v.optional(v.union(v.number(), v.null())),
     }),
   },
   handler: async (ctx, { operatorId, patch }) => {

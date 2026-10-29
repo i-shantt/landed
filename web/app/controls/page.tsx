@@ -150,6 +150,7 @@ export default function ControlsPage() {
             <div className="space-y-2">
               <Threshold id="dual" unit="usd" label="Dual approval" help="Payments at or above this amount need a second approver who is not the requester (maker-checker)." value={draft.dualApprovalAboveCents} disabled={!isAdmin} onChange={(v) => setDraft({ ...draft, dualApprovalAboveCents: v })} />
               <Threshold id="risk" unit="score" max={100} label="Risk review" help="If the destination's case scored at or above this on the risk assessment, an approver must review before the first payment." value={draft.riskReviewAbove} disabled={!isAdmin} onChange={(v) => setDraft({ ...draft, riskReviewAbove: v })} />
+              <Threshold id="monitoring" unit="score" max={100} label="Monitoring review" help="If transaction monitoring scores a payment at or above this against the vendor's own history (velocity, amount vs baseline, structuring, dormant spike), an approver must review it." value={draft.monitoringReviewAbove} disabled={!isAdmin} onChange={(v) => setDraft({ ...draft, monitoringReviewAbove: v })} />
               <Threshold id="velocity" unit="usd" label="Daily vendor limit" help="Maximum total sent to one vendor in any rolling 24 hours." value={draft.maxPerVendorPerDayCents} disabled={!isAdmin} onChange={(v) => setDraft({ ...draft, maxPerVendorPerDayCents: v })} />
             </div>
           </Section>
@@ -172,7 +173,7 @@ export default function ControlsPage() {
               <li>An approval binds one invoice to one destination and is consumed by exactly one payment.</li>
             </ol>
             <p className="mt-3 text-xs text-muted-foreground">
-              Current policy: dual approval {policy?.dualApprovalAboveCents === null ? "off" : `≥ ${usd(policy?.dualApprovalAboveCents)}`} · risk review {policy?.riskReviewAbove === null ? "off" : `≥ ${policy?.riskReviewAbove}`} · cooling-off {policy?.coolingOffHours ? `${policy.coolingOffHours}h` : "off"} · daily limit {policy?.maxPerVendorPerDayCents === null ? "off" : usd(policy?.maxPerVendorPerDayCents)} · ACH-first {policy?.blockWireForFirstPayment ? "on" : "off"} · screening block {policy?.blockOnScreeningHit ? "on" : "off"}
+              Current policy: dual approval {policy?.dualApprovalAboveCents === null ? "off" : `≥ ${usd(policy?.dualApprovalAboveCents)}`} · risk review {policy?.riskReviewAbove === null ? "off" : `≥ ${policy?.riskReviewAbove}`} · monitoring review {policy?.monitoringReviewAbove === null || policy?.monitoringReviewAbove === undefined ? "off" : `≥ ${policy?.monitoringReviewAbove}`} · cooling-off {policy?.coolingOffHours ? `${policy.coolingOffHours}h` : "off"} · daily limit {policy?.maxPerVendorPerDayCents === null ? "off" : usd(policy?.maxPerVendorPerDayCents)} · ACH-first {policy?.blockWireForFirstPayment ? "on" : "off"} · screening block {policy?.blockOnScreeningHit ? "on" : "off"}
             </p>
           </Section>
           <Section

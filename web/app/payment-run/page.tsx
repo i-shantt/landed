@@ -233,9 +233,9 @@ export default function PaymentRunPage() {
                       {l.decision.ok && l.policy && !l.policy.ok ? (
                         <span className="inline-flex flex-wrap items-center gap-1.5">
                           <span className="rounded border border-amber-200 bg-amber-50 px-1.5 text-xs text-amber-900" title={refusalLabel(l.policy.reason)}>
-                            {l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required" ? "needs approval" : l.policy.reason.replace("policy_", "").replaceAll("_", " ")}
+                            {l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required" || l.policy.reason === "policy_monitoring_review_required" ? "needs approval" : l.policy.reason.replace("policy_", "").replaceAll("_", " ")}
                           </span>
-                          {(l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required") && (
+                          {(l.policy.reason === "policy_approval_required" || l.policy.reason === "policy_risk_review_required" || l.policy.reason === "policy_monitoring_review_required") && (
                             <button type="button" className="text-xs underline underline-offset-2" onClick={() => requestApproval(l.invoiceId)}>
                               Request approval
                             </button>
