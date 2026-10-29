@@ -15,6 +15,14 @@ export async function setup() {
   return { t, ids };
 }
 
+/** The full generated fixture (20 vendors with paid-invoice history); for tests that need baselines. */
+export async function setupFull() {
+  const t = convexTest(schema, modules);
+  const ids = await t.action(internal.seed.reseedInternal, { which: "full" });
+  await drain(t);
+  return { t, ids };
+}
+
 /** Run every scheduled function (dispatch hops) until quiet. */
 export async function drain(t: T) {
   vi.useFakeTimers();
