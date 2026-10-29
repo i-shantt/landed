@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: web · lint, typecheck, vitest, doc checks, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    env:
+      # The client bundle only needs URLs; no deployment is contacted during build or tests
+      # (vitest runs convex-test in-memory; convex/_generated is committed).
+      NEXT_PUBLIC_CONVEX_URL: https://example.convex.cloud
+      NEXT_PUBLIC_CONVEX_SITE_URL: https://example.convex.site
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Lint
+        run: npx eslint app components lib convex tests e2e proxy.ts playwright.config.ts next.config.ts --max-warnings=0
+      - name: Typecheck
+        run: npx tsc --noEmit -p .
+      - name: Unit and invariant tests
+        run: npx vitest run
+      - name: Measured numbers match eval/results.json
+        run: node scripts/sync-measured.mjs --check
+      - name: Model metrics match ml/artifacts/metrics.json
+        run: node scripts/sync-model-metrics.mjs --check
+      - name: Build
+        run: npx next build
+
+  python:
+    name: python · ml unit tests, eval runner compiles
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: ml/requirements.txt
+      - run: python -m pip install -q -r ml/requirements.txt
+      - name: ML unit tests (feature contract, tokenizer, export format, fetch manifest; no downloads)
+        run: python -m pytest ml/tests -q
+      - name: Eval runner compiles (the 40-run scenario suite needs a live deployment and runs in scripts/verify.sh)
+        run: python -m py_compile eval/runner.py eval/test_scenarios.py
+
+  e2e:
+    # Browser smoke against a Convex dev deployment that has the fixtures and demo accounts.
+    # Enable by setting repository variables E2E_CONVEX_URL and E2E_CONVEX_SITE_URL (public URLs, not secrets).
+    name: e2e · Playwright smoke
+    if: ${{ vars.E2E_CONVEX_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_CONVEX_URL: ${{ vars.E2E_CONVEX_URL }}
+      NEXT_PUBLIC_CONVEX_SITE_URL: ${{ vars.E2E_CONVEX_SITE_URL }}
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: web/playwright-report
+          retention-days: 7
