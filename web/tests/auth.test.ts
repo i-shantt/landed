@@ -179,3 +179,28 @@ describe("requireActor: identity resolves to the operator; roles and segregation
     expect((await t.query(api.controls.policy.get, {})).dualApprovalAboveCents).toBe(null); // public reads unchanged
   });
 });
+
+describe("core: payments take identity from the session", () => {
+  it("attestLanded needs a signed-in operator and records who attested; send stamps the signed-in operator over the client string", async () => {
+    const { t, ids } = await setup();
+    const { clerk, approver } = await actors(t);
+    const invoiceId = ids.invoices["CC-2026-0412"] as Id<"invoices">;
+    // the payment run is signed in: the row and the event carry the operator, not the client's label
+    const res = await clerk.as.mutation(api.payments.send, { invoiceId, initiatedBy: "payment run", rail: "ach" });
+    expect(res.ok).toBe(true);
+    const paymentId = (res as { paymentId: Id<"payments"> }).paymentId;
+    const row = await t.run(async (ctx) => ctx.db.get(paymentId));
+    expect(row!.initiatedBy).toBe(clerk.operator.name);
+    // scripted callers (eval runner, judge, REST) have no session and keep their label
+    const res2 = await pay(t, ids.invoices["NP-77102"] as Id<"invoices">);
+    expect(res2.ok).toBe(true);
+    const row2 = await t.run(async (ctx) => ctx.db.get((res2 as { paymentId: Id<"payments"> }).paymentId));
+    expect(row2!.initiatedBy).toBe("test-clerk");
+    // attestation: signed-out refused; signed-in recorded under the operator's name and id
+    await expect(t.mutation(api.payments.attestLanded, { paymentId, note: "AR confirmed receipt" })).rejects.toThrow(/unauthenticated/);
+    await approver.as.mutation(api.payments.attestLanded, { paymentId, note: "AR confirmed receipt on the number of record" });
+    expect((await t.run(async (ctx) => ctx.db.get(paymentId)))!.landingState).toBe("landed");
+    const ev = await t.run(async (ctx) => (await ctx.db.query("events").collect()).find((e) => e.type === "payment_landed"));
+    expect(ev!.payload).toMatchObject({ attestedBy: approver.operator.name, operatorId: approver.operatorId, method: "operator_attestation" });
+  });
+});

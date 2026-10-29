@@ -6,7 +6,7 @@ import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { canRelease } from "../convex/guard";
 import { mkAccount, mkCase, mkConfirmation, mkContact, mkProbe, T0 } from "./fixtures";
-import { setup, pay, drain, manualEdit, advanceToAvailability, vendorStatement, probeAmount, events, getCase, getAccount, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT, actors } from "./harness";
+import { setup, pay, drain, manualEdit, advanceToAvailability, vendorStatement, probeAmount, events, getCase, getAccount, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT, actors, asUser } from "./harness";
 
 const NOW = T0 + 7400_000;
 
@@ -204,10 +204,10 @@ describe("landing is tracked for every payment", () => {
     const all = await t.run(async (ctx) => ctx.db.query("events").collect());
     expect(all.some((e) => e.type === "landing_unconfirmed" && (e.payload as { paymentId: string }).paymentId === paymentId)).toBe(true);
     // operator attestation (e.g. vendor remittance confirmation by phone) closes it
-    const ops = await t.query(api.controls.operators.list, {});
-    await t.mutation(api.payments.attestLanded, { paymentId, operatorId: ops[0]._id, note: "AR confirmed receipt on the number of record" });
+    const approver = await asUser(t, "approver");
+    await approver.as.mutation(api.payments.attestLanded, { paymentId, note: "AR confirmed receipt on the number of record" });
     expect((await t.run(async (ctx) => ctx.db.get(paymentId)))!.landingState).toBe("landed");
-    await expect(t.mutation(api.payments.attestLanded, { paymentId, operatorId: ops[0]._id, note: "x" })).rejects.toThrow();
+    await expect(approver.as.mutation(api.payments.attestLanded, { paymentId, note: "x" })).rejects.toThrow();
   });
 });
 

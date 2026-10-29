@@ -113,7 +113,7 @@ export default function PaymentsPage() {
         confirmLabel="Attest landed"
         onConfirm={async (note) => {
           if (!operator || !attesting) return;
-          await attest({ paymentId: attesting, operatorId: operator._id, note });
+          await attest({ paymentId: attesting, note });
         }}
       />
       <p className="text-xs text-muted-foreground">

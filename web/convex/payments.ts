@@ -10,6 +10,7 @@ import { now, HOUR, endOfBusinessDay } from "./clock";
 import { createTimer } from "./timers";
 import { transition } from "./cases";
 import { decryptAccount } from "./crypto";
+import { currentActor, requireActor } from "./controls/actor";
 import { selectRail } from "./rails/select";
 import { evaluatePaymentPolicy, type PolicyRefusal } from "./controls/policy";
 
@@ -28,8 +29,12 @@ export const send = mutation({
     initiatedBy: v.string(),
     rail: v.optional(v.union(v.literal("ach"), v.literal("wire"))),
   },
-  handler: async (ctx, { invoiceId, initiatedBy, rail }) => {
+  handler: async (ctx, { invoiceId, initiatedBy: initiatedByLabel, rail }) => {
     const railKind = rail ?? "ach";
+    // Who initiated: the signed-in operator when there is a session (workspace); otherwise the caller's
+    // label (eval runner, judge, REST API, scripts). Never a client-supplied operator id.
+    const actor = await currentActor(ctx);
+    const initiatedBy = actor ? actor.name : initiatedByLabel;
     const invoice = await ctx.db.get(invoiceId);
     // I6: a repeat call for the same invoice+destination returns the existing row and never touches the rail.
     if (invoice) {
@@ -232,17 +237,16 @@ export const recordLandingInternal = internalMutation({
  * driving an automated landing call. Logged with the operator's name; cannot re-attest a decided payment.
  */
 export const attestLanded = mutation({
-  args: { paymentId: v.id("payments"), operatorId: v.id("operators"), note: v.string() },
-  handler: async (ctx, { paymentId, operatorId, note }) => {
-    const op = await ctx.db.get(operatorId);
-    if (!op || !op.active) throw new ConvexError("operator_unknown_or_inactive");
+  args: { paymentId: v.id("payments"), note: v.string() },
+  handler: async (ctx, { paymentId, note }) => {
+    const op = await requireActor(ctx);
     if (note.trim().length < 3) throw new ConvexError("note_required");
     const p = await ctx.db.get(paymentId);
     if (!p) throw new ConvexError("payment_not_found");
     if (p.landingState === "landed") throw new ConvexError("already_landed");
     const t = await now(ctx);
     await ctx.db.patch(p._id, { landingState: "landed" });
-    await append(ctx, { caseId: p.caseId, actor: "human", type: "payment_landed", payload: { paymentId: p._id, amountCents: p.amountCents, confirmedAt: t, attestedBy: op.name, operatorId, note: note.trim(), method: "operator_attestation" } });
+    await append(ctx, { caseId: p.caseId, actor: "human", type: "payment_landed", payload: { paymentId: p._id, amountCents: p.amountCents, confirmedAt: t, attestedBy: op.name, operatorId: op._id, note: note.trim(), method: "operator_attestation" } });
     if (p.caseId) {
       const c = await ctx.db.get(p.caseId);
       if (c && (c.state === "PAID" || c.state === "UNCONFIRMED")) {
