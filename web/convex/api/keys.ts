@@ -5,7 +5,7 @@ import type { Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { internal } from "../_generated/api";
 import { append } from "../events";
-import { requireOperator } from "../controls/operators";
+import { requireActor } from "../controls/actor";
 import { randomHex, sha256Hex } from "./util";
 
 export const SCOPES = ["read", "write:changes", "write:payments", "write:vendors", "files:read", "webhooks:manage"] as const;
@@ -23,24 +23,18 @@ export const insert = internalMutation({
 
 /** Admin creates a key; the plaintext is returned exactly once. */
 export const create = action({
-  args: { operatorId: v.id("operators"), name: v.string(), scopes: v.array(v.string()) },
+  args: { operatorId: v.optional(v.id("operators")), name: v.string(), scopes: v.array(v.string()) },
   handler: async (ctx, { operatorId, name, scopes }): Promise<{ id: Id<"apiKeys">; key: string; prefix: string }> => {
-    const op = await ctx.runQuery(internal.api.keys.operatorRole, { operatorId });
-    if (op !== "admin") throw new ConvexError("role_admin_required");
+    const op = await ctx.runQuery(internal.controls.actor.resolve, { roles: ["admin"], operatorId });
     if (!name.trim()) throw new ConvexError("name_required");
     const bad = scopes.filter((s) => !(SCOPES as readonly string[]).includes(s));
     if (bad.length) throw new ConvexError(`unknown_scopes_${bad.join(",")}`);
     const key = `ld_live_sk_${randomHex(24)}`;
     const prefix = key.slice(0, 16);
     const keyHash = await sha256Hex(key);
-    const id = await ctx.runMutation(internal.api.keys.insert, { name: name.trim(), prefix, keyHash, scopes, createdBy: operatorId });
+    const id = await ctx.runMutation(internal.api.keys.insert, { name: name.trim(), prefix, keyHash, scopes, createdBy: op._id });
     return { id, key, prefix };
   },
-});
-
-export const operatorRole = internalQuery({
-  args: { operatorId: v.id("operators") },
-  handler: async (ctx, { operatorId }) => (await ctx.db.get(operatorId))?.role ?? null,
 });
 
 export const list = query({
@@ -57,9 +51,9 @@ export const list = query({
 });
 
 export const revoke = mutation({
-  args: { operatorId: v.id("operators"), apiKeyId: v.id("apiKeys") },
+  args: { operatorId: v.optional(v.id("operators")), apiKeyId: v.id("apiKeys") },
   handler: async (ctx, { operatorId, apiKeyId }) => {
-    const op = await requireOperator(ctx, operatorId, ["admin"]);
+    const op = await requireActor(ctx, ["admin"], operatorId);
     const k = await ctx.db.get(apiKeyId);
     if (!k) throw new ConvexError("key_not_found");
     if (k.revokedAt) return;

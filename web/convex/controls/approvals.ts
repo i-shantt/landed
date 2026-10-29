@@ -6,15 +6,15 @@ import type { Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { append } from "../events";
 import { now } from "../clock";
-import { requireOperator } from "./operators";
+import { requireActor } from "./actor";
 import { getPolicy, approvalReasons } from "./policy";
 import { canPay } from "../guard";
 import { currentVersionForIdentity } from "../payments";
 
 export const request = mutation({
-  args: { invoiceId: v.id("invoices"), operatorId: v.id("operators"), note: v.optional(v.string()) },
+  args: { invoiceId: v.id("invoices"), operatorId: v.optional(v.id("operators")), note: v.optional(v.string()) },
   handler: async (ctx, { invoiceId, operatorId, note }) => {
-    const op = await requireOperator(ctx, operatorId);
+    const op = await requireActor(ctx, undefined, operatorId);
     const invoice = await ctx.db.get(invoiceId);
     if (!invoice) throw new ConvexError("invoice_not_found");
     const destination = await ctx.db.get(invoice.remitAccountId);
@@ -36,7 +36,7 @@ export const request = mutation({
       vendorId: invoice.vendorId,
       amountCents: invoice.amountCents,
       requiredBy: reasons,
-      requestedBy: operatorId,
+      requestedBy: op._id,
       requestedAt: t,
       status: "pending",
       note: note?.trim() || undefined,
@@ -48,16 +48,16 @@ export const request = mutation({
 });
 
 export const decide = mutation({
-  args: { approvalId: v.id("approvals"), operatorId: v.id("operators"), decision: v.union(v.literal("approved"), v.literal("rejected")), note: v.optional(v.string()) },
+  args: { approvalId: v.id("approvals"), operatorId: v.optional(v.id("operators")), decision: v.union(v.literal("approved"), v.literal("rejected")), note: v.optional(v.string()) },
   handler: async (ctx, { approvalId, operatorId, decision, note }) => {
-    const op = await requireOperator(ctx, operatorId, ["approver", "admin"]);
+    const op = await requireActor(ctx, ["approver", "admin"], operatorId);
     const a = await ctx.db.get(approvalId);
     if (!a) throw new ConvexError("approval_not_found");
     if (a.status !== "pending") throw new ConvexError(`approval_already_${a.status}`);
-    if (a.requestedBy === operatorId) throw new ConvexError("cannot_approve_own_request");
+    if (a.requestedBy === op._id) throw new ConvexError("cannot_approve_own_request");
     if (decision === "rejected" && !(note ?? "").trim()) throw new ConvexError("rejection_needs_a_note");
     const t = await now(ctx);
-    await ctx.db.patch(approvalId, { status: decision, decidedBy: operatorId, decidedAt: t, note: note?.trim() || a.note });
+    await ctx.db.patch(approvalId, { status: decision, decidedBy: op._id, decidedAt: t, note: note?.trim() || a.note });
     const invoice = await ctx.db.get(a.invoiceId);
     await append(ctx, { actor: "human", type: decision === "approved" ? "approval_granted" : "approval_rejected", payload: { approvalId, invoiceNumber: invoice?.number ?? null, amountCents: a.amountCents, decidedBy: op.name, note: note ?? null, requiredBy: a.requiredBy } });
     return decision;

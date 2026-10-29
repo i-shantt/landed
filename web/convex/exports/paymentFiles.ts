@@ -12,12 +12,12 @@ import { append } from "../events";
 import { sha256Hex } from "../api/util";
 import { buildNachaFile, maskNachaFile, type NachaEntry } from "./nacha";
 import { buildPain001, maskPain001 } from "./pain001";
+import { requireActor } from "../controls/actor";
 
 export const lineSecrets = internalQuery({
-  args: { operatorId: v.id("operators") },
+  args: { operatorId: v.optional(v.id("operators")) },
   handler: async (ctx, { operatorId }) => {
-    const op = await ctx.db.get(operatorId);
-    if (!op || !op.active) throw new ConvexError("operator_unknown_or_inactive");
+    const op = await requireActor(ctx, undefined, operatorId);
     const company = await ctx.db.query("company").first();
     const run = await computePaymentRun(ctx);
     const payable = run.lines.filter((l) => l.decision.ok && (l.policy === null || l.policy.ok));
@@ -43,7 +43,7 @@ export const record = internalMutation({
 });
 
 export const build = action({
-  args: { operatorId: v.id("operators"), format: v.union(v.literal("nacha"), v.literal("pain.001")) },
+  args: { operatorId: v.optional(v.id("operators")), format: v.union(v.literal("nacha"), v.literal("pain.001")) },
   handler: async (ctx, { operatorId, format }): Promise<{ id: Id<"paymentFiles">; previewMasked: string; entryCount: number; totalCents: number; sha256: string }> => {
     const data = await ctx.runQuery(internal.exports.paymentFiles.lineSecrets, { operatorId });
     if (!data.lines.length) throw new ConvexError("no_payable_lines");

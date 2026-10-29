@@ -9,7 +9,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { now } from "../clock";
 import { append } from "../events";
-import { requireOperator } from "../controls/operators";
+import { requireActor } from "../controls/actor";
 import { classify, scoreNames, REPORT_ABOVE, STRONG_MATCH_THRESHOLD, type Classification, type MatchMethod } from "./match";
 import { DEMO_LIST_VERSION, DEMO_WATCHLIST, watchlistNames, type WatchlistEntry } from "./watchlist";
 
@@ -114,12 +114,12 @@ export const screenAll = mutation({
 export const review = mutation({
   args: {
     screeningId: v.id("screenings"),
-    operatorId: v.id("operators"),
+    operatorId: v.optional(v.id("operators")),
     decision: v.union(v.literal("false_positive"), v.literal("confirmed_match")),
     note: v.optional(v.string()),
   },
   handler: async (ctx, { screeningId, operatorId, decision, note }) => {
-    const op = await requireOperator(ctx, operatorId, ["approver", "admin"]);
+    const op = await requireActor(ctx, ["approver", "admin"], operatorId);
     const s = await ctx.db.get(screeningId);
     if (!s) throw new ConvexError("screening_not_found");
     if (s.status === "clear") throw new ConvexError("screening_is_clear_nothing_to_review");
@@ -127,12 +127,12 @@ export const review = mutation({
     const trimmed = (note ?? "").trim();
     if (decision === "false_positive" && trimmed.length < 5) throw new ConvexError("false_positive_needs_a_note");
     const t = await now(ctx);
-    await ctx.db.patch(screeningId, { status: decision, reviewedBy: operatorId, reviewedAt: t, note: trimmed || undefined });
+    await ctx.db.patch(screeningId, { status: decision, reviewedBy: op._id, reviewedAt: t, note: trimmed || undefined });
     const vendor = await ctx.db.get(s.vendorId);
     await append(ctx, {
       actor: "human",
       type: "screening_reviewed",
-      payload: { screeningId, vendorId: s.vendorId, vendorName: vendor?.name ?? null, decision, reviewedBy: op.name, operatorId, note: trimmed || null, topScore: s.matches[0]?.score ?? null, listVersion: s.listVersion },
+      payload: { screeningId, vendorId: s.vendorId, vendorName: vendor?.name ?? null, decision, reviewedBy: op.name, operatorId: op._id, note: trimmed || null, topScore: s.matches[0]?.score ?? null, listVersion: s.listVersion },
     });
     return decision;
   },

@@ -107,3 +107,70 @@ describe("sign-up gating (invite = operator row with the email; first user boots
     expect(ops.filter((o) => o.email === "clerk@landed.example").length).toBe(1);
   });
 });
+
+import { actors, asUser, pay } from "./harness";
+
+describe("requireActor: identity resolves to the operator; roles and segregation of duties hold under sessions", () => {
+  it("no identity and no operatorId -> unauthenticated; a clerk cannot change policy; an admin can and the audit payload names them", async () => {
+    const { t } = await setup();
+    await expect(t.mutation(api.controls.policy.set, { patch: { riskReviewAbove: 50 } })).rejects.toThrow(/unauthenticated/);
+    const { clerk, admin } = await actors(t);
+    await expect(clerk.as.mutation(api.controls.policy.set, { patch: { riskReviewAbove: 50 } })).rejects.toThrow(/role_clerk_cannot_do_this_requires_admin/);
+    await admin.as.mutation(api.controls.policy.set, { patch: { riskReviewAbove: 50 } });
+    expect((await t.query(api.controls.policy.get, {})).riskReviewAbove).toBe(50);
+    const ev = await t.run(async (ctx) => (await ctx.db.query("events").collect()).filter((e) => e.type === "policy_changed"));
+    expect(ev.length).toBe(1);
+    expect(ev[0].payload).toMatchObject({ by: admin.operator.name, operatorId: admin.operatorId });
+    const me = await admin.as.query(api.controls.operators.me, {});
+    expect(me).toMatchObject({ _id: admin.operatorId, role: "admin", userEmail: admin.operator.email });
+    expect(await t.query(api.controls.operators.me, {})).toBeNull();
+  });
+
+  it("a signed-in identity wins over a client-supplied operatorId; a deactivated operator is refused on the next call", async () => {
+    const { t } = await setup();
+    const { clerk, admin } = await actors(t);
+    // the clerk cannot borrow the admin's id
+    await expect(clerk.as.mutation(api.controls.policy.set, { operatorId: admin.operatorId, patch: { riskReviewAbove: 50 } })).rejects.toThrow(/role_clerk/);
+    await admin.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: false });
+    const other = await t.run(async (ctx) => ctx.db.insert("operators", { name: "Second Admin", initials: "SA", role: "admin", email: "second@meridianoutdoor.example", active: true }));
+    const second = await asUser(t, "admin", { operatorId: other });
+    await second.as.mutation(api.controls.operators.deactivate, { target: admin.operatorId });
+    await expect(admin.as.mutation(api.controls.demoGuard.setDemoControls, { enabled: true })).rejects.toThrow(/operator_unknown_or_inactive/);
+    await expect(second.as.mutation(api.controls.operators.deactivate, { target: other })).rejects.toThrow(/cannot_deactivate_self/);
+  });
+
+  it("segregation of duties under sessions: the requester cannot approve their own request; the approval is consumed by send", async () => {
+    const { t, ids } = await setup();
+    const { clerk, approver, admin } = await actors(t);
+    await admin.as.mutation(api.controls.policy.set, { patch: { dualApprovalAboveCents: 100_000 } });
+    const invoiceId = ids.invoices["CC-2026-0412"] as Id<"invoices">;
+    expect(await pay(t, invoiceId)).toEqual({ ok: false, reason: "policy_approval_required" });
+    const approvalId = await clerk.as.mutation(api.controls.approvals.request, { invoiceId });
+    await expect(clerk.as.mutation(api.controls.approvals.decide, { approvalId, decision: "approved" })).rejects.toThrow(/role_clerk/);
+    const mine = await approver.as.mutation(api.controls.approvals.request, { invoiceId });
+    expect(mine).toBe(approvalId); // idempotent per invoice+destination
+    const a = await t.run(async (ctx) => ctx.db.get(approvalId));
+    expect(a!.requestedBy).toBe(clerk.operatorId);
+    await approver.as.mutation(api.controls.approvals.decide, { approvalId, decision: "approved" });
+    const decided = await t.run(async (ctx) => ctx.db.get(approvalId));
+    expect(decided!.decidedBy).toBe(approver.operatorId);
+    expect((await pay(t, invoiceId)).ok).toBe(true);
+  });
+
+  it("actions carry the identity into their queries: keys.create admin ok / clerk refused; paymentFiles.build clerk ok / signed-out refused; the portal and the public API need no identity", async () => {
+    const { t } = await setup();
+    const { clerk, admin } = await actors(t);
+    const made = await admin.as.action(api.api.keys.create, { name: "ci", scopes: ["read"] });
+    expect(made.key.startsWith("ld_live_sk_")).toBe(true);
+    const row = await t.run(async (ctx) => ctx.db.get(made.id));
+    expect(row!.createdBy).toBe(admin.operatorId);
+    await expect(clerk.as.action(api.api.keys.create, { name: "ci2", scopes: ["read"] })).rejects.toThrow(/role_clerk/);
+    await expect(t.action(api.api.keys.create, { name: "ci3", scopes: ["read"] })).rejects.toThrow(/unauthenticated/);
+    const built = await clerk.as.action(api.exports.paymentFiles.build, { format: "nacha" });
+    expect(built.entryCount).toBeGreaterThan(0);
+    await expect(t.action(api.exports.paymentFiles.build, { format: "nacha" })).rejects.toThrow(/unauthenticated/);
+    const files = await t.query(api.exports.paymentFiles.list, {});
+    expect(files[0].createdBy).toBe(clerk.operator.name);
+    expect((await t.query(api.controls.policy.get, {})).dualApprovalAboveCents).toBe(null); // public reads unchanged
+  });
+});

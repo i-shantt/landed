@@ -89,3 +89,21 @@ export async function pay(t: T, invoiceId: Id<"invoices">, rail: "ach" | "wire" 
 
 export const VENDOR_B_ACCOUNT = { routing: "011000015", accountNumber: "900012345678" }; // mule / new account
 export const VENDOR_C_ACCOUNT = { routing: "031000503", accountNumber: "55501234567" };
+
+/** A signed-in operator for tests: inserts a Convex Auth user + session linked to the operator with that role. */
+export async function asUser(t: T, role: "clerk" | "approver" | "admin", opts?: { operatorId?: Id<"operators"> }) {
+  const ops = await t.query(api.controls.operators.list, {});
+  const operatorId = opts?.operatorId ?? ops.find((o) => o.role === role)!._id;
+  const op = ops.find((o) => o._id === operatorId)!;
+  const { userId, sessionId } = await t.run(async (ctx) => {
+    const userId = await ctx.db.insert("users", { email: op.email, name: op.name, operatorId });
+    const sessionId = await ctx.db.insert("authSessions", { userId, expirationTime: Date.now() + 3600_000 });
+    return { userId, sessionId };
+  });
+  return { as: t.withIdentity({ subject: `${userId}|${sessionId}`, issuer: "https://landed.test", tokenIdentifier: `https://landed.test|${userId}|${sessionId}` }), userId, operatorId, operator: op };
+}
+
+/** The three seeded roles, signed in. */
+export async function actors(t: T) {
+  return { clerk: await asUser(t, "clerk"), approver: await asUser(t, "approver"), admin: await asUser(t, "admin") };
+}

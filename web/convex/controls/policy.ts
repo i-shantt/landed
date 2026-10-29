@@ -9,7 +9,7 @@ import type { Doc, Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { getSetting, setSetting } from "../settings";
 import { append } from "../events";
-import { requireOperator } from "./operators";
+import { requireActor } from "./actor";
 import { assessCase } from "../risk/assess";
 import { now as clockNow } from "../clock";
 import { evaluateCandidateFor, destinationVerifiedAt } from "../monitoring/evaluate";
@@ -170,7 +170,7 @@ export const get = query({
 
 export const set = mutation({
   args: {
-    operatorId: v.id("operators"),
+    operatorId: v.optional(v.id("operators")),
     patch: v.object({
       dualApprovalAboveCents: v.optional(v.union(v.number(), v.null())),
       riskReviewAbove: v.optional(v.union(v.number(), v.null())),
@@ -182,24 +182,24 @@ export const set = mutation({
     }),
   },
   handler: async (ctx, { operatorId, patch }) => {
-    const op = await requireOperator(ctx, operatorId, ["admin"]);
+    const op = await requireActor(ctx, ["admin"], operatorId);
     const before = await getPolicy(ctx);
     const next: Policy = { ...before };
     for (const [k, val] of Object.entries(patch)) if (val !== undefined) (next as unknown as Record<string, unknown>)[k] = val;
     validate(next);
     await setSetting(ctx, "policy", JSON.stringify(next));
-    await append(ctx, { actor: "human", type: "policy_changed", payload: { by: op.name, operatorId, before, after: next } });
+    await append(ctx, { actor: "human", type: "policy_changed", payload: { by: op.name, operatorId: op._id, before, after: next } });
     return next;
   },
 });
 
 export const applyRecommended = mutation({
-  args: { operatorId: v.id("operators") },
+  args: { operatorId: v.optional(v.id("operators")) },
   handler: async (ctx, { operatorId }) => {
-    const op = await requireOperator(ctx, operatorId, ["admin"]);
+    const op = await requireActor(ctx, ["admin"], operatorId);
     const before = await getPolicy(ctx);
     await setSetting(ctx, "policy", JSON.stringify(RECOMMENDED_POLICY));
-    await append(ctx, { actor: "human", type: "policy_changed", payload: { by: op.name, operatorId, before, after: RECOMMENDED_POLICY, preset: "recommended" } });
+    await append(ctx, { actor: "human", type: "policy_changed", payload: { by: op.name, operatorId: op._id, before, after: RECOMMENDED_POLICY, preset: "recommended" } });
     return RECOMMENDED_POLICY;
   },
 });

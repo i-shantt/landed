@@ -7,7 +7,7 @@ import type { MutationCtx, QueryCtx } from "../_generated/server";
 import { v, ConvexError } from "convex/values";
 import { getSetting, setSetting } from "../settings";
 import { append } from "../events";
-import { requireOperator } from "./operators";
+import { requireActor } from "./actor";
 
 export const KEY = "demoControls";
 
@@ -30,11 +30,11 @@ export const check = internalQuery({
 });
 
 export const setDemoControls = mutation({
-  args: { operatorId: v.id("operators"), enabled: v.boolean() },
+  args: { operatorId: v.optional(v.id("operators")), enabled: v.boolean() },
   handler: async (ctx, { operatorId, enabled }) => {
-    const op = await requireOperator(ctx, operatorId, ["admin"]);
+    const op = await requireActor(ctx, ["admin"], operatorId);
     await setSetting(ctx, KEY, enabled ? "on" : "off");
-    await append(ctx, { actor: "human", type: "demo_controls_changed", payload: { by: op.name, operatorId, enabled } });
+    await append(ctx, { actor: "human", type: "demo_controls_changed", payload: { by: op.name, operatorId: op._id, enabled } });
     return enabled;
   },
 });
