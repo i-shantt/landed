@@ -21,6 +21,8 @@ if [ "$SKIP_EVAL" = "0" ]; then
 fi
 echo "== measured numbers (README/DEVPOST vs eval/results.json)"
 (cd "$ROOT/web" && node scripts/sync-measured.mjs --check) || { echo "measured numbers STALE: run node web/scripts/sync-measured.mjs"; exit 1; }
+echo "== model metrics (README vs ml/artifacts/metrics.json)"
+(cd "$ROOT/web" && node scripts/sync-model-metrics.mjs --check) || { echo "model metrics STALE: run node web/scripts/sync-model-metrics.mjs"; exit 1; }
 if [ "$SKIP_BUILD" = "0" ]; then
   echo "== next build"
   (cd "$ROOT/web" && npx next build >/tmp/landed-next-build.log 2>&1) || { tail -30 /tmp/landed-next-build.log; echo "next build FAILED"; exit 1; }
