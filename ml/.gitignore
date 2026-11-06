@@ -3,3 +3,5 @@ data/raw/
 data/interim/
 __pycache__/
 .pytest_cache/
+data/feedback/
+artifacts/feedback_report.*

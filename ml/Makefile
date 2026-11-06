@@ -35,6 +35,11 @@ card: venv
 sync:
 	cd ../web && node scripts/sync-model-metrics.mjs
 
+# Operator feedback: export dispositions + send-time features from a deployment, then score the shipped model on them.
+feedback: venv
+	cd ../web && node scripts/export-labels.mjs $(if $(PROD),--prod,)
+	$(PY) -I feedback.py data/feedback/labels-$(if $(PROD),prod,dev).jsonl --out artifacts/feedback_report.md
+
 test: venv
 	$(PY) -m pytest tests -q
 

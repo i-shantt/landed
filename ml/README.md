@@ -50,7 +50,18 @@ evaluate.py          ROC/PR AUC, precision@k, recall@FPR, Brier, reliability, co
 scenarios/           synthetic AP scenario generator (held-out, labelled "agreement with our own generator")
 export.py            weights -> artifacts/*.json, parity fixtures -> web/tests/fixtures/model-parity/
 model_card.py        renders artifacts/MODEL_CARD.md from metrics.json + MANIFEST.json
+feedback.py          scores the shipped model on operator dispositions exported from a deployment (make feedback)
 Makefile             the pipeline
 ```
 
 Raw files are untrusted data: scripts run with `python -I`, and raw files are only ever read by pandas.
+
+## Feedback loop
+
+Production labels come from what happened after a payment, never from the model: a rail or operator-attested landing is benign, an
+unconfirmed landing, a recovery or a fraud report is suspicious. `GET /api/v1/model/labels` joins each disposition with the 20-feature
+vector the model saw at send time; `web/scripts/export-labels.mjs` writes it as JSONL under `data/feedback/` (gitignored) and
+`feedback.py` rescores the features with the exported trees (parity is asserted), then reports ROC/PR-AUC and the confusion matrix at the
+shipped threshold for the trees, the linear baseline and the monitoring rules. `make feedback` (or `make feedback PROD=1`) runs both.
+Retraining on feedback is a deliberate step: add the rows as a third source in `loaders.py` once there are enough of them, re-run
+`make all`, and the parity fixtures and model card follow.
