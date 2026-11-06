@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-06 — invoices page
+
+- **`/invoices`**: every invoice on file with its remit account projection (routing, last four, version, status), what the payment boundary would do with it today (payable, a policy hold, or the guard's refusal reason; the same `paymentRun.preview` the run uses), the open case holding it, and the settling payment once paid. Open / held / overdue / paid filters with totals, search by number, vendor or last four, due / amount / vendor sort, overdue highlight, CSV export. Sidebar and workspace search entries.
+- **`invoices.listAll`** (session) does the join on the server: the row never carries ciphertext, hashes or identity keys (asserted).
+- Playwright: the CleanCo invoice renders with its remit account and a boundary decision (7 → 8 tests).
+- Tests: 327 → 329 vitest.
+
 ## 2026-11-06 — decision helper for cases that stopped for a human
 
 - **Decision helper** (`lib/decision.ts`, `components/landed/DecisionHelper.tsx`) above the case actions while a case is in `NEEDS_HUMAN`: classifies the case as hostile (nothing arrived at the vendor of record, account reuse or prior rejection, repeated assistant leak, confirmed sanctions match, critical risk), stalled (SLA or portal attempts ran out at low risk with a clear screen) or unresolved (bank and contact changed together, validation mismatch, an operator's own request), lists the facts it used (risk score and top signal, screening, beneficiary trust, statements from the contact of record, open invoices held, other vendors on the same account) and orders reject / mark fraud / exceptional release with a reason for each. Pure function with no write path; the buttons stay in "Case actions" and the guard still decides what pays.
