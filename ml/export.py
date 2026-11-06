@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Export the shipped models as JSON weights and write parity fixtures for the TypeScript scorer.
 
-transaction_lr.json  {version, trained_on, features:[{name, mean, std, coef}], intercept, threshold, calibration:{method, a, b}}
+transaction_gbm.json {version, trained_on, features[], baseline, n_trees, max_depth, trees[][], threshold, calibration}  (shipped; see trees.py)
+transaction_lr.json  {version, trained_on, features:[{name, mean, std, coef}], intercept, threshold, calibration:{method, a, b}} (glass-box baseline)
 email_tfidf_lr.json  {version, tokenizer, ngram, vocab[], idf[], coef[], intercept, threshold}
 
 Fixtures are scored WITH THE ROUNDED EXPORTED JSON (not the sklearn pipeline) so the TypeScript side can
@@ -21,6 +22,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from features import FEATURE_NAMES, candidate_features, vector  # noqa: E402
 from text import TOKENIZER_ID, score_exported  # noqa: E402
+from trees import export_trees, score_trees_exported  # noqa: E402
 
 ML = Path(__file__).resolve().parent
 ART = ML / "artifacts"
@@ -53,6 +55,23 @@ def export_transaction(metrics: dict) -> dict:
                "calibration": {"method": "platt", "a": r(m["platt"]["a"]), "b": r(m["platt"]["b"])}}
     payload["version"] = version_of(payload)
     return payload
+
+
+def export_transaction_gbm(metrics: dict) -> tuple[dict, object]:
+    """The shipped payment model: HistGradientBoosting trees as node arrays. Platt parameters are fitted on the
+    (never subsampled) validation window of the same sources, like the logistic regression's."""
+    from evaluate import platt_fit
+    from prepare import load_prepared
+
+    gbm = joblib.load(MODELS / f"{SHIPPED_TRANSACTION}_gbm.joblib")
+    m = metrics["transaction"][SHIPPED_TRANSACTION]["gbm"]
+    trained_on = ["paysim", "sparkov"]
+    va = np.concatenate([load_prepared(s).query("split == 'val'")[FEATURE_NAMES + ["label"]].to_numpy(dtype=float) for s in trained_on])
+    a, b = platt_fit(gbm.decision_function(va[:, :-1]), va[:, -1].astype(int))
+    payload = {"family": "transaction_gbm", "trained_on": trained_on, "features": list(FEATURE_NAMES), **export_trees(gbm),
+               "threshold": r(m["threshold"]), "calibration": {"method": "platt", "a": r(a), "b": r(b)}}
+    payload["version"] = version_of(payload)
+    return payload, gbm
 
 
 def score_transaction_exported(w: dict, x: list[float]) -> dict:
@@ -124,6 +143,15 @@ def main(argv=None) -> int:
         tx_fixture.append({"id": c["id"], "features": c["features"], "inputs": {**c["inputs"], "bene_history": c["inputs"]["bene_history"], "payer_history": c["inputs"]["payer_history"]},
                            "logit": s["logit"], "probability": float(s["probability"]), "contributions": s["contributions"]})
 
+    gb, gbm = export_transaction_gbm(metrics)
+    p_gbm = gbm.predict_proba(X)[:, 1]
+    gb_fixture = []
+    for c, ps in zip(tx_cases, p_gbm):
+        s = score_trees_exported(gb, c["features"])
+        assert abs(s["probability"] - ps) < 1e-4, (c["id"], s["probability"], ps)
+        assert abs(sum(s["contributions"]) - (s["logit"] - s["bias"])) < 1e-9
+        gb_fixture.append({"id": c["id"], "features": c["features"], "logit": s["logit"], "probability": s["probability"], "bias": s["bias"], "contributions": s["contributions"]})
+
     txt, vec, clf = export_text(metrics)
     texts = text_fixture_cases(rng)
     p_sk = clf.predict_proba(vec.transform(texts))[:, 1]
@@ -133,17 +161,20 @@ def main(argv=None) -> int:
         assert abs(pe - ps) < 1e-4, (t[:40], pe, ps)
         txt_fixture.append({"text": t, "probability": pe})
 
-    for path, payload in ((ART / "transaction_lr.json", tx), (ART / "email_tfidf_lr.json", txt)):
+    for path, payload in ((ART / "transaction_gbm.json", gb), (ART / "transaction_lr.json", tx), (ART / "email_tfidf_lr.json", txt)):
         path.write_text(json.dumps(payload, separators=(",", ":")) + "\n")
         print(f"wrote {path.relative_to(ML.parent)} ({path.stat().st_size / 1024:.1f} KB) version {payload['version']}")
     if not a.no_fixtures:
         WEIGHTS_DIR.mkdir(parents=True, exist_ok=True); FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
+        (WEIGHTS_DIR / "transaction_gbm.json").write_text(json.dumps(gb, separators=(",", ":")) + "\n")
         (WEIGHTS_DIR / "transaction_lr.json").write_text(json.dumps(tx, separators=(",", ":")) + "\n")
         (WEIGHTS_DIR / "email_tfidf_lr.json").write_text(json.dumps(txt, separators=(",", ":")) + "\n")
         (FIXTURES_DIR / "transaction.json").write_text(json.dumps({"version": tx["version"], "cases": tx_fixture}, indent=1) + "\n")
+        (FIXTURES_DIR / "transaction_gbm.json").write_text(json.dumps({"version": gb["version"], "cases": gb_fixture}, indent=1) + "\n")
         (FIXTURES_DIR / "text.json").write_text(json.dumps({"version": txt["version"], "cases": txt_fixture}, indent=1) + "\n")
-        print(f"wrote weights to {WEIGHTS_DIR.relative_to(ML.parent)} and {len(tx_fixture)}+{len(txt_fixture)} parity fixtures to {FIXTURES_DIR.relative_to(ML.parent)}")
+        print(f"wrote weights to {WEIGHTS_DIR.relative_to(ML.parent)} and {len(gb_fixture)}+{len(tx_fixture)}+{len(txt_fixture)} parity fixtures to {FIXTURES_DIR.relative_to(ML.parent)}")
     assert (ART / "email_tfidf_lr.json").stat().st_size < 150 * 1024
+    assert (ART / "transaction_gbm.json").stat().st_size < 200 * 1024
     return 0
 
 

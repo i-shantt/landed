@@ -10,6 +10,7 @@ sys.path.insert(0, str(ML))
 from export import score_transaction_exported  # noqa: E402
 from features import FEATURE_NAMES  # noqa: E402
 from text import score_exported  # noqa: E402
+from trees import score_trees_exported  # noqa: E402
 
 ART = ML / "artifacts"
 needs_artifacts = pytest.mark.skipif(not (ART / "transaction_lr.json").exists(), reason="run `make -C ml export` first")
@@ -34,6 +35,12 @@ def test_exported_bundles_have_expected_shape_and_size():
     assert txt["tokenizer"] == "ascii_word2plus_v1" and txt["ngram"] == [1, 2]
     assert (ART / "email_tfidf_lr.json").stat().st_size < 150 * 1024
     assert (ART / "transaction_lr.json").stat().st_size < 8 * 1024
+    gb = json.loads((ART / "transaction_gbm.json").read_text())
+    assert gb["family"] == "transaction_gbm" and gb["features"] == FEATURE_NAMES
+    assert gb["n_trees"] == len(gb["trees"]) == 200 and gb["max_depth"] <= 4
+    assert gb["calibration"]["method"] == "platt" and 0 < gb["threshold"] < 1
+    assert all(n[0] == -1 or (0 <= n[0] < len(FEATURE_NAMES) and n[2] < len(t) and n[3] < len(t)) for t in gb["trees"] for n in t)
+    assert (ART / "transaction_gbm.json").stat().st_size < 200 * 1024
 
 
 @needs_artifacts
@@ -45,6 +52,13 @@ def test_parity_fixtures_match_exported_scorers():
     assert t["version"] == tx["version"] and len(t["cases"]) == 50
     for c in t["cases"]:
         assert abs(score_transaction_exported(tx, c["features"])["probability"] - c["probability"]) < 1e-12
+    gb = json.loads((ART / "transaction_gbm.json").read_text())
+    g = json.loads((fx / "transaction_gbm.json").read_text())
+    assert g["version"] == gb["version"] and len(g["cases"]) == 50
+    for c in g["cases"]:
+        s = score_trees_exported(gb, c["features"])
+        assert abs(s["probability"] - c["probability"]) < 1e-12 and abs(s["logit"] - c["logit"]) < 1e-12
+        assert all(abs(a - b) < 1e-12 for a, b in zip(s["contributions"], c["contributions"]))
     e = json.loads((fx / "text.json").read_text())
     assert e["version"] == txt["version"] and len(e["cases"]) == 50
     for c in e["cases"]:
