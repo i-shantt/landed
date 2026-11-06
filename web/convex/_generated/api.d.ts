@@ -91,6 +91,7 @@ import type * as risk_model_history from "../risk/model/history.js";
 import type * as risk_model_index from "../risk/model/index.js";
 import type * as risk_model_linear from "../risk/model/linear.js";
 import type * as risk_model_text from "../risk/model/text.js";
+import type * as risk_model_trees from "../risk/model/trees.js";
 import type * as risk_score from "../risk/score.js";
 import type * as screening_match from "../screening/match.js";
 import type * as screening_screen from "../screening/screen.js";
@@ -195,6 +196,7 @@ declare const fullApi: ApiFromModules<{
   "risk/model/index": typeof risk_model_index;
   "risk/model/linear": typeof risk_model_linear;
   "risk/model/text": typeof risk_model_text;
+  "risk/model/trees": typeof risk_model_trees;
   "risk/score": typeof risk_score;
   "screening/match": typeof screening_match;
   "screening/screen": typeof screening_screen;
