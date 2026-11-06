@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-06 — decision helper for cases that stopped for a human
+
+- **Decision helper** (`lib/decision.ts`, `components/landed/DecisionHelper.tsx`) above the case actions while a case is in `NEEDS_HUMAN`: classifies the case as hostile (nothing arrived at the vendor of record, account reuse or prior rejection, repeated assistant leak, confirmed sanctions match, critical risk), stalled (SLA or portal attempts ran out at low risk with a clear screen) or unresolved (bank and contact changed together, validation mismatch, an operator's own request), lists the facts it used (risk score and top signal, screening, beneficiary trust, statements from the contact of record, open invoices held, other vendors on the same account) and orders reject / mark fraud / exceptional release with a reason for each. Pure function with no write path; the buttons stay in "Case actions" and the guard still decides what pays.
+- Labels for the three escalation reasons the case summary used to show raw (prior rejection, reuse across vendors, repeated assistant leak).
+- Playwright: the seeded bank-and-phone case shows the helper with three ordered options (6 → 7 tests).
+- Tests: 320 → 327 vitest.
+
 ## 2026-11-06 — reads require a session
 
 - **Every public query calls `requireActor`** (68 queries; 14 in the frozen core files, changed with the failing test first). Six reads stay public by design and are allowlisted in `tests/security.test.ts`, which now fails when a query is added without the session check: `health.status`, `evalRuns.list`, the new `settings.demoCases` (demo-case ids for `/pitch`), `controls.operators.me` and the two token-gated vendor-portal reads.
