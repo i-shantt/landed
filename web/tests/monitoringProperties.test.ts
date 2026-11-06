@@ -11,7 +11,11 @@ import { buildTrend, localDate, type TrendRow } from "../convex/monitoring/trend
 import { binProportions, psi, driftStatus, ranks, spearman, modelHealth, MIN_ROWS, type Reference, type HealthRow } from "../convex/monitoring/drift";
 import { dispositionFor, summariseLabels, type Disposition, type LabelEvent, type LabelSource } from "../convex/monitoring/labels";
 import reference from "../convex/risk/weights/transaction_reference.json";
-import { FEATURE_NAMES, type HistoryRow } from "../convex/risk/model/features";
+import { candidateFeatures, vector, FEATURE_NAMES, UNDER_THRESHOLD_BAND, DAY_S, type CandidateInput, type HistoryRow } from "../convex/risk/model/features";
+import { scoreLinear, sigmoid } from "../convex/risk/model/linear";
+import { scoreTrees } from "../convex/risk/model/trees";
+import { scoreText, tokenize, ngrams } from "../convex/risk/model/text";
+import { TRANSACTION_WEIGHTS, TRANSACTION_TREES, EMAIL_WEIGHTS } from "../convex/risk/model";
 import { T0 } from "./fixtures";
 
 const RUNS = { numRuns: 300 };
@@ -488,6 +492,115 @@ describe("labels: dispositions come only from outcomes and the summary partition
           expect(again).toMatchObject({ label: d.label, source: d.source });
         },
       ),
+      RUNS,
+    );
+  });
+});
+
+// ---------------------------------------------------------------- feature contract and scorers
+
+const AT_S = Math.floor(T0 / 1000);
+const historyPoint = (before: boolean) => fc.record({ at: before ? fc.integer({ min: AT_S - 400 * DAY_S, max: AT_S - 1 }) : fc.integer({ min: AT_S, max: AT_S + 30 * DAY_S }), amount: fc.integer({ min: 1, max: 100_000 }) });
+const featureInput: fc.Arbitrary<CandidateInput> = fc.record({
+  amount: fc.integer({ min: 0, max: 200_000 }),
+  at: fc.constant(AT_S),
+  hour: fc.integer({ min: 0, max: 23 }),
+  weekday: fc.option(fc.integer({ min: 0, max: 6 }), { nil: null }),
+  type: fc.constantFrom("transfer", "payment", "cash_out") as fc.Arbitrary<CandidateInput["type"]>,
+  beneHistory: fc.array(historyPoint(true), { maxLength: 15 }),
+  payerHistory: fc.array(historyPoint(true), { maxLength: 15 }),
+  pairSeenBefore: fc.boolean(),
+  beneFirstSeenAt: fc.option(fc.integer({ min: AT_S - 1000 * DAY_S, max: AT_S + DAY_S }), { nil: null }),
+  threshold: fc.integer({ min: 1_000, max: 100_000 }),
+});
+const vector20 = fc.array(fc.oneof({ weight: 9, arbitrary: fc.double({ min: -1e4, max: 1e4, noNaN: true }) }, { weight: 1, arbitrary: fc.constant(NaN) }), { minLength: FEATURE_NAMES.length, maxLength: FEATURE_NAMES.length });
+const finiteVector20 = fc.array(fc.double({ min: -1e4, max: 1e4, noNaN: true }), { minLength: FEATURE_NAMES.length, maxLength: FEATURE_NAMES.length });
+const asciiText = fc.stringMatching(/^[\x20-\x7e\n\t]{0,120}$/);
+const vocabText = fc.array(fc.constantFrom(...EMAIL_WEIGHTS.vocab.slice(0, 300).filter((t) => !t.includes(" "))), { maxLength: 30 }).map((ws) => ws.join(" "));
+const FLAGS = ["is_off_hours", "is_weekend", "is_weekend_missing", "type_transfer", "type_payment", "type_cash_out", "is_new_beneficiary", "bene_amount_ratio_missing", "payer_amount_ratio_missing", "is_round_amount", "just_under_threshold"] as const;
+
+describe("feature contract and scorers: shape invariants hold for every input, not only the parity fixtures", () => {
+  it("candidateFeatures: one-hot type, binary flags, unit circle for the hour, nested counts, ratio/missing pairing, threshold band, history order and future rows irrelevant", () => {
+    fc.assert(
+      fc.property(featureInput, fc.array(historyPoint(false), { maxLength: 5 }), (c, future) => {
+        const f = candidateFeatures(c);
+        const v = vector(f);
+        expect(v.length).toBe(FEATURE_NAMES.length);
+        for (const x of v) expect(Number.isFinite(x)).toBe(true);
+        expect(f.type_transfer + f.type_payment + f.type_cash_out).toBe(1);
+        for (const k of FLAGS) expect([0, 1]).toContain(f[k]);
+        expect(f.hour_sin ** 2 + f.hour_cos ** 2).toBeCloseTo(1, 9);
+        expect(f.is_weekend_missing).toBe(c.weekday === null ? 1 : 0);
+        if (c.weekday === null) expect(f.is_weekend).toBe(0);
+        expect(f.bene_count_24h).toBeLessThanOrEqual(f.bene_count_7d);
+        expect(f.bene_count_7d).toBeLessThanOrEqual(c.beneHistory.length);
+        expect(f.amount_log).toBeGreaterThanOrEqual(0);
+        expect(f.bene_age_days).toBeGreaterThanOrEqual(0);
+        expect(f.is_new_beneficiary).toBe(c.pairSeenBefore ? 0 : 1);
+        // a missing ratio is exactly 1 and flagged; a present ratio is amount / median of the prior amounts
+        for (const [ratioKey, missingKey, hist] of [["bene_amount_ratio_median", "bene_amount_ratio_missing", c.beneHistory], ["payer_amount_ratio_median", "payer_amount_ratio_missing", c.payerHistory]] as const) {
+          if (f[missingKey] === 1) expect(f[ratioKey]).toBe(1);
+          else {
+            expect(hist.length).toBeGreaterThanOrEqual(3);
+            expect(f[ratioKey]).toBeGreaterThanOrEqual(0);
+          }
+        }
+        expect(f.just_under_threshold).toBe(UNDER_THRESHOLD_BAND * c.threshold <= c.amount && c.amount < c.threshold ? 1 : 0);
+        expect(f.is_round_amount).toBe(c.amount > 0 && c.amount % 100 === 0 ? 1 : 0);
+        const shuffled = { ...c, beneHistory: [...future, ...c.beneHistory].reverse(), payerHistory: [...c.payerHistory].reverse().concat(future) };
+        expect(vector(candidateFeatures(shuffled))).toEqual(v);
+      }),
+      RUNS,
+    );
+  });
+
+  it("scoreLinear and scoreTrees: contributions sum to the logit (minus the bias for trees), probability is the sigmoid, every feature appears once sorted by magnitude", () => {
+    fc.assert(
+      fc.property(finiteVector20, vector20, (xl, xt) => {
+        const l = scoreLinear(TRANSACTION_WEIGHTS, xl);
+        const sumL = l.contributions.reduce((s, c) => s + c.contribution, 0);
+        expect(Math.abs(TRANSACTION_WEIGHTS.intercept + sumL - l.logit)).toBeLessThanOrEqual(1e-9 * Math.max(1, Math.abs(l.logit)));
+        expect(l.probability).toBe(sigmoid(l.logit));
+        expect(l.probability).toBeGreaterThanOrEqual(0);
+        expect(l.probability).toBeLessThanOrEqual(1);
+        expect(l.contributions.map((c) => c.feature).sort()).toEqual([...FEATURE_NAMES].sort());
+        for (let i = 1; i < l.contributions.length; i++) expect(Math.abs(l.contributions[i].contribution)).toBeLessThanOrEqual(Math.abs(l.contributions[i - 1].contribution));
+
+        const t = scoreTrees(TRANSACTION_TREES, xt);
+        const sumT = t.contributions.reduce((s, c) => s + c.contribution, 0);
+        expect(Math.abs(t.bias + sumT - t.logit)).toBeLessThanOrEqual(1e-9 * Math.max(1, Math.abs(t.logit)));
+        expect(t.probability).toBe(sigmoid(t.logit));
+        expect(t.contributions.map((c) => c.feature).sort()).toEqual([...TRANSACTION_TREES.features].sort());
+        for (let i = 1; i < t.contributions.length; i++) expect(Math.abs(t.contributions[i].contribution)).toBeLessThanOrEqual(Math.abs(t.contributions[i - 1].contribution));
+        // the bias does not depend on the input, and scoring is deterministic
+        expect(scoreTrees(TRANSACTION_TREES, xl).bias).toBe(t.bias);
+        expect(scoreTrees(TRANSACTION_TREES, xt).logit).toBe(t.logit);
+        expect(() => scoreLinear(TRANSACTION_WEIGHTS, xl.slice(1))).toThrow(/entries/);
+        expect(() => scoreTrees(TRANSACTION_TREES, xt.slice(1))).toThrow(/entries/);
+      }),
+      { numRuns: 150 },
+    );
+  });
+
+  it("tokenize and scoreText: tokens match the contract, tokenising is idempotent and case-insensitive on ASCII, bigrams extend the unigrams, the score is a bounded probability with a consistent flag", () => {
+    fc.assert(
+      fc.property(fc.oneof(asciiText, vocabText), fc.integer({ min: 0, max: 12 }), (text, topN) => {
+        const toks = tokenize(text);
+        for (const t of toks) expect(t).toMatch(/^[a-z0-9_]{2,}$/);
+        expect(tokenize(toks.join(" "))).toEqual(toks);
+        expect(tokenize(text.toUpperCase())).toEqual(toks);
+        const grams = ngrams(toks, 2);
+        expect(grams.slice(0, toks.length)).toEqual(toks);
+        expect(grams.length).toBe(toks.length + Math.max(0, toks.length - 1));
+        const s = scoreText(EMAIL_WEIGHTS, text, topN);
+        expect(s.tokens).toBe(toks.length);
+        expect(s.probability).toBeGreaterThan(0);
+        expect(s.probability).toBeLessThan(1);
+        expect(s.flagged).toBe(s.probability >= EMAIL_WEIGHTS.threshold);
+        expect(s.topTokens.length).toBeLessThanOrEqual(topN);
+        for (let i = 1; i < s.topTokens.length; i++) expect(Math.abs(s.topTokens[i].contribution)).toBeLessThanOrEqual(Math.abs(s.topTokens[i - 1].contribution));
+        if (s.topTokens.length === 0 && toks.length === 0) expect(s.probability).toBe(sigmoid(EMAIL_WEIGHTS.intercept));
+      }),
       RUNS,
     );
   });
