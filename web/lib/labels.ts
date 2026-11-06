@@ -229,6 +229,9 @@ export const HUMAN_REASON_LABELS: Record<string, string> = {
   sla_expired: "No vendor statement within the window",
   portal_attempts_exhausted: "Portal attempts exhausted",
   validation_mismatch: "Validation provider reported a mismatch",
+  account_previously_rejected: "This account number was rejected or disputed before",
+  account_reused_across_vendors: "This account number is already on file under another vendor",
+  repeated_assistant_leak: "The voice assistant leaked the probe amount twice",
 };
 
 export function humanReasonLabel(r: string | null | undefined): string {
