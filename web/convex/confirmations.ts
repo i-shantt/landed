@@ -9,6 +9,7 @@ import { append } from "./events";
 import { now, HOUR } from "./clock";
 import { tryRelease } from "./cases";
 import { recordLanding } from "./payments";
+import { requireActor } from "./controls/actor";
 
 export type Channel = Doc<"confirmations">["channel"];
 const TRUSTED_CHANNELS: Channel[] = ["voice", "portal", "sim_voice"];
@@ -154,6 +155,7 @@ export async function recordFromEmail(
 export const listForCase = query({
   args: { caseId: v.id("cases") },
   handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("confirmations").withIndex("by_case", (q) => q.eq("caseId", caseId)).collect();
     const out = [];
     for (const r of rows) {

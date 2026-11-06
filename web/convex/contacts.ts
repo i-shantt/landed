@@ -4,6 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { append } from "./events";
 import { now } from "./clock";
+import { requireActor } from "./controls/actor";
 
 export async function recordPhoneContact(ctx: QueryCtx | MutationCtx, vendorId: Id<"vendors">) {
   const rows = await ctx.db.query("contacts").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect();
@@ -59,5 +60,8 @@ export const addUntrustedContact = internalMutation({
 
 export const listForVendor = query({
   args: { vendorId: v.id("vendors") },
-  handler: async (ctx, { vendorId }) => ctx.db.query("contacts").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect(),
+  handler: async (ctx, { vendorId }) => {
+    await requireActor(ctx);
+    return ctx.db.query("contacts").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect();
+  },
 });

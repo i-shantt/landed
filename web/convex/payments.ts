@@ -1,6 +1,6 @@
 // The payment boundary (I1). `send` is the ONLY function that inserts a payment.
 import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { internal } from "./_generated/api";
@@ -266,10 +266,20 @@ export const attestLanded = mutation({
 
 export const listForInvoice = query({
   args: { invoiceId: v.id("invoices") },
-  handler: async (ctx, { invoiceId }) => ctx.db.query("payments").withIndex("by_invoice", (q) => q.eq("invoiceId", invoiceId)).collect(),
+  handler: async (ctx, { invoiceId }) => {
+    await requireActor(ctx);
+    return ctx.db.query("payments").withIndex("by_invoice", (q) => q.eq("invoiceId", invoiceId)).collect();
+  },
 });
 
+export async function listRead(ctx: QueryCtx) {
+  return ctx.db.query("payments").order("desc").take(100);
+}
 export const list = query({
   args: {},
-  handler: async (ctx) => ctx.db.query("payments").order("desc").take(100),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return listRead(ctx);
+  },
 });
+export const listInternal = internalQuery({ args: {}, handler: listRead });

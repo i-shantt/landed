@@ -11,6 +11,7 @@ import { createTimer } from "./timers";
 import { transition } from "./cases";
 import { decryptAccount } from "./crypto";
 import { selectRail } from "./rails/select";
+import { requireActor } from "./controls/actor";
 
 export const PROBE_MIN_CENTS = 11;
 export const PROBE_MAX_CENTS = 99;
@@ -156,6 +157,7 @@ export const markAvailableInternal = internalMutation({
 export const getPublic = query({
   args: { caseId: v.id("cases") },
   handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
     const c = await ctx.db.get(caseId);
     if (!c || !c.probeId) return null;
     const p = await ctx.db.get(c.probeId);

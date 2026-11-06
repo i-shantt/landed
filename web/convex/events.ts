@@ -1,9 +1,10 @@
 // Append-only audit log. No update/delete is exported anywhere for `events`.
-import { query } from "./_generated/server";
-import type { MutationCtx } from "./_generated/server";
+import { query, internalQuery } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { now } from "./clock";
+import { requireActor } from "./controls/actor";
 
 export type Actor = "agent" | "human" | "rail" | "vendor" | "system";
 
@@ -42,20 +43,26 @@ export async function append(
   });
 }
 
-export const listForCase = query({
-  args: { caseId: v.id("cases") },
-  handler: async (ctx, { caseId }) => {
+export async function listForCaseRead(ctx: QueryCtx, { caseId }: { caseId: Id<"cases"> }) {
     const rows = await ctx.db
       .query("events")
       .withIndex("by_case", (q) => q.eq("caseId", caseId))
       .collect();
     return rows.sort((a, b) => a.at - b.at || a._creationTime - b._creationTime);
+}
+export const listForCase = query({
+  args: { caseId: v.id("cases") },
+  handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
+    return listForCaseRead(ctx, { caseId });
   },
 });
+export const listForCaseInternal = internalQuery({ args: { caseId: v.id("cases") }, handler: listForCaseRead });
 
 export const recent = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("events").order("desc").take(50);
     return rows;
   },

@@ -2,7 +2,7 @@
 // only ways a bank account becomes `verified`: tryRelease (bound confirmation)
 // or exceptionalRelease (two named humans). No action that calls an LLM imports
 // or schedules either.
-import { mutation, query, internalMutation } from "./_generated/server";
+import { mutation, query, internalMutation, internalQuery } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { v, ConvexError } from "convex/values";
@@ -12,6 +12,7 @@ import { canRelease, isAllowedTransition } from "./guard";
 import { now } from "./clock";
 import { createProbe } from "./probes";
 import { getValidationProvider } from "./validation/provider";
+import { requireActor } from "./controls/actor";
 
 export const TERMINAL = new Set(["CLOSED"]);
 export const OPEN_STATES = ["HELD", "PROBE_SENT", "AWAITING_CONFIRMATION", "VERIFIED", "PAID", "NEEDS_HUMAN", "UNCONFIRMED", "RECOVERY"] as const;
@@ -337,9 +338,8 @@ export async function amountAtStake(ctx: QueryCtx, c: Doc<"cases">) {
   return invoices.filter((i) => i.status !== "paid" && i.remitAccountId === c.newAccountId).reduce((s, i) => s + i.amountCents, 0);
 }
 
-export const list = query({
-  args: {},
-  handler: async (ctx) => {
+// Reads: the workspace calls the public query with a session; the REST layer (key-authenticated, no session) calls the internal twin.
+export async function listRead(ctx: QueryCtx) {
     const rows = await ctx.db.query("cases").order("desc").collect();
     const out = [];
     for (const c of rows) {
@@ -348,12 +348,17 @@ export const list = query({
       out.push({ ...c, vendorName: vendor?.name ?? "?", amountAtStakeCents: amount });
     }
     return out;
+}
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return listRead(ctx);
   },
 });
+export const listInternal = internalQuery({ args: {}, handler: listRead });
 
-export const get = query({
-  args: { caseId: v.id("cases") },
-  handler: async (ctx, { caseId }) => {
+export async function getRead(ctx: QueryCtx, { caseId }: { caseId: Id<"cases"> }) {
     const c = await ctx.db.get(caseId);
     if (!c) return null;
     const vendor = await ctx.db.get(c.vendorId);
@@ -374,5 +379,12 @@ export const get = query({
       openInvoices: openInvoices.map((i) => ({ _id: i._id, number: i.number, amountCents: i.amountCents, dueAt: i.dueAt, status: i.status })),
       amountAtStakeCents: openInvoices.reduce((s, i) => s + i.amountCents, 0),
     };
+}
+export const get = query({
+  args: { caseId: v.id("cases") },
+  handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
+    return getRead(ctx, { caseId });
   },
 });
+export const getInternal = internalQuery({ args: { caseId: v.id("cases") }, handler: getRead });

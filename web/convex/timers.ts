@@ -8,6 +8,7 @@ import { internal } from "./_generated/api";
 import { now } from "./clock";
 import { markSettled, markAvailable } from "./probes";
 import { transition } from "./cases";
+import { requireActor } from "./controls/actor";
 
 export type TimerKind = "probe_settle" | "probe_available" | "confirmation_sla" | "landing_check" | "landing_deadline";
 
@@ -97,6 +98,7 @@ export const tick = internalMutation({
 export const pendingForCase = query({
   args: { caseId: v.id("cases") },
   handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("timers").withIndex("by_case", (q) => q.eq("caseId", caseId)).collect();
     return rows.map((r) => ({ _id: r._id, kind: r.kind, dueAt: r.dueAt, fired: r.fired }));
   },
@@ -105,6 +107,7 @@ export const pendingForCase = query({
 export const nextDue = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const row = await ctx.db.query("timers").withIndex("by_due", (q) => q.eq("fired", false)).order("asc").first();
     return row ? { kind: row.kind, dueAt: row.dueAt, caseId: row.caseId } : null;
   },

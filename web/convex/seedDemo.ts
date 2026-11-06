@@ -94,7 +94,7 @@ export const createDemoCases = internalAction({
 
     // Bring demo-now back up to real-now (never backwards). Any timer due on the way fires through the
     // normal tick; the three cases are already in terminal or human states.
-    const clk = await ctx.runQuery(api.clock.get, {});
+    const clk = await ctx.runQuery(internal.clock.getInternal, {});
     if (clk.offsetMs < 0) await ctx.runMutation(api.clock.advance, { ms: -clk.offsetMs });
 
     const demo = [

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { redact } from "../convex/events";
-import { setup, manualEdit, pay, advanceToAvailability, vendorStatement, probeAmount, getCase, getAccount, drain, advance, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT } from "./harness";
+import { setup, manualEdit, pay, advanceToAvailability, vendorStatement, probeAmount, getCase, getAccount, drain, advance, VENDOR_B_ACCOUNT, VENDOR_C_ACCOUNT, clockNow, actors } from "./harness";
 
 async function awaitingCase(t: Awaited<ReturnType<typeof setup>>["t"], vendorId: Id<"vendors">, acct = VENDOR_B_ACCOUNT, replaces?: Id<"bankAccounts">) {
   const r = await manualEdit(t, vendorId, acct.routing, acct.accountNumber, replaces);
@@ -138,7 +138,7 @@ describe("invariants", () => {
     // advance to the settle timer only
     const timers = await t.run(async (ctx) => ctx.db.query("timers").withIndex("by_case", (q) => q.eq("caseId", r.caseId)).collect());
     const settle = timers.find((x) => x.kind === "probe_settle")!;
-    const now = (await t.query(api.clock.get, {})).now;
+    const now = await clockNow(t);
     await advance(t, settle.dueAt - now + 1000);
     const probe = await t.run(async (ctx) => ctx.db.get((await ctx.db.get(r.caseId))!.probeId!));
     expect(probe!.state).toBe("settled");
@@ -188,12 +188,13 @@ describe("invariants", () => {
   it("12. probes.getPublic has no amountCents; case view has no amount", async () => {
     const { t, ids } = await setup();
     const r = await manualEdit(t, ids.vendors.cleanco as Id<"vendors">, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber);
-    const pub = await t.query(api.probes.getPublic, { caseId: r.caseId });
+    const { clerk } = await actors(t);
+    const pub = await clerk.as.query(api.probes.getPublic, { caseId: r.caseId });
     expect(pub).not.toBeNull();
     expect(Object.keys(pub!)).not.toContain("amountCents");
-    const view = await t.query(api.cases.get, { caseId: r.caseId });
+    const view = await clerk.as.query(api.cases.get, { caseId: r.caseId });
     expect(JSON.stringify(view)).not.toMatch(/"amountCents":\s*(1[1-9]|[2-9]\d)\b/);
-    const ev = await t.query(api.events.listForCase, { caseId: r.caseId });
+    const ev = await clerk.as.query(api.events.listForCase, { caseId: r.caseId });
     for (const e of ev) if (e.type.startsWith("probe_")) expect(JSON.stringify(e.payload)).not.toContain("amountCents");
   });
 

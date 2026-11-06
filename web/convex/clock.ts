@@ -1,9 +1,10 @@
 // Application clock. All case timing reads `now(ctx)`; nothing uses wall-clock delays.
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalQuery } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
 import { runTick } from "./timers";
 import { assertDemoControls } from "./controls/demoGuard";
+import { requireActor } from "./controls/actor";
 
 export const NY = "America/New_York";
 export const DEFAULT_RECEIVER_TZ = "America/Los_Angeles";
@@ -16,14 +17,20 @@ export async function now(ctx: QueryCtx | MutationCtx): Promise<number> {
   return Date.now() + row.offsetMs;
 }
 
-export const get = query({
-  args: {},
-  handler: async (ctx) => {
+export async function getRead(ctx: QueryCtx) {
     const row = await ctx.db.query("clock").first();
     const t = await now(ctx);
     return { mode: row?.mode ?? "live", offsetMs: row?.offsetMs ?? 0, now: t };
+}
+export const get = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return getRead(ctx);
   },
 });
+/** Server-side callers (the demo seed) read the clock without a session. */
+export const getInternal = internalQuery({ args: {}, handler: getRead });
 
 export async function advanceBy(ctx: MutationCtx, ms: number) {
   let row = await ctx.db.query("clock").first();

@@ -8,6 +8,7 @@ import { internal } from "./_generated/api";
 import { append } from "./events";
 import { openCase } from "./cases";
 import { hashAndEncrypt } from "./crypto";
+import { requireActor } from "./controls/actor";
 
 export function projectAccount(a: Doc<"bankAccounts">) {
   return {
@@ -178,6 +179,7 @@ export const manualEdit = action({
 export const listForVendor = query({
   args: { vendorId: v.id("vendors") },
   handler: async (ctx, { vendorId }) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("bankAccounts").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect();
     return rows.map(projectAccount).sort((a, b) => b._creationTime - a._creationTime);
   },
@@ -186,6 +188,7 @@ export const listForVendor = query({
 export const get = query({
   args: { accountId: v.id("bankAccounts") },
   handler: async (ctx, { accountId }) => {
+    await requireActor(ctx);
     const a = await ctx.db.get(accountId);
     return a ? projectAccount(a) : null;
   },

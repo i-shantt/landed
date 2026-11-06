@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, setupFull, pay, manualEdit, VENDOR_B_ACCOUNT, asUser } from "./harness";
+import { setup, setupFull, pay, manualEdit, VENDOR_B_ACCOUNT, asUser, clockNow } from "./harness";
 import { loadHistory } from "../convex/risk/model/history";
 import { buildPaymentFeatures } from "../convex/risk/model/features";
 import { assessPayment } from "../convex/risk/model/assessPayment";
@@ -40,8 +40,7 @@ describe("Landed feature mapping", () => {
     const { t, ids } = await setupFull();
     const vendorId = ids.vendors.cleanco as Id<"vendors">;
     const dest = await t.run(async (ctx) => ctx.db.get(ids.accounts.cleanco_main as Id<"bankAccounts">));
-    const clock = await t.query(api.clock.get, {});
-    const now = clock.now;
+    const now = await clockNow(t);
     const build = async (firstPaidAt: number | undefined, at: number) =>
       t.run(async (ctx) => {
         const vendorHistory = await loadHistory(ctx, { vendorId, before: at });
@@ -91,7 +90,7 @@ describe("Landed feature mapping", () => {
     const { t, ids } = await setup();
     const inv = (await t.run(async (ctx) => ctx.db.get(ids.invoices[CC] as Id<"invoices">)))!;
     const dest = (await t.run(async (ctx) => ctx.db.get(inv.remitAccountId)))!;
-    const clock = await t.query(api.clock.get, {});
+    const clock = { now: await clockNow(t) };
     const a0 = await t.run(async (ctx) => assessPayment(ctx, { invoice: inv, destination: dest, at: clock.now, rail: "ach" }));
     expect(a0.contributions.find((k) => k.feature === "just_under_threshold")!.value).toBe(0);
     const adm = await admin(t);

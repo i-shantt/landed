@@ -3,6 +3,7 @@ import { vi } from "vitest";
 import schema from "../convex/schema";
 import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
+import { now } from "../convex/clock";
 
 export const modules = import.meta.glob("../convex/**/*.ts");
 
@@ -64,14 +65,19 @@ export async function manualEdit(t: T, vendorId: Id<"vendors">, routing: string,
   return res as { accountId: Id<"bankAccounts">; caseId: Id<"cases">; reused: boolean };
 }
 
+/** Demo-clock now, read inside the database (no session needed). */
+export async function clockNow(t: T): Promise<number> {
+  return t.run(async (ctx) => now(ctx));
+}
+
 /** Advance until the case's probe is available (probe_available timer fired). */
 export async function advanceToAvailability(t: T, caseId: Id<"cases">) {
   const timers = await t.run(async (ctx) => ctx.db.query("timers").withIndex("by_case", (q) => q.eq("caseId", caseId)).collect());
   // The latest unfired availability timer (a re-issued probe adds a second one).
   const avail = timers.filter((x) => x.kind === "probe_available" && !x.fired).sort((a, b) => b.dueAt - a.dueAt)[0] ?? timers.find((x) => x.kind === "probe_available");
   if (!avail) throw new Error("no probe_available timer");
-  const now = (await t.query(api.clock.get, {})).now;
-  await advance(t, Math.max(0, avail.dueAt - now) + 1000);
+  const t0 = await clockNow(t);
+  await advance(t, Math.max(0, avail.dueAt - t0) + 1000);
 }
 
 export async function vendorStatement(t: T, caseId: Id<"cases">, statedAmountCents: number | null, outcome?: "stated" | "nothing_arrived" | "no_answer") {
@@ -92,7 +98,7 @@ export const VENDOR_C_ACCOUNT = { routing: "031000503", accountNumber: "55501234
 
 /** A signed-in operator for tests: inserts a Convex Auth user + session linked to the operator with that role. */
 export async function asUser(t: T, role: "clerk" | "approver" | "admin", opts?: { operatorId?: Id<"operators"> }) {
-  const ops = await t.query(api.controls.operators.list, {});
+  const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active));
   const operatorId = opts?.operatorId ?? ops.find((o) => o.role === role)!._id;
   const op = ops.find((o) => o._id === operatorId)!;
   const { userId, sessionId } = await t.run(async (ctx) => {

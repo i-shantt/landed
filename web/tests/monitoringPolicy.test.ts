@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, setupFull, pay, drain, actors } from "./harness";
+import { setup, setupFull, pay, drain, actors, clockNow } from "./harness";
 import { evaluateCandidateFor, computeMonitoring, computeVendorTrust } from "../convex/monitoring/evaluate";
 
 const CC = "CC-2026-0412"; // cleanco, $42,000 open, cleanco_main verified
@@ -85,7 +85,7 @@ describe("monitoring read model", () => {
 
   it("vendor trust reflects tenure, seeded history and open cases", async () => {
     const { t, ids } = await setupFull();
-    const clock = await t.query(api.clock.get, {});
+    const clock = { now: await clockNow(t) };
     const cleanco = (await t.run(async (ctx) => ctx.db.get(ids.vendors.cleanco as Id<"vendors">)))!;
     const tr = await t.run(async (ctx) => computeVendorTrust(ctx, cleanco, clock.now));
     expect(tr.score).toBeGreaterThan(30);

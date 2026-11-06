@@ -177,13 +177,13 @@ export function registerApiRoutes(http: HttpRouter) {
     const accountNumber = String(body.account_number ?? "").replace(/\D/g, "");
     if (!vendorId || routing.length !== 9 || accountNumber.length < 4 || accountNumber.length > 17) return apiError(400, "invalid_request", "vendor_id, a 9-digit routing and a 4-17 digit account_number are required");
     const res = await ctx.runAction(api.bankAccounts.manualEdit, { vendorId: vendorId as Id<"vendors">, routing, accountNumber, replacesAccountId: body.replaces_account_id ? (String(body.replaces_account_id) as Id<"bankAccounts">) : undefined });
-    const c = res.caseId ? await ctx.runQuery(api.cases.get, { caseId: res.caseId }) : null;
+    const c = res.caseId ? await ctx.runQuery(internal.cases.getInternal, { caseId: res.caseId }) : null;
     return json({ object: "bank_change", account_id: res.accountId, case_id: res.caseId, reused: res.reused, state: c?.state ?? (res.reused ? "already_verified" : null), submitted_by: `api:${key.name}`, note: "The account starts unverified. No payment can target it until the vendor's contact of record reads back the probe deposit." }, res.reused ? 200 : 201);
   }, { idempotent: true }) });
 
   // ---- cases ----
   http.route({ path: "/api/v1/cases", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
-    const rows = await ctx.runQuery(api.cases.list, {});
+    const rows = await ctx.runQuery(internal.cases.listInternal, {});
     const state = url.searchParams.get("state");
     const filtered = state ? rows.filter((c) => c.state === state) : rows;
     return json(page(filtered.map((c) => ({ ...caseOut(c), _id: c._id as string })), url));
@@ -193,14 +193,14 @@ export function registerApiRoutes(http: HttpRouter) {
     const caseId = parts[3] as Id<"cases">;
     const sub = parts[4];
     if (sub === "events") {
-      const evs = await ctx.runQuery(api.events.listForCase, { caseId }).catch(() => []);
+      const evs = await ctx.runQuery(internal.events.listForCaseInternal, { caseId }).catch(() => []);
       return json({ object: "list", data: evs.map((e) => ({ id: `evt_${e._id}`, object: "event", type: e.type, actor: e.actor, created: Math.floor(e.at / 1000), data: { object: e.payload } })), has_more: false });
     }
     if (sub === "risk") {
       const r = await ctx.runQuery(internal.risk.assess.forCaseInternal, { caseId }).catch(() => null);
       return r ? json({ object: "risk_assessment", case_id: caseId, ...r }) : apiError(404, "not_found", "No such case");
     }
-    const c = await ctx.runQuery(api.cases.get, { caseId: id as Id<"cases"> }).catch(() => null);
+    const c = await ctx.runQuery(internal.cases.getInternal, { caseId: id as Id<"cases"> }).catch(() => null);
     if (!c) return apiError(404, "not_found", "No such case");
     return json({ ...caseOut(c), vendor: c.vendor ? { id: c.vendor._id, name: c.vendor.name, domain: c.vendor.domain } : null, new_account: c.newAccount ? accountOut(c.newAccount) : null, old_account: c.oldAccount ? accountOut(c.oldAccount) : null, probe: c.probe, payment: c.payment ? { id: c.payment._id, amount_cents: c.payment.amountCents, rail: c.payment.rail, landing_state: c.payment.landingState } : null, open_invoices: c.openInvoices.map((i) => ({ id: i._id, number: i.number, amount_cents: i.amountCents, status: i.status })) });
   }) });
@@ -223,7 +223,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- payments (same boundary as the dashboard) ----
   http.route({ path: "/api/v1/payments", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
-    const rows = await ctx.runQuery(api.payments.list, {});
+    const rows = await ctx.runQuery(internal.payments.listInternal, {});
     return json(page(rows.map((p) => ({ ...paymentOut(p), _id: p._id as string })), url));
   }) });
   http.route({ path: "/api/v1/payments", method: "POST", handler: route("write:payments", async (ctx, _req, key, { body }) => {
@@ -232,7 +232,7 @@ export function registerApiRoutes(http: HttpRouter) {
     if (!invoiceId) return apiError(400, "invalid_request", "invoice_id is required");
     const res = await ctx.runMutation(api.payments.send, { invoiceId: invoiceId as Id<"invoices">, initiatedBy: `api:${key.name}`, rail });
     if (!res.ok) return json({ error: { type: "request_error", code: "payment_refused", message: "The payment boundary refused this payment", reason: res.reason } }, 409);
-    const p = await ctx.runQuery(api.payments.list, {});
+    const p = await ctx.runQuery(internal.payments.listInternal, {});
     const row = p.find((x) => x._id === res.paymentId);
     return json({ ...(row ? paymentOut(row) : { id: res.paymentId, object: "payment" }), duplicate: res.duplicate }, res.duplicate ? 200 : 201);
   }, { idempotent: true }) });
@@ -240,7 +240,7 @@ export function registerApiRoutes(http: HttpRouter) {
   http.route({ pathPrefix: "/api/v1/payments/", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const parts = url.pathname.split("/").filter(Boolean); // api v1 payments :id [risk]
     const paymentId = parts[3] as Id<"payments">;
-    const rows = await ctx.runQuery(api.payments.list, {});
+    const rows = await ctx.runQuery(internal.payments.listInternal, {});
     const row = rows.find((x) => x._id === paymentId);
     if (!row) return apiError(404, "not_found", "No such payment");
     if (parts[4] === "monitoring") {

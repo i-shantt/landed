@@ -50,7 +50,8 @@ describe("probe-amount oracle is closed", () => {
     await advanceToAvailability(t, r.caseId);
     const record = await t.run(async (ctx) => (await ctx.db.query("contacts").withIndex("by_vendor", (q) => q.eq("vendorId", cleanco)).collect()).find((c) => c.kind === "phone" && c.trustLevel === "record")!);
     await t.mutation(internal.confirmations.recordFromChannelInternal, { caseId: r.caseId, channel: "voice", contactId: record._id, statedAmountCents: await probeAmount(t, r.caseId), outcome: "stated", transcript: "[vapi] clerk read back $0.42" });
-    const list = await t.query(api.confirmations.listForCase, { caseId: r.caseId });
+    const { clerk } = await actors(t);
+    const list = await clerk.as.query(api.confirmations.listForCase, { caseId: r.caseId });
     expect(list.length).toBe(1);
     expect(list[0].transcript).toBeNull();
     expect(JSON.stringify(list)).not.toMatch(/\$0\.\d\d/);

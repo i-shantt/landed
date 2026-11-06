@@ -1,6 +1,6 @@
 # Eval results
 
-Base: `https://reliable-hawk-394.convex.site`. Generated 2026-11-05 21:29 PST.
+Base: `https://reliable-hawk-394.convex.site`. Generated 2026-11-05 21:41 PST.
 
 | scenario | family | expected | actual | passed |
 |---|---|---|---|---|
@@ -54,8 +54,8 @@ Base: `https://reliable-hawk-394.convex.site`. Generated 2026-11-05 21:29 PST.
 - Missed instruction changes by the extractor: **0**
 - Unresolved by non-response (SLA expired or vendor reports nothing arrived): **24**
 - Manual interventions per scenario: mean 0.00, max 0
-- Time to hold (wall-clock, from inject/edit to case): median 884.5 ms, max 3634 ms
-- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 16.1 h
-- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 16.0 h
+- Time to hold (wall-clock, from inject/edit to case): median 882.5 ms, max 2471 ms
+- Time to release for legit (demo clock, from case open to account_verified; includes the wait for the next ACH window, which from a Friday night is Monday 13:00 ET): median 15.9 h
+- Time to package (demo clock, from case open to package_generated; recovery_* scenarios): median 15.8 h
 
 These are results on these 40 scripted cases. They demonstrate behavior on these cases; they do not establish effectiveness against real-world fraud.
