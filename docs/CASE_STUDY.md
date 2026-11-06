@@ -46,14 +46,16 @@ Reading those numbers honestly: PaySim and Sparkov are simulated consumer-paymen
 
 Convex is hosted, not self-hosted; the Docker image covers the Next.js app only. Public read queries are still callable without a session because the evaluation runner and the public pitch page rely on them; gating reads is the recorded next step. The bank rail is a simulated ledger (a Capital One Nessie adapter exists behind the same interface). The production watchlist is synthetic; the OFAC parsers are tested but no list is loaded on a schedule. Voice calls go only to numbers on an allow-list.
 
-## By the numbers (2026-10-29)
+## By the numbers (2026-11-05)
 
 | | |
 |---|---|
-| Convex backend | ~10,400 lines TypeScript, 32 tables, 19 REST routes |
+| Convex backend | ~10,400 lines TypeScript, 32 tables, 20 REST routes |
 | Web app | ~10,900 lines (Next.js 16, React 19, Tailwind 4) |
-| Tests | 268 vitest (convex-test, in-memory), 14 Python, 40 scenario runs, 6 Playwright |
+| Tests | 292 vitest (convex-test, in-memory; 9 fast-check properties), 19 Python, 40 scenario runs, 6 Playwright |
 | ML pipeline | ~1,700 lines Python; 4.6 M public transactions, 27.8 k emails; reproducible with `make -C ml all` |
 | Deploys | Vercel + Convex, smoke-tested after each; rollback recorded in `STATUS.md` |
+
+API latency per route: `docs/BENCHMARKS.md`. Threat model: `docs/THREAT_MODEL.md`.
 
 Source files referenced here: `web/convex/payments.ts`, `guard.ts`, `controls/actor.ts`, `risk/`, `monitoring/`, `apiRoutes.ts`, `exports/`, `ml/`, `eval/`, `web/e2e/`, `.github/workflows/`.

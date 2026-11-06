@@ -69,7 +69,7 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 | `controls.policy.set` / `applyRecommended` (admin) | the policy JSON (validated) | policy can only add refusals inside `payments.send`; logged with before/after |
 | `controls.demoGuard.setDemoControls` (admin) | kill switch for clock, simulated answers, re-seed | reduces the public surface; cannot be flipped on without an admin session |
 | `screening.screen.screenVendor` / `screenAll` / `review` | screening rows; `review` needs approver/admin | screening can only block (through policy), never release |
-| `api.keys.create` (admin action), `revoke` | API keys stored as SHA-256; plaintext returned once | scoped; per-key 600/min; `touch` updates last-used at most once a minute |
+| `api.keys.create` (admin action), `revoke` | API keys stored as SHA-256; plaintext returned once | scoped; per-key 600/min token bucket; a burst the bucket cannot serialise answers 429 with `retry_after_ms` (never a 500); `touch` updates last-used at most once a minute, best effort |
 | `webhooks.dispatch.createEndpoint` / `createInboxEndpoint` / `setActive` / `remove` / `pumpNow` / `sendTest` (admin) | endpoints (secret server-only), deliveries | HTTPS only, private hosts refused (SSRF), payloads are the redacted audit payloads, HMAC-signed, bounded retries |
 | `exports.paymentFiles.build` (any active operator) | a `paymentFiles` row + a storage blob | built only from lines that pass guard **and** policy; the full file (account numbers) stays in storage and is served only to a `files:read` API key; the browser gets a masked preview; building moves no money |
 | `payments.attestLanded` (any signed-in active operator, note required) | `landingState` of a payment | landing is an after-the-fact reconciliation; it cannot create or release a payment; logged with the operator's name and id from the session |
@@ -88,6 +88,10 @@ Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `wri
 - `/eval/advance` and `/eval/advanceTo` validate numbers (a `NaN` offset used to brick the demo clock).
 - `rejectChange` restores a superseded account only when no other account is verified (it could resurrect an account another case had replaced).
 - Known-bad account numbers (rejected/disputed version, or the same hash under another vendor) skip the probe and open straight to `NEEDS_HUMAN`.
+
+## Threat model
+
+`docs/THREAT_MODEL.md` walks eight trust boundaries with STRIDE and names the test behind each control. `docs/BENCHMARKS.md` records API latency and the burst behaviour. CI runs `npm audit` (production dependencies, high and above), `pip-audit` (ML environment) and CodeQL.
 
 ## Known limits (prototype)
 

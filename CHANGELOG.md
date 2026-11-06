@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-05 — model health, properties, benchmarks, threat model
+
+- **Model health on read** (`convex/monitoring/drift.ts`, `queries.health`, `GET /api/v1/model/health`, a section on `/monitoring`): population stability index of the recent half of scored payments against the earlier half, shift of live scores and of each of the 20 features against the training reference exported by `ml/export.py` (`transaction_reference.json`: validation-window deciles and score bins), and agreement between the shipped trees and the logistic-regression baseline (Spearman, flag disagreement). Blocks stay null below ten scored payments so the page never reads noise as drift. 10 tests.
+- **Property-based tests** with fast-check (`tests/properties.test.ts`): `canPay` is a yes only on the one path; `canRelease` refuses every combination of up to four perturbations and never produces an amount-derived reason for an unaccepted statement or a non-record contact, whatever the stated amount; Nacha build→parse is the identity on amounts, traces, names, addenda, hash and totals for any 1–40 valid entries; pain.001 control sums, counts, escaping and masking hold for any batch. 9 properties, shrunk counterexamples on failure.
+- **API benchmark** (`scripts/bench-api.mjs`, `docs/BENCHMARKS.md`): p50/p95/max per route, the refused payment, and a 150-request burst on one key. The first run found that a burst the per-key token bucket could not serialise surfaced Convex's write conflict as HTTP 500; `apiRoutes.authenticate` now answers 429 with `retry_after_ms`, and the last-used stamp is best effort. 1 test.
+- **Threat model** (`docs/THREAT_MODEL.md`): assets, eight trust boundaries, STRIDE per boundary with the test that proves each control, residual risks. **CI security job**: `npm audit` on production dependencies at high+, `pip-audit` on the ML environment, and a CodeQL workflow (TypeScript, Python, Actions).
+- Tests: 273 → 292 vitest, 18 → 19 Python.
+
 ## 2026-11-05 — boosted trees in the transaction
 
 The gradient-boosted model that was reported as the ceiling now ships; the logistic regression stays as a glass-box baseline next to every score. No frozen file changed.
