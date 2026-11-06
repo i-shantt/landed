@@ -42,6 +42,7 @@
     "convex-test": "^0.0.65",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
+    "fast-check": "^4.10.2",
     "pdf-lib": "^1.17.1",
     "tailwindcss": "^4",
     "typescript": "^5",
