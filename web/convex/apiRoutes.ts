@@ -280,6 +280,21 @@ export function registerApiRoutes(http: HttpRouter) {
     });
   }) });
 
+  // ---- labels: operator dispositions joined with the feature vector at send time (retraining export) ----
+  http.route({ path: "/api/v1/model/labels", method: "GET", handler: route("read", async (ctx) => {
+    const l = await ctx.runQuery(api.monitoring.queries.labels, {});
+    return json({
+      object: "list", as_of: new Date(l.now).toISOString(), feature_names: l.featureNames, summary: l.summary,
+      data: l.rows.map((r) => ({
+        object: "payment_label", id: r.paymentId, vendor_id: r.vendorId, sent_at: new Date(r.sentAt).toISOString(), amount_cents: r.amountCents, rail: r.rail,
+        label: r.label, source: r.source, decided_at: r.decidedAt === null ? null : new Date(r.decidedAt).toISOString(),
+        model_version: r.modelVersion, probability: r.probability, flagged: r.flagged, linear_probability: r.linearProbability, features: r.features,
+        rules_flag_score: r.rulesFlagScore, rules_flagged: r.rulesFlagged,
+      })),
+      has_more: false,
+    });
+  }) });
+
   // ---- events (audit feed with cursor) ----
   http.route({ path: "/api/v1/events", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const limit = Math.min(100, Number(url.searchParams.get("limit") ?? 50) || 50);

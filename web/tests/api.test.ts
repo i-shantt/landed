@@ -73,6 +73,19 @@ describe("REST API: payment risk", () => {
     expect((await t.fetch("/api/v1/model/health")).status).toBe(401);
     expect(spec.paths["/model/health"]).toBeDefined();
     expect(spec.components.schemas.ModelHealth).toBeDefined();
+    // labels: pending until the landing resolves; an unconfirmed landing becomes a positive with the send-time features
+    const pending = await (await t.fetch("/api/v1/model/labels", { headers: H(key) })).json();
+    expect(pending.summary).toMatchObject({ labelled: 0, pending: 1 });
+    expect(pending.data).toEqual([]);
+    expect(pending.feature_names).toHaveLength(20);
+    await t.run(async (ctx) => { const p = (await ctx.db.query("payments").collect())[0]; await ctx.db.patch(p._id, { landingState: "unconfirmed" }); });
+    const labelled = await (await t.fetch("/api/v1/model/labels", { headers: H(key) })).json();
+    expect(labelled.summary).toMatchObject({ labelled: 1, positives: 1, negatives: 0, pending: 0 });
+    expect(labelled.data[0]).toMatchObject({ object: "payment_label", label: 1, source: "unconfirmed" });
+    expect(labelled.data[0].features).toHaveLength(20);
+    expect(labelled.data[0].model_version).toMatch(/^transaction_gbm-/);
+    expect((await t.fetch("/api/v1/model/labels")).status).toBe(401);
+    expect(spec.paths["/model/labels"]).toBeDefined();
     expect(spec.paths["/risk/trend"]).toBeDefined();
     expect(spec.paths["/vendors/{id}/trust"]).toBeDefined();
     expect(spec.components.schemas.PaymentRefused.properties.error.properties.reason.enum).toContain("policy_monitoring_review_required");

@@ -65,6 +65,7 @@ import type * as messages from "../messages.js";
 import type * as monitoring_beneficiaryTrust from "../monitoring/beneficiaryTrust.js";
 import type * as monitoring_drift from "../monitoring/drift.js";
 import type * as monitoring_evaluate from "../monitoring/evaluate.js";
+import type * as monitoring_labels from "../monitoring/labels.js";
 import type * as monitoring_queries from "../monitoring/queries.js";
 import type * as monitoring_signals from "../monitoring/signals.js";
 import type * as monitoring_trend from "../monitoring/trend.js";
@@ -171,6 +172,7 @@ declare const fullApi: ApiFromModules<{
   "monitoring/beneficiaryTrust": typeof monitoring_beneficiaryTrust;
   "monitoring/drift": typeof monitoring_drift;
   "monitoring/evaluate": typeof monitoring_evaluate;
+  "monitoring/labels": typeof monitoring_labels;
   "monitoring/queries": typeof monitoring_queries;
   "monitoring/signals": typeof monitoring_signals;
   "monitoring/trend": typeof monitoring_trend;
