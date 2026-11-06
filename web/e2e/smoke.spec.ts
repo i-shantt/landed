@@ -56,6 +56,21 @@ test("a case shows the deterministic risk panel", async ({ page }) => {
   await expect(page.getByRole("heading", { name: /^learned model/i })).toBeVisible();
 });
 
+test("the seeded bank-and-phone case shows the decision helper with three ordered options", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/cases");
+  // The demo case that stopped for a human carries the "Review required" badge; open it.
+  const row = page.locator("tr, li, article").filter({ hasText: /review required/i }).filter({ has: page.locator('a[href^="/cases/"]') }).first();
+  await expect(row).toBeVisible();
+  await row.locator('a[href^="/cases/"]').first().click();
+  await expect(page).toHaveURL(/\/cases\/[a-z0-9]+/);
+  await expect(page.getByRole("heading", { name: /decision helper/i })).toBeVisible();
+  const options = page.getByRole("list", { name: /^options$/i }).getByRole("listitem");
+  await expect(options).toHaveCount(3);
+  await expect(options.first()).toContainText(/recommended/i);
+  await expect(page.getByRole("heading", { name: /^case actions$/i })).toBeVisible();
+});
+
 test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");

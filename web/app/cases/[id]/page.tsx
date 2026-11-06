@@ -31,6 +31,7 @@ import {
 import { ExplainPanel } from "@/components/landed/ExplainPanel";
 import { NessiePanel } from "@/components/landed/NessiePanel";
 import { RiskPanel } from "@/components/landed/RiskPanel";
+import { DecisionHelper } from "@/components/landed/DecisionHelper";
 import { ExportButton } from "@/components/landed/ExportButton";
 import { FastForward } from "@/components/landed/FastForward";
 import { Term } from "@/components/landed/Term";
@@ -212,12 +213,23 @@ function CaseView({ caseId }: { caseId: Id<"cases"> }) {
             oldAccount={c.oldAccount}
             amountAtStakeCents={c.amountAtStakeCents}
           />
-          {!replay && (
-            <CaseActions
+          {!replay && c.state === "NEEDS_HUMAN" && (
+            <DecisionHelper
               caseId={caseId}
-              state={c.state}
-              openInvoices={c.openInvoices}
+              vendorId={c.vendor?._id ?? null}
+              reason={c.humanReason ?? null}
+              confirmations={confirmations}
+              amountAtStakeCents={c.amountAtStakeCents}
             />
+          )}
+          {!replay && (
+            <div id="case-actions">
+              <CaseActions
+                caseId={caseId}
+                state={c.state}
+                openInvoices={c.openInvoices}
+              />
+            </div>
           )}
           <RiskPanel caseId={caseId} />
           <ProbeCard probe={probe}>

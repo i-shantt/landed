@@ -198,8 +198,8 @@ export function useAttestLanded() {
 }
 
 // ---- screening ----
-export function useScreeningForVendor(vendorId: Id<"vendors">) {
-  return useAuthedQuery(api.screening.screen.forVendor, { vendorId });
+export function useScreeningForVendor(vendorId: Id<"vendors"> | null) {
+  return useAuthedQuery(api.screening.screen.forVendor, vendorId ? { vendorId } : "skip");
 }
 export function useScreeningSummary() {
   return useAuthedQuery(api.screening.screen.summary, {});
@@ -264,8 +264,8 @@ export function useModelHealth() {
 export function useModelLabels() {
   return useAuthedQuery(api.monitoring.queries.labels, {});
 }
-export function useVendorTrust(vendorId: Id<"vendors">) {
-  return useAuthedQuery(api.monitoring.queries.vendorTrust, { vendorId });
+export function useVendorTrust(vendorId: Id<"vendors"> | null) {
+  return useAuthedQuery(api.monitoring.queries.vendorTrust, vendorId ? { vendorId } : "skip");
 }
 
 export function useOnboarding() {
