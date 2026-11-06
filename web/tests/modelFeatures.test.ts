@@ -111,14 +111,15 @@ describe("Landed feature mapping", () => {
 describe("read models carry the model", () => {
   it("payment run lines that the guard would pay carry a model assessment; blocked lines do not", async () => {
     const { t, ids } = await setup();
-    const run = await t.query(api.paymentRun.preview, {});
+    const reader = await asUser(t, "clerk");
+    const run = await reader.as.query(api.paymentRun.preview, {});
     const cc = run.lines.find((l) => l.number === CC)!;
     expect(cc.decision.ok).toBe(true);
     expect(cc.risk).not.toBeNull();
     expect(cc.risk!.probability).toBeGreaterThanOrEqual(0);
     expect(cc.risk!.contributions.length).toBe(20);
     await manualEdit(t, ids.vendors.cleanco as Id<"vendors">, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber, ids.accounts.cleanco_main as Id<"bankAccounts">);
-    const after = await t.query(api.paymentRun.preview, {});
+    const after = await reader.as.query(api.paymentRun.preview, {});
     expect(after.lines.find((l) => l.number === CC)!.risk).toBeNull();
   });
 

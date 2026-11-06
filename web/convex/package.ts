@@ -8,6 +8,7 @@ import { append } from "./events";
 import { transition } from "./cases";
 import { now } from "./clock";
 import { buildFields, renderMarkdown } from "./packageTemplates";
+import { requireActor } from "./controls/actor";
 
 export const context = internalQuery({
   args: { caseId: v.id("cases") },
@@ -71,5 +72,8 @@ export const generate = internalAction({
 
 export const getForCase = query({
   args: { caseId: v.id("cases") },
-  handler: async (ctx, { caseId }) => ctx.db.query("packages").withIndex("by_case", (q) => q.eq("caseId", caseId)).first(),
+  handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
+    return ctx.db.query("packages").withIndex("by_case", (q) => q.eq("caseId", caseId)).first();
+  },
 });

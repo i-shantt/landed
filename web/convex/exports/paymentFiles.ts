@@ -85,7 +85,11 @@ export const build = action({
 export async function listRead(ctx: QueryCtx) {
   return (await ctx.db.query("paymentFiles").order("desc").take(50)).map((f) => ({ _id: f._id, format: f.format, createdAt: f.createdAt, createdBy: f.createdBy, entryCount: f.entryCount, totalCents: f.totalCents, sha256: f.sha256, previewMasked: f.previewMasked }));
 }
-export const list = query({ args: {}, handler: listRead });
+export const list = query({ args: {}, handler: async (ctx) => {
+    await requireActor(ctx);
+    return listRead(ctx);
+  },
+});
 export const listInternal = internalQuery({ args: {}, handler: listRead });
 
 /** Server-only: the full file for the API download route. */

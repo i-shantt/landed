@@ -7,6 +7,7 @@ import { canPay } from "./guard";
 import { evaluatePaymentPolicy, type PolicyDecision } from "./controls/policy";
 import { now } from "./clock";
 import { assessPayment, type ModelAssessment } from "./risk/model";
+import { requireActor } from "./controls/actor";
 
 export async function computePaymentRun(ctx: QueryCtx) {
   {
@@ -71,7 +72,10 @@ export async function computePaymentRun(ctx: QueryCtx) {
 
 export const preview = query({
   args: {},
-  handler: async (ctx) => computePaymentRun(ctx),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return computePaymentRun(ctx);
+  },
 });
 /** The same preview for the eval harness (key-authenticated, no session). */
 export const previewInternal = internalQuery({

@@ -5,6 +5,7 @@ import type { QueryCtx } from "./_generated/server";
 import type { Doc } from "./_generated/dataModel";
 import { now } from "./clock";
 import { assessCase } from "./risk/assess";
+import { requireActor } from "./controls/actor";
 
 const DAY = 86_400_000;
 
@@ -25,6 +26,7 @@ async function heldAmountFromEvents(ctx: QueryCtx, c: Doc<"cases">, invoiceByNum
 export const overview = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const t = await now(ctx);
     const [cases, invoices, payments, approvals, screenings, vendors] = await Promise.all([
       ctx.db.query("cases").collect(),
@@ -129,6 +131,7 @@ export const overview = query({
 export const attention = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const t = await now(ctx);
     const cases = (await ctx.db.query("cases").collect()).filter((c) => ["NEEDS_HUMAN", "UNCONFIRMED", "RECOVERY", "VERIFIED"].includes(c.state) || (c.state === "AWAITING_CONFIRMATION" && c.slaDeadlineAt && c.slaDeadlineAt < t));
     const items: { kind: string; title: string; detail: string; href: string; at: number; tone: "red" | "amber" | "green" }[] = [];

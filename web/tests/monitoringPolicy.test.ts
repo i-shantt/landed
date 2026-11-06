@@ -109,13 +109,14 @@ describe("policy.monitoringReviewAbove", () => {
 
   it("set to 0 (every payment flags) refuses with policy_monitoring_review_required, an approval consumes, 101 is rejected", async () => {
     const { t, ids } = await setup();
+    const reader = await asUser(t, "clerk");
     const { admin, approver, clerk } = await roles(t);
     await expect(admin.as.mutation(api.controls.policy.set, { patch: { monitoringReviewAbove: 101 } })).rejects.toThrow(/monitoringReviewAbove/);
     await admin.as.mutation(api.controls.policy.set, { patch: { monitoringReviewAbove: 0 } });
     const invoiceId = ids.invoices[NP] as Id<"invoices">;
     const refused = await pay(t, invoiceId);
     expect(refused).toEqual({ ok: false, reason: "policy_monitoring_review_required" });
-    const run = await t.query(api.paymentRun.preview, {});
+    const run = await reader.as.query(api.paymentRun.preview, {});
     const line = run.lines.find((l) => l.number === NP)!;
     expect(line.policy.ok).toBe(false);
     expect(line.policy.ok === false && line.policy.reason).toBe("policy_monitoring_review_required");

@@ -174,7 +174,7 @@ describe("requireActor: identity resolves to the operator; roles and segregation
     const built = await clerk.as.action(api.exports.paymentFiles.build, { format: "nacha" });
     expect(built.entryCount).toBeGreaterThan(0);
     await expect(t.action(api.exports.paymentFiles.build, { format: "nacha" })).rejects.toThrow(/unauthenticated/);
-    const files = await t.query(api.exports.paymentFiles.list, {});
+    const files = await clerk.as.query(api.exports.paymentFiles.list, {});
     expect(files[0].createdBy).toBe(clerk.operator.name);
     // reads need the session too: signed out is refused, any operator may read
     await expect(t.query(api.controls.policy.get, {})).rejects.toThrow(/unauthenticated/);

@@ -7,6 +7,7 @@ import { internal } from "./_generated/api";
 import { now } from "./clock";
 import { append } from "./events";
 import { recordFromEmail } from "./confirmations";
+import { requireActor } from "./controls/actor";
 
 export const messageInput = {
   from: v.string(),
@@ -93,6 +94,7 @@ export const recordReceiptClaim = internalMutation({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("messages").order("desc").take(200);
     const out = [];
     for (const m of rows) {
@@ -106,6 +108,7 @@ export const list = query({
 export const thread = query({
   args: { threadId: v.string() },
   handler: async (ctx, { threadId }) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("messages").withIndex("by_thread", (q) => q.eq("threadId", threadId)).collect();
     return rows.sort((a, b) => a.sentAt - b.sentAt);
   },
@@ -113,7 +116,10 @@ export const thread = query({
 
 export const get = query({
   args: { messageId: v.id("messages") },
-  handler: async (ctx, { messageId }) => ctx.db.get(messageId),
+  handler: async (ctx, { messageId }) => {
+    await requireActor(ctx);
+    return ctx.db.get(messageId);
+  },
 });
 /** The eval harness reads a message by id with its key, not a session. */
 export const getInternal = internalQuery({

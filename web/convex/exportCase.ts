@@ -3,10 +3,12 @@
 // printable HTML view from the same object. Additive; no core file touched.
 import { query } from "./_generated/server";
 import { v } from "convex/values";
+import { requireActor } from "./controls/actor";
 
 export const caseExport = query({
   args: { caseId: v.id("cases") },
   handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
     const c = await ctx.db.get(caseId);
     if (!c) return null;
     const vendor = await ctx.db.get(c.vendorId);

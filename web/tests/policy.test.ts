@@ -126,7 +126,7 @@ describe("payment policy (controls layer, enforced inside payments.send)", () =>
     const { t, ids } = await setup();
     const { admin } = await operators(t);
     await admin.as.mutation(api.controls.policy.set, { patch: { dualApprovalAboveCents: 1 } });
-    const run = await t.query(api.paymentRun.preview, {});
+    const run = await admin.as.query(api.paymentRun.preview, {});
     const line = run.lines.find((l) => l.invoiceId === ids.invoices["CC-2026-0412"])!;
     expect(line.decision.ok).toBe(true);
     expect(line.policy).toEqual({ ok: false, reason: "policy_approval_required" });

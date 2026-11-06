@@ -1,9 +1,11 @@
 // Read-only projections of payments for the ledger page (additive).
 import { query } from "./_generated/server";
+import { requireActor } from "./controls/actor";
 
 export const listDetailed = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("payments").order("desc").take(200);
     const out = [];
     for (const p of rows) {

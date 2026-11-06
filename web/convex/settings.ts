@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { requireActor } from "./controls/actor";
 
 export async function getSetting(ctx: QueryCtx | MutationCtx, key: string): Promise<string | null> {
   const row = await ctx.db.query("settings").withIndex("by_key", (q) => q.eq("key", key)).unique();
@@ -20,12 +21,16 @@ export async function deleteSetting(ctx: MutationCtx, key: string) {
 
 export const get = query({
   args: { key: v.string() },
-  handler: async (ctx, { key }) => getSetting(ctx, key),
+  handler: async (ctx, { key }) => {
+    await requireActor(ctx);
+    return getSetting(ctx, key);
+  },
 });
 
 export const all = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("settings").collect();
     const out: Record<string, string> = {};
     for (const r of rows) {

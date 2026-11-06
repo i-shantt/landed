@@ -5,6 +5,7 @@ import { action, internalQuery, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import { v, type ObjectType } from "convex/values";
 import { api } from "./_generated/api";
+import { requireActor } from "./controls/actor";
 
 const eventsArgs = { vendorId: v.optional(v.id("vendors")), caseId: v.optional(v.id("cases")), actor: v.optional(v.string()), type: v.optional(v.string()), from: v.optional(v.number()), to: v.optional(v.number()), limit: v.optional(v.number()) };
 
@@ -31,7 +32,11 @@ export async function eventsRead(ctx: QueryCtx, a: ObjectType<typeof eventsArgs>
     const limit = a.limit ?? 2000;
     return { total: rows.length, events: rows.slice(-limit).map((e) => ({ _id: e._id, at: e.at, actor: e.actor, type: e.type, caseId: e.caseId ?? null, vendorName: e.caseId ? caseVendor.get(e.caseId as string) ?? null : null, payload: e.payload })) };
 }
-export const events = query({ args: eventsArgs, handler: eventsRead });
+export const events = query({ args: eventsArgs, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return eventsRead(ctx, a);
+  },
+});
 export const eventsInternal = internalQuery({ args: eventsArgs, handler: eventsRead });
 
 export function canonical(v: unknown): string {
