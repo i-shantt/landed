@@ -71,6 +71,20 @@ test("the seeded bank-and-phone case shows the decision helper with three ordere
   await expect(page.getByRole("heading", { name: /^case actions$/i })).toBeVisible();
 });
 
+test("/invoices lists the CleanCo $42,000 invoice with its remit account and a boundary decision", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/invoices");
+  await expect(page.getByRole("heading", { name: /^invoices$/i })).toBeVisible();
+  const row = page.getByRole("row").filter({ hasText: "CC-2026-0412" });
+  await expect(row).toBeVisible();
+  await expect(row).toContainText("$42,000");
+  await expect(row).toContainText(/CleanCo/);
+  // The boundary column reads "payable", a policy hold, a guard refusal, or "paid …" when a previous run already paid it.
+  await expect(row).toContainText(/payable|needs approval|not verified|destination|paid /i);
+  await page.getByLabel("Search invoices").fill("no-such-invoice");
+  await expect(page.getByText(/no invoice matches/i)).toBeVisible();
+});
+
 test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");

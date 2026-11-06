@@ -20,8 +20,7 @@ import {
   SlidersHorizontal,
   Code2,
   Settings,
-  Info,
-} from "lucide-react";
+  Info, ReceiptText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -38,6 +37,7 @@ const pages = [
   { label: "Vendors", href: "/vendors", icon: Building2, meta: "Page" },
   { label: "Mailbox", href: "/mailbox", icon: Inbox, meta: "Page" },
   { label: "Payment run", href: "/payment-run", icon: Banknote, meta: "Page" },
+  { label: "Invoices", href: "/invoices", icon: ReceiptText, meta: "Page" },
   { label: "Payments", href: "/payments", icon: Receipt, meta: "Page" },
   { label: "Payment files", href: "/payment-files", icon: FileText, meta: "Page" },
   { label: "Approvals", href: "/approvals", icon: ClipboardCheck, meta: "Page" },
