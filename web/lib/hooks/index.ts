@@ -60,6 +60,10 @@ export function useVendors() {
 export function useVendor(vendorId: Id<"vendors">) {
   return useAuthedQuery(api.vendors.get, { vendorId });
 }
+/** Every invoice with remit projection, linked case and payment (the /invoices page). */
+export function useInvoices() {
+  return useAuthedQuery(api.invoices.listAll, {});
+}
 export function useMessages() {
   return useAuthedQuery(api.messages.list, {});
 }
