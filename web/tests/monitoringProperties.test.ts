@@ -8,7 +8,10 @@ import fc from "fast-check";
 import { evaluateCandidate, structuringClusters, robustZ, weeklyCounts, median, DAY, FLAG_AT, STRUCTURING_WINDOW, STRUCTURING_BAND, type MonitoringCandidate, type MonitoringSignalId } from "../convex/monitoring/signals";
 import { trustScore, bandFor, type TrustInput } from "../convex/monitoring/beneficiaryTrust";
 import { buildTrend, localDate, type TrendRow } from "../convex/monitoring/trend";
-import type { HistoryRow } from "../convex/risk/model/features";
+import { binProportions, psi, driftStatus, ranks, spearman, modelHealth, MIN_ROWS, type Reference, type HealthRow } from "../convex/monitoring/drift";
+import { dispositionFor, summariseLabels, type Disposition, type LabelEvent, type LabelSource } from "../convex/monitoring/labels";
+import reference from "../convex/risk/weights/transaction_reference.json";
+import { FEATURE_NAMES, type HistoryRow } from "../convex/risk/model/features";
 import { T0 } from "./fixtures";
 
 const RUNS = { numRuns: 300 };
@@ -267,6 +270,225 @@ describe("risk trend: per-day bins conserve the rows inside the window", () => {
         expect(buildTrend({ now, days, timezone: tz, rows: rows.slice().reverse() })).toEqual(out);
       }),
       { numRuns: 150 },
+    );
+  });
+});
+
+// ---------------------------------------------------------------- model health (drift)
+
+const REF = reference as Reference;
+const unit = fc.double({ min: 0, max: 1, noNaN: true });
+const healthRow: fc.Arbitrary<HealthRow> = fc.record({
+  sentAt: fc.integer({ min: T0 - 90 * DAY, max: T0 }),
+  probability: unit,
+  linearProbability: fc.option(unit, { nil: null }),
+  flagged: fc.boolean(),
+  linearFlagged: fc.option(fc.boolean(), { nil: null }),
+  vector: fc.option(fc.array(fc.double({ min: 0, max: 10, noNaN: true }), { minLength: FEATURE_NAMES.length, maxLength: FEATURE_NAMES.length }), { nil: null }),
+});
+const sameLength = <T,>(arb: fc.Arbitrary<T>, min: number, max: number) =>
+  fc.integer({ min, max }).chain((n) => fc.tuple(fc.array(arb, { minLength: n, maxLength: n }), fc.array(arb, { minLength: n, maxLength: n })));
+const isConstant = (xs: number[]) => xs.every((x) => x === xs[0]);
+
+describe("model health: PSI, ranks and Spearman behave like the statistics they claim to be", () => {
+  it("binProportions: edges.length + 1 bins in [0, 1] that sum to 1 (all zero when empty), independent of order", () => {
+    fc.assert(
+      fc.property(fc.array(fc.double({ min: -100, max: 100, noNaN: true }), { maxLength: 60 }), fc.uniqueArray(fc.double({ min: -100, max: 100, noNaN: true }), { maxLength: 12 }), (values, edgesRaw) => {
+        const edges = edgesRaw.slice().sort((a, b) => a - b);
+        const p = binProportions(values, edges);
+        expect(p.length).toBe(edges.length + 1);
+        for (const x of p) {
+          expect(x).toBeGreaterThanOrEqual(0);
+          expect(x).toBeLessThanOrEqual(1);
+        }
+        const sum = p.reduce((s, x) => s + x, 0);
+        if (values.length === 0) expect(sum).toBe(0);
+        else expect(sum).toBeCloseTo(1, 9);
+        expect(binProportions(values.slice().reverse(), edges)).toEqual(p);
+      }),
+      RUNS,
+    );
+  });
+
+  it("psi is non-negative, zero on identical distributions, symmetric, finite, and rejects a bin-count mismatch", () => {
+    fc.assert(
+      fc.property(sameLength(unit, 1, 12), (pair) => {
+        const [e, a] = pair;
+        const x = psi(e, a);
+        expect(Number.isFinite(x)).toBe(true);
+        expect(x).toBeGreaterThanOrEqual(0);
+        expect(psi(e, e)).toBe(0);
+        expect(Math.abs(psi(a, e) - x)).toBeLessThanOrEqual(1e-12 * Math.max(1, x));
+        expect(driftStatus(x)).toBe(x >= 0.25 ? "drifted" : x >= 0.1 ? "moderate" : "stable");
+        expect(() => psi(e, [...a, 0])).toThrow(/bins/);
+      }),
+      RUNS,
+    );
+  });
+
+  it("ranks are 1-based average ranks: they sum to n(n+1)/2, lie in [1, n], and ignore any strictly increasing transform", () => {
+    fc.assert(
+      fc.property(fc.array(fc.integer({ min: -1_000_000, max: 1_000_000 }), { maxLength: 30 }), (xs) => {
+        const r = ranks(xs);
+        const n = xs.length;
+        expect(r.length).toBe(n);
+        expect(r.reduce((s, x) => s + x, 0)).toBe((n * (n + 1)) / 2);
+        for (const x of r) {
+          expect(x).toBeGreaterThanOrEqual(n ? 1 : 0);
+          expect(x).toBeLessThanOrEqual(n);
+        }
+        expect(ranks(xs.map((x) => 2 * x + 1))).toEqual(r);
+        // equal inputs share a rank, distinct inputs are ordered
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+          if (xs[i] === xs[j]) expect(r[i]).toBe(r[j]);
+          if (xs[i] < xs[j]) expect(r[i]).toBeLessThan(r[j]);
+        }
+      }),
+      RUNS,
+    );
+  });
+
+  it("spearman: null below three pairs or on a constant side, otherwise in [-1, 1], symmetric, 1 with itself, -1 with its negation, invariant under increasing transforms", () => {
+    fc.assert(
+      fc.property(sameLength(fc.integer({ min: -50, max: 50 }), 3, 30), (pair) => {
+        const [a, b] = pair;
+        const s = spearman(a, b);
+        if (isConstant(a) || isConstant(b)) {
+          expect(s).toBeNull();
+          return;
+        }
+        expect(s).not.toBeNull();
+        expect(s!).toBeGreaterThanOrEqual(-1 - 1e-12);
+        expect(s!).toBeLessThanOrEqual(1 + 1e-12);
+        expect(spearman(b, a)!).toBeCloseTo(s!, 12);
+        expect(spearman(a, a)!).toBeCloseTo(1, 12);
+        expect(spearman(a, a.map((x) => -x))!).toBeCloseTo(-1, 12);
+        expect(spearman(a.map((x) => 3 * x + 7), b)!).toBeCloseTo(s!, 12);
+        expect(spearman(a.slice(0, 2), b.slice(0, 2))).toBeNull();
+        expect(spearman(a, b.slice(1))).toBeNull();
+      }),
+      RUNS,
+    );
+  });
+
+  it("modelHealth: agreement counts partition the paired rows, every block is null exactly below MIN_ROWS, domain shift is sorted by PSI", () => {
+    fc.assert(
+      fc.property(fc.array(healthRow, { maxLength: 30 }), (rows) => {
+        const h = modelHealth({ rows, reference: REF, version: "t", linearVersion: "l" });
+        expect(h.scored).toBe(rows.length);
+        const withFeatures = rows.filter((r) => r.vector !== null).length;
+        expect(h.withFeatures).toBe(withFeatures);
+        const paired = rows.filter((r) => r.linearProbability !== null && r.linearFlagged !== null).length;
+        const ag = h.agreement;
+        expect(ag.n).toBe(paired);
+        expect(ag.bothFlagged + ag.treesOnly + ag.linearOnly + ag.neither).toBe(paired);
+        if (paired === 0) expect(ag.disagreementRate).toBeNull();
+        else {
+          expect(ag.disagreementRate).toBeCloseTo((ag.treesOnly + ag.linearOnly) / paired, 12);
+          expect(ag.disagreementRate!).toBeGreaterThanOrEqual(0);
+          expect(ag.disagreementRate!).toBeLessThanOrEqual(1);
+        }
+        if (rows.length === 0) {
+          expect(h.flaggedRate).toBeNull();
+          expect(h.meanProbability).toBeNull();
+        } else {
+          expect(h.flaggedRate).toBeCloseTo(rows.filter((r) => r.flagged).length / rows.length, 12);
+          expect(h.meanProbability!).toBeGreaterThanOrEqual(0);
+          expect(h.meanProbability!).toBeLessThanOrEqual(1);
+        }
+        expect(h.scoreShift === null).toBe(rows.length < MIN_ROWS);
+        expect(h.scoreStability === null).toBe(Math.floor(rows.length / 2) < MIN_ROWS);
+        expect(h.domainShift === null).toBe(withFeatures < MIN_ROWS);
+        for (const block of [h.scoreShift, h.scoreStability]) {
+          if (!block) continue;
+          expect(block.psi).toBeGreaterThanOrEqual(0);
+          expect(block.status).toBe(driftStatus(block.psi));
+        }
+        if (h.domainShift) {
+          expect(h.domainShift.n).toBe(withFeatures);
+          expect(h.domainShift.features.length).toBe(REF.features.length);
+          expect(h.domainShift.drifted + h.domainShift.moderate).toBeLessThanOrEqual(REF.features.length);
+          for (let i = 0; i < h.domainShift.features.length; i++) {
+            const f = h.domainShift.features[i];
+            expect(f.status).toBe(driftStatus(f.psi));
+            if (i > 0) expect(f.psi).toBeLessThanOrEqual(h.domainShift.features[i - 1].psi);
+          }
+          expect(h.domainShift.drifted).toBe(h.domainShift.features.filter((f) => f.status === "drifted").length);
+        }
+        expect(h.minRows).toBe(MIN_ROWS);
+      }),
+      { numRuns: 150 },
+    );
+  });
+});
+
+// ---------------------------------------------------------------- labels from dispositions
+
+const SOURCES: LabelSource[] = ["landed", "attested_landed", "unconfirmed", "fraud_reported", "case_recovery"];
+const disposition: fc.Arbitrary<Disposition | null> = fc.option(
+  fc.record({ label: fc.constantFrom(0, 1) as fc.Arbitrary<0 | 1>, source: fc.constantFrom(...SOURCES), decidedAt: fc.option(fc.integer({ min: 0, max: T0 }), { nil: null }) }),
+  { nil: null },
+);
+const labelEvent: fc.Arbitrary<LabelEvent> = fc.record({
+  type: fc.constantFrom("fraud_reported", "recovery_started", "landing_unconfirmed", "payment_landed", "case_opened", "probe_sent"),
+  at: fc.integer({ min: T0 - 30 * DAY, max: T0 }),
+  payload: fc.option(fc.record({ method: fc.constantFrom("operator_attestation", "rail_confirmation") }), { nil: undefined }),
+});
+
+describe("labels: dispositions come only from outcomes and the summary partitions them", () => {
+  it("summariseLabels: labelled + pending = rows, positives + negatives = labelled, sources sum to labelled, additive over concatenation", () => {
+    fc.assert(
+      fc.property(fc.array(disposition, { maxLength: 40 }), fc.array(disposition, { maxLength: 40 }), (a, b) => {
+        const s = summariseLabels(a);
+        expect(s.labelled + s.pending).toBe(a.length);
+        expect(s.positives + s.negatives).toBe(s.labelled);
+        expect(SOURCES.reduce((n, k) => n + s.bySource[k], 0)).toBe(s.labelled);
+        const sb = summariseLabels(b);
+        const both = summariseLabels([...a, ...b]);
+        expect(both.labelled).toBe(s.labelled + sb.labelled);
+        expect(both.positives).toBe(s.positives + sb.positives);
+        expect(both.negatives).toBe(s.negatives + sb.negatives);
+        expect(both.pending).toBe(s.pending + sb.pending);
+        for (const k of SOURCES) expect(both.bySource[k]).toBe(s.bySource[k] + sb.bySource[k]);
+        expect(summariseLabels(a.slice().reverse())).toEqual(s);
+      }),
+      RUNS,
+    );
+  });
+
+  it("dispositionFor: a fraud report always wins, suspicious and benign sources never mix, null only for a pending payment with nothing against it", () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom("pending", "landed", "unconfirmed") as fc.Arbitrary<"pending" | "landed" | "unconfirmed">,
+        fc.option(fc.constantFrom("HELD", "PROBE_SENT", "VERIFIED", "NEEDS_HUMAN", "RECOVERY", "UNCONFIRMED", "CLOSED"), { nil: null }),
+        fc.array(labelEvent, { maxLength: 8 }),
+        fc.array(labelEvent, { maxLength: 8 }),
+        (landingState, caseState, caseEvents, paymentEvents) => {
+          const d = dispositionFor({ landingState, caseState, caseEvents, paymentEvents });
+          const fraud = caseEvents.some((e) => e.type === "fraud_reported");
+          const recovery = caseState === "RECOVERY" || caseState === "UNCONFIRMED";
+          if (fraud) {
+            expect(d).toEqual({ label: 1, source: "fraud_reported", decidedAt: expect.any(Number) });
+            return;
+          }
+          if (d === null) {
+            expect(landingState).toBe("pending");
+            expect(recovery).toBe(false);
+            return;
+          }
+          expect(SOURCES).toContain(d.source);
+          if (d.label === 1) expect(["fraud_reported", "case_recovery", "unconfirmed"]).toContain(d.source);
+          else expect(["landed", "attested_landed"]).toContain(d.source);
+          if (recovery) expect(d).toMatchObject({ label: 1, source: "case_recovery" });
+          else if (landingState === "unconfirmed") expect(d).toMatchObject({ label: 1, source: "unconfirmed" });
+          else expect(d.label).toBe(0);
+          if (d.decidedAt !== null) expect(Number.isFinite(d.decidedAt)).toBe(true);
+          // the label and its source do not depend on the order events are listed
+          const again = dispositionFor({ landingState, caseState, caseEvents: caseEvents.slice().reverse(), paymentEvents: paymentEvents.slice().reverse() });
+          expect(again).toMatchObject({ label: d.label, source: d.source });
+        },
+      ),
+      RUNS,
     );
   });
 });
