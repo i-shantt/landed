@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Checkpoint 2 driver: exercises the exact public queries/mutations the UI pages call,
-// in the order a demo operator would click, against the running local deployment.
+// Checkpoint 2 driver: exercises the exact queries/mutations the UI pages call, signed in as the demo
+// approver, in the order a demo operator would click, against the running local deployment.
 // Run: cd web && node scripts/checkpoint2.mjs
 import { ConvexHttpClient } from "convex/browser";
 import { anyApi } from "convex/server";
@@ -15,6 +15,19 @@ const EVAL_KEY = (PROD ? env.PROD_EVAL_KEY : env.EVAL_KEY) || "dev";
 console.log(`target: ${URL}`);
 const client = new ConvexHttpClient(URL);
 const api = anyApi;
+// Every workspace read requires an operator session (SECURITY.md → Reads). Sign in as the public demo approver
+// (convex/demoAccounts.ts) the way the browser does; the token rides on every call below.
+{
+  const { DEMO_ACCOUNTS } = await import("../convex/demoAccounts.ts");
+  const approver = DEMO_ACCOUNTS.find((a) => a.role === "approver");
+  const signed = await client.action(api.auth.signIn, { provider: "password", params: { email: approver.email, password: approver.password, flow: "signIn" } }).catch((e) => ({ error: String(e?.message ?? e) }));
+  if (!signed?.tokens?.token) {
+    console.log(`FAIL sign-in as ${approver.email}: ${signed?.error ?? "no token"} (create the demo accounts with: npx convex run authSetup:ensureDemoAccounts)`);
+    process.exit(1);
+  }
+  client.setAuth(signed.tokens.token);
+  console.log(`signed in as ${approver.email} (${approver.role})`);
+}
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let failures = 0;
 function check(cond, label, extra = "") {
