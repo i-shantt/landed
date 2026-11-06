@@ -52,7 +52,7 @@ Convex is hosted, not self-hosted; the Docker image covers the Next.js app only.
 |---|---|
 | Convex backend | ~10,400 lines TypeScript, 32 tables, 21 REST routes |
 | Web app | ~10,900 lines (Next.js 16, React 19, Tailwind 4) |
-| Tests | 329 vitest (convex-test, in-memory; 27 fast-check properties), 22 Python, 40 scenario runs, 8 Playwright |
+| Tests | 335 vitest (convex-test, in-memory; 27 fast-check properties), 22 Python, 40 scenario runs, 10 Playwright |
 | ML pipeline | ~1,700 lines Python; 4.6 M public transactions, 27.8 k emails; reproducible with `make -C ml all` |
 | Deploys | Vercel + Convex, smoke-tested after each; rollback recorded in `STATUS.md` |
 

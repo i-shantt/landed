@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-06 — saved views and bulk actions on the case queue
+
+- **URL state on `/cases`**: filter, sort, record source and the search text live in the query string (`?filter=&sort=&source=&q=`, written with `replace` and no scroll; typed search debounced), so a view can be linked, reloaded and shared. Unknown values fall back to the defaults.
+- **Saved views**: four chips (Needs attention, Ready to pay, Largest holds, Demo cases) are links to those parameter sets; a chip is active only when every other key sits at its default. "Copy link to this view" copies the current URL.
+- **Bulk actions**: a checkbox column with select-all-visible; the bar offers *Request human review* and *Reject change* only when every selected case's state accepts it, using the same state sets `cases.requestHumanReview` and `cases.rejectChange` enforce (`bulkEligibility` in `lib/case-queue.ts`). Each case goes through the existing mutation one at a time with a written reason; the status line reports successes and names each refusal. No server change: the frozen core still records one `actor: "human"` event per case.
+- Playwright: a deep link restores filter, sort and source and a saved view rewrites the URL; the bulk bar appears on the demo set with both actions correctly disabled (8 → 10 tests).
+- Tests: 329 → 335 vitest.
+
 ## 2026-11-06 — invoices page
 
 - **`/invoices`**: every invoice on file with its remit account projection (routing, last four, version, status), what the payment boundary would do with it today (payable, a policy hold, or the guard's refusal reason; the same `paymentRun.preview` the run uses), the open case holding it, and the settling payment once paid. Open / held / overdue / paid filters with totals, search by number, vendor or last four, due / amount / vendor sort, overdue highlight, CSV export. Sidebar and workspace search entries.
