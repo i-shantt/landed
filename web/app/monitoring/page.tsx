@@ -5,7 +5,8 @@ import { PageHeader, Section, StatCard, EmptyState, Loading } from "@/components
 import { Sparkline } from "@/components/landed/charts";
 import { TrustBadge, TrustComponents } from "@/components/landed/TrustBadge";
 import { ModelBadge } from "@/components/landed/ModelPanel";
-import { useMonitoring } from "@/lib/hooks";
+import { useMonitoring, useModelHealth } from "@/lib/hooks";
+import { featureLabel } from "@/components/landed/ModelPanel";
 import { usd, absTime } from "@/lib/format";
 
 const LANDING_TONE: Record<string, string> = {
@@ -13,6 +14,71 @@ const LANDING_TONE: Record<string, string> = {
   landed: "border-emerald-200 bg-emerald-50 text-emerald-900",
   unconfirmed: "border-red-200 bg-red-50 text-red-900",
 };
+
+const DRIFT_TONE: Record<string, string> = {
+  stable: "border-emerald-200 bg-emerald-50 text-emerald-900",
+  moderate: "border-amber-200 bg-amber-50 text-amber-900",
+  drifted: "border-red-200 bg-red-50 text-red-900",
+};
+
+function DriftPill({ status, psi }: { status: "stable" | "moderate" | "drifted"; psi: number }) {
+  return (
+    <span className={`inline-flex h-6 items-center gap-1 rounded border px-1.5 font-mono text-[11px] tabular-nums ${DRIFT_TONE[status]}`} title="Population stability index: < 0.10 stable, 0.10–0.25 moderate, ≥ 0.25 drifted">
+      {status} · {psi.toFixed(2)}
+    </span>
+  );
+}
+
+/** Health of the shipped model, computed on read; the same numbers as GET /api/v1/model/health. */
+function ModelHealthSection() {
+  const h = useModelHealth();
+  if (h === undefined) return null;
+  const pct = (x: number | null) => (x === null ? "—" : `${(100 * x).toFixed(1)}%`);
+  const need = (n: number) => `Needs ${h.minRows} scored payments (${n} so far)`;
+  return (
+    <Section
+      title="Model health"
+      description={`Shipped model ${h.version}, ${h.scored} payments scored in the monitoring window; baseline ${h.linearVersion} scored on the same feature vectors. Also served as GET /api/v1/model/health.`}
+    >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Flagged by the model" value={pct(h.flaggedRate)} hint={`Training reference ${pct(h.referenceFlaggedRate)} at threshold ${h.threshold}`} />
+        <StatCard
+          label="Score stability"
+          value={h.scoreStability ? <DriftPill status={h.scoreStability.status} psi={h.scoreStability.psi} /> : "—"}
+          hint={h.scoreStability ? `Recent ${h.scoreStability.recentN} vs earlier ${h.scoreStability.earlierN} payments` : `Needs ${2 * h.minRows} scored payments (${h.scored} so far)`}
+          tone={h.scoreStability?.status === "drifted" ? "red" : h.scoreStability?.status === "moderate" ? "amber" : undefined}
+        />
+        <StatCard
+          label="Agreement with the baseline"
+          value={h.agreement.spearman === null ? "—" : `ρ ${h.agreement.spearman.toFixed(2)}`}
+          hint={h.agreement.n ? `${h.agreement.treesOnly + h.agreement.linearOnly} of ${h.agreement.n} flag decisions differ (trees only ${h.agreement.treesOnly}, baseline only ${h.agreement.linearOnly})` : "No scored payments yet"}
+        />
+        <StatCard
+          label="Shift from training data"
+          value={h.scoreShift ? <DriftPill status={h.scoreShift.status} psi={h.scoreShift.psi} /> : "—"}
+          hint={h.scoreShift ? "Live scores vs the validation window; public consumer-payment data, so a shift is expected. Watch the trend." : need(h.scored)}
+        />
+      </div>
+      {h.domainShift ? (
+        <div className="mt-3">
+          <p className="text-xs text-muted-foreground">
+            Per-feature PSI against the validation-window deciles ({h.domainShift.n} payments): {h.domainShift.drifted} drifted, {h.domainShift.moderate} moderate.
+          </p>
+          <ul className="mt-1 grid gap-x-6 gap-y-1 text-xs sm:grid-cols-2">
+            {h.domainShift.features.slice(0, 8).map((f) => (
+              <li key={f.feature} className="flex items-center justify-between gap-2">
+                <span className="truncate text-slate-900">{featureLabel(f.feature)}</span>
+                <DriftPill status={f.status} psi={f.psi} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <p className="mt-3 text-xs text-muted-foreground">Per-feature drift appears once {h.minRows} payments have been scored ({h.withFeatures} so far).</p>
+      )}
+    </Section>
+  );
+}
 
 function FlagScore({ score, flagged }: { score: number; flagged: boolean }) {
   return (
@@ -137,6 +203,7 @@ export default function MonitoringPage() {
           </Section>
         </div>
       </div>
+      <ModelHealthSection />
     </div>
   );
 }

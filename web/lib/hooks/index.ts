@@ -241,6 +241,9 @@ export function useRiskForAll() {
 export function useMonitoring() {
   return useQuery(api.monitoring.queries.overview, {});
 }
+export function useModelHealth() {
+  return useQuery(api.monitoring.queries.health, {});
+}
 export function useVendorTrust(vendorId: Id<"vendors">) {
   return useQuery(api.monitoring.queries.vendorTrust, { vendorId });
 }
