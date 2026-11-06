@@ -53,6 +53,7 @@ const routes = [
   { label: "GET /events?limit=50", method: "GET", path: "/api/v1/events?limit=50" },
   { label: "GET /risk/trend?window=30d", method: "GET", path: "/api/v1/risk/trend?window=30d" },
   { label: "GET /model/health", method: "GET", path: "/api/v1/model/health" },
+  { label: "GET /model/labels", method: "GET", path: "/api/v1/model/labels" },
   { label: "GET /openapi.json", method: "GET", path: "/api/v1/openapi.json" },
   unverifiedInvoice && { label: "POST /payments (refused 409, unverified destination)", method: "POST", path: "/api/v1/payments", body: { invoice_id: unverifiedInvoice.id }, perCall: () => ({ "idempotency-key": `bench-${randomBytes(8).toString("hex")}` }), expect: 409 },
 ].filter(Boolean);
