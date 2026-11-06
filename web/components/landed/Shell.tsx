@@ -38,6 +38,7 @@ import { ModeChips } from "./ModeChips";
 import { WorkspaceSearch } from "./WorkspaceSearch";
 import { UserMenu } from "./UserMenu";
 import { usePendingApprovalCount } from "@/lib/hooks";
+import { useOperator } from "@/lib/operator";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -227,8 +228,42 @@ function PortalShell({ children }: { children: ReactNode }) {
     </div>
   );
 }
+/** The two public workspace pages (/about, /health) for a visitor without a session: no workspace chrome, no workspace reads. */
+function PublicShell({ children }: { children: ReactNode }) {
+  const path = usePathname();
+  const links = [
+    { href: "/about", label: "About" },
+    { href: "/health", label: "System health" },
+  ];
+  return (
+    <TooltipProvider delay={200}>
+      <div className="min-h-full bg-background">
+        <header className="border-b bg-card">
+          <div className="mx-auto flex h-12 max-w-5xl items-center justify-between px-4 text-sm">
+            <Link href="/" aria-label="Landed home">
+              <Brand />
+            </Link>
+            <nav aria-label="Public" className="flex items-center gap-4">
+              {links.map((l) => (
+                <Link key={l.href} href={l.href} aria-current={path === l.href ? "page" : undefined} className={cn("text-muted-foreground hover:text-foreground", path === l.href && "font-medium text-foreground")}>
+                  {l.label}
+                </Link>
+              ))}
+              <Link href="/signin" className="rounded-md border px-3 py-1 font-medium">
+                Sign in
+              </Link>
+            </nav>
+          </div>
+        </header>
+        <main id="main" className="mx-auto w-full max-w-5xl px-4 py-6">{children}</main>
+      </div>
+    </TooltipProvider>
+  );
+}
+const PUBLIC_WORKSPACE_PAGES = new Set(["/about", "/health"]);
 export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
+  const { signedIn } = useOperator();
   const [collapsed, setCollapsed] = useState(false);
   const [menu, setMenu] = useState(false);
   if (path === "/" || path === "/signin") return <>{children}</>;
@@ -236,6 +271,8 @@ export function Shell({ children }: { children: ReactNode }) {
     return <PortalShell>{children}</PortalShell>;
   if (path?.startsWith("/pitch"))
     return <TooltipProvider delay={200}>{children}</TooltipProvider>;
+  if (path && PUBLIC_WORKSPACE_PAGES.has(path) && !signedIn)
+    return <PublicShell>{children}</PublicShell>;
   return (
     <TooltipProvider delay={200}>
       <a href="#main" className="ops-skip">

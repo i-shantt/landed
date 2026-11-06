@@ -1,60 +1,77 @@
 "use client";
 // Data hooks. Pages import these (and landed components) only.
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useConvexAuth, useMutation, useQuery, type OptionalRestArgsOrSkip } from "convex/react";
+import type { FunctionReference, FunctionReturnType } from "convex/server";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
+/**
+ * useQuery for workspace reads. Every workspace query requires an operator session on the server, so the
+ * subscription is skipped until the Convex client holds the session token and again after sign-out; the
+ * component sees `undefined` (loading) instead of an auth error. Public reads (health, eval runs, demo-case
+ * ids) keep plain useQuery.
+ */
+function useAuthedQuery<Q extends FunctionReference<"query">>(query: Q, ...args: OptionalRestArgsOrSkip<Q>): FunctionReturnType<Q> | undefined {
+  const { isAuthenticated } = useConvexAuth();
+  const skip = ["skip"] as unknown as OptionalRestArgsOrSkip<Q>;
+  return useQuery(query, ...(isAuthenticated ? args : skip));
+}
+
 export function useClock() {
-  return useQuery(api.clock.get, {});
+  return useAuthedQuery(api.clock.get, {});
 }
 /** Demo-clock now; 0 while loading. */
 export function useNow(): number {
   return useClock()?.now ?? 0;
 }
 export function useSettings() {
-  return useQuery(api.settings.all, {});
+  return useAuthedQuery(api.settings.all, {});
 }
 export function useHealth() {
   return useQuery(api.health.status, {});
 }
 export function useEnvPresence() {
-  return useQuery(api.env.presence, {});
+  return useAuthedQuery(api.env.presence, {});
 }
 export function useNextTimers() {
-  return useQuery(api.timerQueries.nextByKind, {});
+  return useAuthedQuery(api.timerQueries.nextByKind, {});
 }
 export function useCases() {
-  return useQuery(api.cases.list, {});
+  return useAuthedQuery(api.cases.list, {});
 }
 export function useCase(caseId: Id<"cases">) {
-  return useQuery(api.cases.get, { caseId });
+  return useAuthedQuery(api.cases.get, { caseId });
 }
 export function useCaseEvents(caseId: Id<"cases">, enabled = true) {
-  return useQuery(api.events.listForCase, enabled ? { caseId } : "skip");
+  return useAuthedQuery(api.events.listForCase, enabled ? { caseId } : "skip");
 }
 export function useProbe(caseId: Id<"cases">) {
-  return useQuery(api.probes.getPublic, { caseId });
+  return useAuthedQuery(api.probes.getPublic, { caseId });
 }
 export function useConfirmations(caseId: Id<"cases">) {
-  return useQuery(api.confirmations.listForCase, { caseId });
+  return useAuthedQuery(api.confirmations.listForCase, { caseId });
 }
 export function usePackage(caseId: Id<"cases">) {
-  return useQuery(api.package.getForCase, { caseId });
+  return useAuthedQuery(api.package.getForCase, { caseId });
 }
 export function useVendors() {
-  return useQuery(api.vendors.list, {});
+  return useAuthedQuery(api.vendors.list, {});
 }
 export function useVendor(vendorId: Id<"vendors">) {
-  return useQuery(api.vendors.get, { vendorId });
+  return useAuthedQuery(api.vendors.get, { vendorId });
 }
 export function useMessages() {
-  return useQuery(api.messages.list, {});
+  return useAuthedQuery(api.messages.list, {});
 }
 export function useEvalRuns() {
   return useQuery(api.evalRuns.list, {});
 }
+/** Seeded demo-case ids as a JSON string (public: the pitch deck deep-links them). */
+export function useDemoCases() {
+  return useQuery(api.settings.demoCases, {});
+}
 export function useSeedStatus() {
-  return useQuery(api.seed.status, {});
+  return useAuthedQuery(api.seed.status, {});
 }
 
 // Mutations / actions (human-initiated).
@@ -91,13 +108,13 @@ export function useMailboxActions() {
 
 // ---- Phase C additions ----
 export function useJudgeScenarios() {
-  return useQuery(api.judge.scenarios, {});
+  return useAuthedQuery(api.judge.scenarios, {});
 }
 export function useJudgeRun(runId: string | null) {
-  return useQuery(api.judge.get, runId ? { runId } : "skip");
+  return useAuthedQuery(api.judge.get, runId ? { runId } : "skip");
 }
 export function useJudgeRecent() {
-  return useQuery(api.judge.recent, {});
+  return useAuthedQuery(api.judge.recent, {});
 }
 export function useJudgeActions() {
   return { run: useAction(api.judge.run) };
@@ -106,7 +123,7 @@ export function useExplain() {
   return useAction(api.explain.narrate);
 }
 export function useCaseExport(caseId: Id<"cases">, enabled = true) {
-  return useQuery(api.exportCase.caseExport, enabled ? { caseId } : "skip");
+  return useAuthedQuery(api.exportCase.caseExport, enabled ? { caseId } : "skip");
 }
 export function useNessieTransfers() {
   return useAction(api.nessieViewer.transfers);
@@ -116,7 +133,7 @@ export function useDevTools() {
 }
 
 export function useDemoNextStep(caseId: Id<"cases">) {
-  return useQuery(api.demoControls.nextStep, { caseId });
+  return useAuthedQuery(api.demoControls.nextStep, { caseId });
 }
 export function useFastForward() {
   return useMutation(api.demoControls.fastForward);
@@ -124,13 +141,13 @@ export function useFastForward() {
 
 // ---- run 3, Phase G ----
 export function usePaymentRun() {
-  return useQuery(api.paymentRun.preview, {});
+  return useAuthedQuery(api.paymentRun.preview, {});
 }
 export function useSendPayment() {
   return useMutation(api.payments.send);
 }
 export function useAuditEvents(args: { vendorId?: Id<"vendors">; caseId?: Id<"cases">; actor?: string; type?: string; from?: number; to?: number; limit?: number }) {
-  return useQuery(api.audit.events, args);
+  return useAuthedQuery(api.audit.events, args);
 }
 export function useAuditChain() {
   return useAction(api.audit.chain);
@@ -141,23 +158,23 @@ export function useEmlIngest() {
 
 // ---- controls layer: operators, approvals, policy ----
 export function useApprovals(status?: "pending" | "approved" | "rejected" | "consumed") {
-  return useQuery(api.controls.approvals.list, status ? { status } : {});
+  return useAuthedQuery(api.controls.approvals.list, status ? { status } : {});
 }
 export function usePendingApprovalCount(): number {
-  return useQuery(api.controls.approvals.list, { status: "pending" })?.length ?? 0;
+  return useAuthedQuery(api.controls.approvals.list, { status: "pending" })?.length ?? 0;
 }
 export function useApprovalActions() {
   return { request: useMutation(api.controls.approvals.request), decide: useMutation(api.controls.approvals.decide) };
 }
 export function usePolicy() {
-  return useQuery(api.controls.policy.get, {});
+  return useAuthedQuery(api.controls.policy.get, {});
 }
 export function usePolicyActions() {
   return { set: useMutation(api.controls.policy.set), applyRecommended: useMutation(api.controls.policy.applyRecommended) };
 }
 /** Active operators (the invite list: an operator signs in with the email recorded here). */
 export function useOperators() {
-  return useQuery(api.controls.operators.list, {});
+  return useAuthedQuery(api.controls.operators.list, {});
 }
 export function useOperatorAdmin() {
   return { create: useMutation(api.controls.operators.create), deactivate: useMutation(api.controls.operators.deactivate) };
@@ -165,16 +182,16 @@ export function useOperatorAdmin() {
 
 // ---- dashboard, payments ledger ----
 export function useOverview() {
-  return useQuery(api.analytics.overview, {});
+  return useAuthedQuery(api.analytics.overview, {});
 }
 export function useAttention() {
-  return useQuery(api.analytics.attention, {});
+  return useAuthedQuery(api.analytics.attention, {});
 }
 export function useRecentEvents() {
-  return useQuery(api.events.recent, {});
+  return useAuthedQuery(api.events.recent, {});
 }
 export function usePaymentsDetailed() {
-  return useQuery(api.paymentQueries.listDetailed, {});
+  return useAuthedQuery(api.paymentQueries.listDetailed, {});
 }
 export function useAttestLanded() {
   return useMutation(api.payments.attestLanded);
@@ -182,13 +199,13 @@ export function useAttestLanded() {
 
 // ---- screening ----
 export function useScreeningForVendor(vendorId: Id<"vendors">) {
-  return useQuery(api.screening.screen.forVendor, { vendorId });
+  return useAuthedQuery(api.screening.screen.forVendor, { vendorId });
 }
 export function useScreeningSummary() {
-  return useQuery(api.screening.screen.summary, {});
+  return useAuthedQuery(api.screening.screen.summary, {});
 }
 export function useScreeningPending() {
-  return useQuery(api.screening.screen.pending, {});
+  return useAuthedQuery(api.screening.screen.pending, {});
 }
 export function useScreeningActions() {
   return { screenVendor: useMutation(api.screening.screen.screenVendor), screenAll: useMutation(api.screening.screen.screenAll), review: useMutation(api.screening.screen.review) };
@@ -196,19 +213,19 @@ export function useScreeningActions() {
 
 // ---- developers: API keys, webhooks ----
 export function useApiKeys() {
-  return useQuery(api.api.keys.list, {});
+  return useAuthedQuery(api.api.keys.list, {});
 }
 export function useApiKeyActions() {
   return { create: useAction(api.api.keys.create), revoke: useMutation(api.api.keys.revoke) };
 }
 export function useWebhookEndpoints() {
-  return useQuery(api.webhooks.dispatch.endpoints, {});
+  return useAuthedQuery(api.webhooks.dispatch.endpoints, {});
 }
 export function useWebhookDeliveries() {
-  return useQuery(api.webhooks.dispatch.deliveries, { limit: 50 });
+  return useAuthedQuery(api.webhooks.dispatch.deliveries, { limit: 50 });
 }
 export function useWebhookInbox() {
-  return useQuery(api.webhooks.dispatch.inbox, {});
+  return useAuthedQuery(api.webhooks.dispatch.inbox, {});
 }
 export function useWebhookActions() {
   return {
@@ -223,7 +240,7 @@ export function useWebhookActions() {
 
 // ---- payment files ----
 export function usePaymentFiles() {
-  return useQuery(api.exports.paymentFiles.list, {});
+  return useAuthedQuery(api.exports.paymentFiles.list, {});
 }
 export function useBuildPaymentFile() {
   return useAction(api.exports.paymentFiles.build);
@@ -231,24 +248,24 @@ export function useBuildPaymentFile() {
 
 // ---- risk engine ----
 export function useRisk(caseId: Id<"cases">) {
-  return useQuery(api.risk.assess.forCase, { caseId });
+  return useAuthedQuery(api.risk.assess.forCase, { caseId });
 }
 export function useRiskForAll() {
-  return useQuery(api.risk.assess.forAll, {});
+  return useAuthedQuery(api.risk.assess.forAll, {});
 }
 
 // ---- transaction monitoring ----
 export function useMonitoring() {
-  return useQuery(api.monitoring.queries.overview, {});
+  return useAuthedQuery(api.monitoring.queries.overview, {});
 }
 export function useModelHealth() {
-  return useQuery(api.monitoring.queries.health, {});
+  return useAuthedQuery(api.monitoring.queries.health, {});
 }
 export function useModelLabels() {
-  return useQuery(api.monitoring.queries.labels, {});
+  return useAuthedQuery(api.monitoring.queries.labels, {});
 }
 export function useVendorTrust(vendorId: Id<"vendors">) {
-  return useQuery(api.monitoring.queries.vendorTrust, { vendorId });
+  return useAuthedQuery(api.monitoring.queries.vendorTrust, { vendorId });
 }
 
 export function useOnboarding() {

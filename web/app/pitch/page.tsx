@@ -4,7 +4,7 @@
 // literals in this file; when no run is posted the tiles point at Evaluations instead.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useEvalRuns, useSettings } from "@/lib/hooks";
+import { useEvalRuns, useDemoCases } from "@/lib/hooks";
 import { summarizeEvalRuns } from "@/lib/eval-metrics";
 import { PermissionsTable } from "@/components/landed/PermissionsTable";
 import { cn } from "@/lib/utils";
@@ -42,9 +42,9 @@ function parseDemo(raw: string | undefined): { caseId: string; label: string }[]
 export default function PitchPage() {
   const [i, setI] = useState(0);
   const [help, setHelp] = useState(false);
-  const settings = useSettings();
+  const demoRaw = useDemoCases();
   const ev = summarizeEvalRuns(useEvalRuns());
-  const demo = useMemo(() => parseDemo(settings?.demoCases), [settings?.demoCases]);
+  const demo = useMemo(() => parseDemo(demoRaw ?? undefined), [demoRaw]);
   const fraud = demo.find((d) => /^Fraud/i.test(d.label))?.caseId ?? null;
 
   const go = useCallback((n: number) => setI(Math.max(0, Math.min(TOTAL - 1, n))), []);

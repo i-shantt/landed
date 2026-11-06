@@ -20,6 +20,23 @@ test("the workspace is behind sign-in; marketing pages are not", async ({ page }
   await expect(page).toHaveURL(/\/about$/);
 });
 
+test("signed out, /about and /health render the public shell with no page errors; signed in they get the workspace", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  for (const path of ["/about", "/health"]) {
+    const res = await page.goto(path);
+    expect(res?.status()).toBe(200);
+    await expect(page.getByRole("navigation", { name: /^public$/i }).getByRole("link", { name: /^sign in$/i })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: /^primary$/i })).toHaveCount(0);
+  }
+  await expect(page.getByRole("heading", { name: /^system health$/i })).toBeVisible();
+  expect(errors).toEqual([]);
+  await signIn(page);
+  await page.goto("/about");
+  await expect(page.getByRole("navigation", { name: /^primary$/i })).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
 test("the demo approver signs in and sees the dashboard with their name and role", async ({ page }) => {
   await signIn(page);
   await expect(page).toHaveURL(/\/dashboard$/);

@@ -49,3 +49,9 @@ export const set = mutation({
     await setSetting(ctx, key, value);
   },
 });
+
+/** The seeded demo-case list for the public pitch deck. Only this key is readable without a session; `all` requires one. */
+export const demoCases = query({
+  args: {},
+  handler: async (ctx): Promise<string | null> => getSetting(ctx, "demoCases"),
+});
