@@ -12,6 +12,7 @@ import { ConvexError } from "convex/values";
 import { json, apiError, bearer, readJson, sha256Hex } from "./api/util";
 import { openApiSpec } from "./api/openapi";
 import { verifyAgainstAny } from "./webhooks/dispatch";
+import { isWriteConflict } from "./rateLimit";
 
 type Key = { _id: Id<"apiKeys">; name: string; prefix: string; scopes: string[] };
 type Handler = (ctx: ActionCtx, req: Request, key: Key, params: { id?: string; body: Record<string, unknown>; url: URL }) => Promise<Response>;
@@ -23,9 +24,20 @@ async function authenticate(ctx: ActionCtx, req: Request): Promise<Key | Respons
   if (!token || !token.startsWith("ld_")) return apiError(401, "unauthorized", "Provide an API key: Authorization: Bearer ld_live_sk_…");
   const key = await ctx.runQuery(internal.api.keys.byHash, { keyHash: await sha256Hex(token) });
   if (!key) return apiError(401, "unauthorized", "Unknown or revoked API key");
-  const rl = await ctx.runMutation(internal.rateLimit.take, { bucket: `api:${key._id}`, capacity: RATE_PER_MINUTE, refillPerSec: RATE_PER_MINUTE / 60 });
+  let rl: { ok: true; remaining: number } | { ok: false; retryAfterMs: number };
+  try {
+    rl = await ctx.runMutation(internal.rateLimit.take, { bucket: `api:${key._id}`, capacity: RATE_PER_MINUTE, refillPerSec: RATE_PER_MINUTE / 60 });
+  } catch (e) {
+    // A burst the bucket cannot serialise is a burst: 429 with a short retry, never a 500 (scripts/bench-api.mjs reproduces it).
+    if (!isWriteConflict(e)) throw e;
+    return apiError(429, "rate_limited", "Too many concurrent requests on this key", { retry_after_ms: 250 });
+  }
   if (!rl.ok) return apiError(429, "rate_limited", "Rate limit exceeded", { retry_after_ms: rl.retryAfterMs });
-  await ctx.runMutation(internal.api.keys.touch, { apiKeyId: key._id });
+  try {
+    await ctx.runMutation(internal.api.keys.touch, { apiKeyId: key._id }); // last-used stamp: best effort, at most one write a minute
+  } catch (e) {
+    if (!isWriteConflict(e)) throw e;
+  }
   return key;
 }
 

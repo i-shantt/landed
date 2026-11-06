@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { internal } from "../convex/_generated/api";
-import { refill } from "../convex/rateLimit";
+import { refill, isWriteConflict } from "../convex/rateLimit";
 import { setup } from "./harness";
 
 describe("rate limit token bucket", () => {
@@ -9,6 +9,13 @@ describe("rate limit token bucket", () => {
     expect(b.tokens).toBe(5);
     expect(refill({ tokens: 0, updatedAt: 0 }, 10, 1, 60000).tokens).toBe(10);
     expect(refill(null, 10, 1, 0).tokens).toBe(10);
+  });
+  it("recognises Convex's write-conflict failure and nothing else", () => {
+    expect(isWriteConflict(new Error('[Request ID: 3d7c9d58ef1921ea] Server Error: Uncaught Error: Documents read from or written to the "settings" table changed while this mutation was being run and on every subsequent retry.'))).toBe(true);
+    expect(isWriteConflict(new Error("OptimisticConcurrencyControlFailure: retry"))).toBe(true);
+    expect(isWriteConflict(new Error("Uncaught ConvexError: not_found"))).toBe(false);
+    expect(isWriteConflict("rate limit")).toBe(false);
+    expect(isWriteConflict(undefined)).toBe(false);
   });
   it("denies after capacity is spent and reports a retry delay", async () => {
     const { t } = await setup();

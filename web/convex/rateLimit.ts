@@ -32,6 +32,17 @@ export const take = internalMutation({
   },
 });
 
+/**
+ * Convex reports an optimistic-concurrency failure (one bucket document written by more concurrent requests than
+ * its retries can serialise) as a thrown Error. For a per-key bucket that is the definition of a burst, so the
+ * HTTP layer answers 429 with a short retry instead of 500. Matches the message Convex emits today and the
+ * error class name, nothing broader.
+ */
+export function isWriteConflict(e: unknown): boolean {
+  const msg = String((e as Error)?.message ?? e);
+  return /changed while this mutation was being run|OptimisticConcurrencyControlFailure/.test(msg);
+}
+
 export function clientKey(req: Request): string {
   const xff = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "";
   // The LAST entry is the hop the platform appended; the leftmost values are client-controlled.
