@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-11-05 — operator feedback loop
+
+- **Labels from dispositions** (`convex/monitoring/labels.ts`, `queries.labels`, `GET /api/v1/model/labels`): each of the last 500 payments earns a label from what happened after it, never from the model. A rail or operator-attested landing is benign; an unconfirmed landing, a case in recovery, or a `fraud_reported` event is suspicious; pending payments are counted, not listed. Each row carries the 20-feature vector the model saw at send time, both scorers' probabilities and the rules' flag, so a retraining run reads exactly what production read.
+- **`ml/feedback.py` and `make -C ml feedback`**: `web/scripts/export-labels.mjs` writes the export as JSONL under the gitignored `ml/data/feedback/`; the evaluator rescores the features with the exported trees (parity asserted against the recorded probabilities), then reports ROC/PR-AUC and the confusion matrix at the shipped threshold for the trees, the logistic baseline and the monitoring rules. Single-class exports report no AUC rather than a misleading one. Nothing retrains or writes weights.
+- Tests: 292 → 297 vitest, 19 → 22 Python.
+
 ## 2026-11-05 — model health, properties, benchmarks, threat model
 
 - **Model health on read** (`convex/monitoring/drift.ts`, `queries.health`, `GET /api/v1/model/health`, a section on `/monitoring`): population stability index of the recent half of scored payments against the earlier half, shift of live scores and of each of the 20 features against the training reference exported by `ml/export.py` (`transaction_reference.json`: validation-window deciles and score bins), and agreement between the shipped trees and the logistic-regression baseline (Spearman, flag disagreement). Blocks stay null below ten scored payments so the page never reads noise as drift. 10 tests.
