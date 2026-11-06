@@ -59,7 +59,7 @@ cp .env.example .env.local 2>/dev/null; # or set NEXT_PUBLIC_CONVEX_URL / NEXT_P
 node scripts/sync-env.mjs --generate   # ACCOUNT_HMAC_KEY, ACCOUNT_ENC_KEY, EVAL_KEY, SITE_URL and the Convex Auth JWT keys
 npm run dev               # http://localhost:3000/signin → "Create account" (the first user becomes admin) → Settings → Re-seed fixtures
 npx convex run authSetup:ensureDemoAccounts   # optional: the two public demo accounts shown on /signin
-npx vitest run            # 209 unit and invariant tests (in-memory)
+npx vitest run            # unit, invariant and property tests (in-memory Convex)
 bash ../scripts/verify.sh # full gate: tests + 40-run scenario suite + measured numbers + build
 ```
 

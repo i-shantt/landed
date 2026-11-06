@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-11-06 — property pass over monitoring and the model
+
+- **18 more fast-check properties** (`tests/monitoringProperties.test.ts`), 300 runs each, over the pure modules the first pass left to fixed examples: the monitoring flag score is exactly the capped sum of what fired and ignores history order and future rows; structuring clusters, weekly partitions and the robust z-score keep their definitions (band, window, disjointness; shift and scale invariance); the trust score is a bounded integer whose band follows its cut points and which is monotone in every input; the trend conserves the rows inside its window; PSI is non-negative and symmetric, average ranks and Spearman keep their textbook properties, `modelHealth` partitions the paired rows and goes silent exactly below `MIN_ROWS`; label summaries partition and add; dispositions keep their precedence; the 20-feature contract is well-formed for any candidate and both scorers' attributions sum to the logit for any vector, not only the parity fixtures; the tokenizer is idempotent and case-insensitive on ASCII.
+- Tests: 297 → 315 vitest (9 → 27 properties).
+
 ## 2026-11-05 — operator feedback loop
 
 - **Labels from dispositions** (`convex/monitoring/labels.ts`, `queries.labels`, `GET /api/v1/model/labels`): each of the last 500 payments earns a label from what happened after it, never from the model. A rail or operator-attested landing is benign; an unconfirmed landing, a case in recovery, or a `fraud_reported` event is suspicious; pending payments are counted, not listed. Each row carries the 20-feature vector the model saw at send time, both scorers' probabilities and the rules' flag, so a retraining run reads exactly what production read.

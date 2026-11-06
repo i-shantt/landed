@@ -1,6 +1,6 @@
 # Résumé bullets
 
-Each bullet is traceable to a file or a generated number. Numbers are as of 2026-11-05; re-check `README.md` (measured and model blocks) before reuse.
+Each bullet is traceable to a file or a generated number. Numbers are as of 2026-11-06; re-check `README.md` (measured and model blocks) before reuse.
 
 ## Software engineering
 
@@ -8,8 +8,8 @@ Each bullet is traceable to a file or a generated number. Numbers are as of 2026
 - Designed a verification engine around a probe deposit read back by the vendor's contact of record over voice (Vapi, Cartesia) or a vendor portal, with a 16-check release gate, SLA timers and landing confirmation; a static test proves the AI paths cannot import or schedule any release function. (`web/convex/cases.ts`, `channels/`, `tests/security.test.ts`)
 - Shipped email + password authentication (Convex Auth) with invite-by-email, server-resolved operator roles, maker-checker approvals and segregation of duties; removed every client-supplied identity argument from 19 functions and enforced it with a static test. (`web/convex/controls/actor.ts`, `auth.ts`)
 - Exposed a REST API v1 (scoped hashed keys, idempotency, cursor pagination, OpenAPI 3.1) and HMAC-signed webhooks with exponential retries and an SSRF guard; generated Nacha ACH and ISO 20022 `pain.001` files from guard-approved lines only. (`web/convex/apiRoutes.ts`, `webhooks/`, `exports/`)
-- Established a quality gate (297 vitest invariant and property tests in an in-memory Convex, a 40-run scenario suite, drift checks that regenerate the README's numbers from artifacts, Playwright smoke) and CI on GitHub Actions; documented 20 controls against SOC 2, NIST CSF 2.0 and COSO with the test that proves each. (`scripts/verify.sh`, `.github/workflows/`, `/compliance`)
-- Wrote property-based tests (fast-check) that prove the release gate refuses every combination of binding perturbations and never leaks an amount-derived refusal for an unaccepted statement, and that Nacha build→parse and ISO 20022 sums, escaping and masking hold for any generated batch; wrote a threat model over eight trust boundaries with the test behind each control. (`web/tests/properties.test.ts`, `docs/THREAT_MODEL.md`)
+- Established a quality gate (315 vitest invariant and property tests in an in-memory Convex, a 40-run scenario suite, drift checks that regenerate the README's numbers from artifacts, Playwright smoke) and CI on GitHub Actions; documented 20 controls against SOC 2, NIST CSF 2.0 and COSO with the test that proves each. (`scripts/verify.sh`, `.github/workflows/`, `/compliance`)
+- Wrote property-based tests (fast-check) that prove the release gate refuses every combination of binding perturbations and never leaks an amount-derived refusal for an unaccepted statement, that Nacha build→parse and ISO 20022 sums, escaping and masking hold for any generated batch, and that the monitoring signals, trust score, drift statistics (PSI, Spearman) and both model scorers keep their bounds, partitions and order invariances for any generated history or feature vector; wrote a threat model over eight trust boundaries with the test behind each control. (`web/tests/properties.test.ts`, `docs/THREAT_MODEL.md`)
 - Benchmarked the REST API per route (p50 ≈ 130 ms end to end from a laptop) and found with a 150-request burst that the per-key token bucket surfaced database write conflicts as HTTP 500; changed the API to answer 429 with a retry hint and added dependency audits and CodeQL to CI. (`web/scripts/bench-api.mjs`, `docs/BENCHMARKS.md`, `.github/workflows/`)
 - Hardened after an external-style review: closed a probe-amount oracle, bound voice webhooks to calls the system placed, encrypted account numbers at rest (HMAC + AES-256-GCM) and kept them out of the browser; append-only audit log with a hash chain. (`SECURITY.md`, `CHANGELOG.md`)
 
@@ -26,4 +26,4 @@ Each bullet is traceable to a file or a generated number. Numbers are as of 2026
 
 ## One-line project summary
 
-Landed — payment controls for AP that make unverified bank changes unpayable at the database boundary; verification by probe deposit and contact of record, deterministic + learned risk (boosted trees scored in TypeScript), maker-checker controls, REST API, Nacha/ISO 20022 files; 297 tests, 40/40 scenarios, live on Vercel + Convex.
+Landed — payment controls for AP that make unverified bank changes unpayable at the database boundary; verification by probe deposit and contact of record, deterministic + learned risk (boosted trees scored in TypeScript), maker-checker controls, REST API, Nacha/ISO 20022 files; 315 tests, 40/40 scenarios, live on Vercel + Convex.
