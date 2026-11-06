@@ -49,4 +49,35 @@ describe("security surface", () => {
     const hits = Object.entries(src).filter(([, s]) => /status:\s*"(disputed|rejected|superseded|verified|unverified|probing)"/.test(s) && /ctx\.db\.patch/.test(s)).map(([f]) => f).sort();
     expect(hits).toEqual(["bankAccounts.ts", "cases.ts", "probes.ts"]);
   });
+  it("every public query requires a session (requireActor) unless it is on the documented allowlist", () => {
+    // SECURITY.md → Reads. The allowlist is the whole public read surface without a session.
+    const allow = new Set([
+      "health.ts:status", // /health page and GET /health
+      "evalRuns.ts:list", // /about and /pitch show the posted eval run
+      "settings.ts:demoCases", // /pitch deep-links the seeded demo cases (ids and labels only)
+      "controls/operators.ts:me", // resolves to null when signed out; the OperatorProvider needs it
+      "channels/portal.ts:openRequestsForSession", // vendor portal, gated by its own session token
+      "channels/portal.ts:tokenInfo", // vendor portal, gated by the confirmation token
+    ]);
+    const ungated: string[] = [];
+    const seen: string[] = [];
+    for (const [f, s] of Object.entries(src)) {
+      for (const m of s.matchAll(/(?:^|\n)export const (\w+) = query\(/g)) {
+        const start = m.index! + m[0].length - 1;
+        let depth = 0;
+        let i = start;
+        for (; i < s.length; i++) {
+          const ch = s[i];
+          if (ch === "(" || ch === "[" || ch === "{") depth++;
+          else if (ch === ")" || ch === "]" || ch === "}") { depth--; if (depth === 0) break; }
+        }
+        const key = `${f}:${m[1]}`;
+        seen.push(key);
+        if (!s.slice(start, i).includes("requireActor(") && !allow.has(key)) ungated.push(key);
+      }
+    }
+    expect(seen.length).toBeGreaterThan(60);
+    expect(ungated).toEqual([]);
+    for (const k of allow) expect(seen, `allowlisted ${k} exists`).toContain(k);
+  });
 });

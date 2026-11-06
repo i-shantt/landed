@@ -20,6 +20,17 @@ describe("public reads: the allowlist exposes nothing beyond what the public pag
   });
 });
 
+describe("the public allowlist keeps working signed out", () => {
+  it("health.status, evalRuns.list and operators.me (null) answer without a session; a workspace read next to them does not", async () => {
+    const { t } = await setup();
+    expect((await t.query(api.health.status, {})).cases.total).toBeGreaterThanOrEqual(0);
+    expect(Array.isArray(await t.query(api.evalRuns.list, {}))).toBe(true);
+    expect(await t.query(api.controls.operators.me, {})).toBeNull();
+    await expect(t.query(api.controls.operators.list, {})).rejects.toThrow(/unauthenticated/);
+    await expect(t.query(api.settings.all, {})).rejects.toThrow(/unauthenticated/);
+  });
+});
+
 describe("core reads require a session (SECURITY.md → Reads)", () => {
   it("the fourteen core queries refuse a signed-out caller with `unauthenticated` and serve a clerk", async () => {
     const { t, ids } = await setup();
