@@ -171,9 +171,9 @@ def render_plots() -> None:
             pr, rc, _ = precision_recall_curve(y, p); fpr, tpr, _ = roc_curve(y, p)
             lab = f"{kind.upper()} (PR-AUC {average_precision_score(y, p):.3f})"
             curves_pr[lab] = (rc, pr); curves_roc[f"{kind.upper()} (AUC {roc_auc_score(y, p):.3f})"] = (fpr, tpr)
-            if kind == "lr":
+            if kind == "gbm":  # the shipped model
                 rel[name] = reliability(y, p)
-                plot_hist(p[y == 1], p[y == 0], metrics["transaction"][name]["lr"]["threshold"], PLOTS / f"hist_{name}.svg", f"Score distribution, {name} test")
+                plot_hist(p[y == 1], p[y == 0], metrics["transaction"][name]["gbm"]["threshold"], PLOTS / f"hist_{name}.svg", f"Score distribution (trees), {name} test")
         plot_curves(curves_pr, PLOTS / f"pr_{name}.svg", f"Precision-recall, {name} test", "recall", "precision")
         plot_curves(curves_roc, PLOTS / f"roc_{name}.svg", f"ROC, {name} test", "false positive rate", "true positive rate", diag=True)
     if rel:

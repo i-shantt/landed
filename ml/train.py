@@ -2,7 +2,7 @@
 """Train the transaction models (per source and combined) and the email text model.
 
 Writes artifacts/models/*.joblib and artifacts/metrics.json incrementally (restartable).
-Logistic regression is the shipped model; HistGradientBoosting is the reported ceiling.
+HistGradientBoosting is the shipped model (exported as trees by export.py); logistic regression is the glass-box baseline.
 """
 from __future__ import annotations
 

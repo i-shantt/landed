@@ -20,12 +20,14 @@ def f3(x):
 def main() -> int:
     m = json.loads((ART / "metrics.json").read_text())
     manifest = json.loads((ML / "data" / "MANIFEST.json").read_text())
+    gb = json.loads((ART / "transaction_gbm.json").read_text())
     tx = json.loads((ART / "transaction_lr.json").read_text())
     txt = json.loads((ART / "email_tfidf_lr.json").read_text())
     L = []
     L.append("# Model card: Landed risk models\n")
-    L.append("Two logistic-regression models trained offline on public datasets and scored in TypeScript inside Convex (`web/convex/risk/model/`). They raise the attention score shown to operators and can push a payment to review through policy. **They have no write path and cannot release money**; the payment boundary (`guard.ts`, `payments.send`) does not import them (enforced by `web/tests/modelCannotRelease.test.ts`).\n")
-    L.append(f"- Transaction model version `{tx['version']}`, {len(tx['features'])} features, threshold {tx['threshold']}, Platt calibration a={tx['calibration']['a']}, b={tx['calibration']['b']}.")
+    L.append("A gradient-boosted tree model over payment behaviour and a TF-IDF logistic regression over request emails, trained offline on public datasets and scored in TypeScript inside Convex (`web/convex/risk/model/`). They raise the attention score shown to operators and can push a payment to review through policy. **They have no write path and cannot release money**; the payment boundary (`guard.ts`, `payments.send`) does not import them (enforced by `web/tests/modelCannotRelease.test.ts`).\n")
+    L.append(f"- Transaction model (shipped) version `{gb['version']}`: {gb['n_trees']} HistGradientBoosting trees of depth ≤ {gb['max_depth']} over {len(gb['features'])} features, exported as node arrays ({(ART / 'transaction_gbm.json').stat().st_size / 1024:.0f} KB) and scored by a tree walker with path attributions; threshold {gb['threshold']}, Platt calibration a={gb['calibration']['a']}, b={gb['calibration']['b']}.")
+    L.append(f"- Transaction model (glass-box baseline) version `{tx['version']}`: logistic regression on the same {len(tx['features'])} features, threshold {tx['threshold']}, Platt a={tx['calibration']['a']}, b={tx['calibration']['b']}; its probability is reported next to every tree score.")
     L.append(f"- Email text model version `{txt['version']}`, tokenizer `{txt['tokenizer']}`, {len(txt['vocab'])} uni/bigrams, threshold {txt['threshold']}.")
     L.append(f"- Seed {m['seed']}; operating threshold chosen on the validation window by minimising expected cost with C_FN/C_FP = {m['cost_ratio']:.0f} (transactions) and 5 (emails).\n")
 
@@ -46,9 +48,10 @@ def main() -> int:
             if kind not in e:
                 continue
             t = e[kind]["test"]; at = t.get("at_threshold", {})
-            L.append(f"| {src} | {'LR (shipped)' if kind == 'lr' and src == 'combined' else kind.upper()} | {f3(t['roc_auc'])} | {f3(t['pr_auc'])} | {f3(t['recall_at_fpr_1pct'])} | {f3(t['recall_at_fpr_5pct'])} | {f3(t['precision_at_100'])} | {t['brier']:.4f} | {pct(at.get('review_rate'))} | {f3(at.get('recall'))} |")
+            label = {"gbm": "GBM (shipped)", "lr": "LR (baseline)"}[kind] if src == "combined" else kind.upper()
+            L.append(f"| {src} | {label} | {f3(t['roc_auc'])} | {f3(t['pr_auc'])} | {f3(t['recall_at_fpr_1pct'])} | {f3(t['recall_at_fpr_5pct'])} | {f3(t['precision_at_100'])} | {t['brier']:.4f} | {pct(at.get('review_rate'))} | {f3(at.get('recall'))} |")
     L.append("")
-    L.append("HistGradientBoosting is reported as the ceiling a tree model reaches on the same features; only the logistic regression is exported because its score is a dot product that TypeScript reproduces exactly and that yields per-feature contributions.\n")
+    L.append("The tree model ships because it more than quadruples PR-AUC on the held-out windows at the same features. Its scorer is data, not code: node arrays walked by `web/convex/risk/model/trees.ts`, with thresholds kept at full double precision so every comparison is the one scikit-learn made (`ml/trees.py`). Per-feature contributions are path attributions (Saabas): the change in node value at each split is credited to the split feature, and the contributions sum exactly to the logit minus the bias. The logistic regression stays exported as a glass-box baseline. Parity between Python and TypeScript is asserted on 50 fixtures per model.\n")
 
     L.append("## Email text model: held-out results\n")
     t = m["text"]
@@ -63,11 +66,13 @@ def main() -> int:
         s = m["ap_scenarios"]
         L.append("## Accounts-payable scenarios (synthetic, reported separately)\n")
         L.append(s["note"] + "\n")
-        L.append("| scenario | n | recall @ shipped threshold | mean probability |")
-        L.append("|---|---:|---:|---:|")
+        lin = s.get("linear_baseline", {}).get("per_scenario", {})
+        L.append("| scenario | n | recall @ shipped threshold | mean probability | linear baseline recall |")
+        L.append("|---|---:|---:|---:|---:|")
         for k, v in s["per_scenario"].items():
-            L.append(f"| `{k}` | {v['n']} | {f3(v['recall'])} | {f3(v['mean_probability'])} |")
-        L.append(f"\nBenign false-positive rate at the shipped thresholds: transactions {pct(s['benign_fpr_transactions'])}, emails {pct(s['benign_fpr_emails'])} ({s['payments']:,} payments across {s['vendors']} vendors over {s['months']} months, {s['emails']} emails).\n")
+            L.append(f"| `{k}` | {v['n']} | {f3(v['recall'])} | {f3(v['mean_probability'])} | {f3(lin[k]['recall']) if k in lin else 'text model'} |")
+        lin_fpr = s.get("linear_baseline", {}).get("benign_fpr_transactions")
+        L.append(f"\nBenign false-positive rate at the shipped thresholds: transactions {pct(s['benign_fpr_transactions'])}" + (f" (linear baseline {pct(lin_fpr)})" if lin_fpr is not None else "") + f", emails {pct(s['benign_fpr_emails'])} ({s['payments']:,} payments across {s['vendors']} vendors over {s['months']} months, {s['emails']} emails). Duplicate invoices and sub-threshold structuring are owned by the deterministic monitoring rules; the model is not expected to catch them.\n")
 
     L.append("## Caveats\n")
     L.extend([
