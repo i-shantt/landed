@@ -11,6 +11,7 @@ import { scoreTrees, type TreeWeights } from "./trees";
 import { buildPaymentFeatures } from "./features";
 import { loadHistory } from "./history";
 import { getPolicy } from "../../controls/policy";
+import { requireActor } from "../../controls/actor";
 
 /** Glass-box baseline: logistic regression on the same features, reported next to the shipped score. */
 export const TRANSACTION_WEIGHTS = transactionWeights as LinearWeights;
@@ -80,5 +81,9 @@ export async function forPaymentRead(ctx: QueryCtx, { paymentId }: { paymentId: 
     if (!p) return null;
     return assessSentPayment(ctx, p);
 }
-export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });
+export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return forPaymentRead(ctx, a);
+  },
+});
 export const forPaymentInternal = internalQuery({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });

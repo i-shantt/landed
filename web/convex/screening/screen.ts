@@ -140,6 +140,7 @@ export const review = mutation({
 export const forVendor = query({
   args: { vendorId: v.id("vendors") },
   handler: async (ctx, { vendorId }) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("screenings").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect();
     rows.sort((a, b) => b.screenedAt - a.screenedAt || (b._creationTime - a._creationTime));
     const history = [];
@@ -154,6 +155,7 @@ export const forVendor = query({
 export const summary = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const vendors = await ctx.db.query("vendors").collect();
     const all = await ctx.db.query("screenings").collect();
     const byVendor = new Map<Id<"vendors">, Doc<"screenings">>();
@@ -181,6 +183,7 @@ export const summary = query({
 export const pending = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("screenings").withIndex("by_status", (q) => q.eq("status", "potential_match")).collect();
     rows.sort((a, b) => a.screenedAt - b.screenedAt);
     const out = [];

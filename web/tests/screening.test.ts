@@ -187,6 +187,7 @@ describe("screening: Convex functions", () => {
 
   it("a near-miss vendor gets potential_match with the matching entry and program recorded", async () => {
     const { t } = await setup();
+    const reader = await asUser(t, "clerk");
     const { vendorId } = await insertNearMissVendor(t);
     const r = await t.mutation(api.screening.screen.screenVendor, { vendorId });
     expect(r.status).toBe("potential_match");
@@ -194,22 +195,23 @@ describe("screening: Convex functions", () => {
     expect(row!.matches[0]).toMatchObject({ entry: "Harborline Freight Forwarders", program: "DEMO-SDGT", method: "jaro_winkler" });
     expect(row!.matches[0].score).toBeGreaterThanOrEqual(POTENTIAL_MATCH_THRESHOLD);
     expect(row!.reviewedBy).toBeUndefined();
-    const fv = await t.query(api.screening.screen.forVendor, { vendorId });
+    const fv = await reader.as.query(api.screening.screen.forVendor, { vendorId });
     expect(fv.latest!._id).toBe(r.screeningId);
     expect(fv.history.length).toBe(1);
-    const pending = await t.query(api.screening.screen.pending, {});
+    const pending = await reader.as.query(api.screening.screen.pending, {});
     expect(pending.length).toBe(1);
     expect(pending[0]).toMatchObject({ vendorName: NEAR_MISS_NAME, status: "potential_match" });
   });
 
   it("screenAll screens every vendor and reports counts; summary reflects them", async () => {
     const { t } = await setup();
+    const reader = await asUser(t, "clerk");
     await insertNearMissVendor(t);
-    const before = await t.query(api.screening.screen.summary, {});
+    const before = await reader.as.query(api.screening.screen.summary, {});
     expect(before).toMatchObject({ screenedVendors: 0, unscreened: 3, potentialMatches: 0 });
     const res = await t.mutation(api.screening.screen.screenAll, {});
     expect(res).toMatchObject({ screened: 3, potentialMatches: 1, listVersion: DEMO_LIST_VERSION });
-    const after = await t.query(api.screening.screen.summary, {});
+    const after = await reader.as.query(api.screening.screen.summary, {});
     expect(after).toMatchObject({ screenedVendors: 3, unscreened: 0, potentialMatches: 1, confirmed: 0, falsePositives: 0, listVersion: DEMO_LIST_VERSION });
     // second run: nothing new is inserted
     await t.mutation(api.screening.screen.screenAll, {});
@@ -239,8 +241,8 @@ describe("screening: Convex functions", () => {
     // the resolved row is not re-opened by re-screening against the same list
     const again = await t.mutation(api.screening.screen.screenVendor, { vendorId });
     expect(again).toEqual({ screeningId, status: "false_positive", inserted: false });
-    expect((await t.query(api.screening.screen.pending, {})).length).toBe(0);
-    expect((await t.query(api.screening.screen.forVendor, { vendorId })).latest).toMatchObject({ reviewedByName: approver.operator.name });
+    expect((await clerk.as.query(api.screening.screen.pending, {})).length).toBe(0);
+    expect((await clerk.as.query(api.screening.screen.forVendor, { vendorId })).latest).toMatchObject({ reviewedByName: approver.operator.name });
   });
 
   it("review: an admin can confirm a match; a clear screening cannot be reviewed", async () => {
@@ -249,7 +251,7 @@ describe("screening: Convex functions", () => {
     const { vendorId } = await insertNearMissVendor(t);
     const { screeningId } = await t.mutation(api.screening.screen.screenVendor, { vendorId });
     expect(await admin.as.mutation(api.screening.screen.review, { screeningId, decision: "confirmed_match" })).toBe("confirmed_match");
-    expect((await t.query(api.screening.screen.summary, {})).confirmed).toBe(1);
+    expect((await admin.as.query(api.screening.screen.summary, {})).confirmed).toBe(1);
     const clear = await t.mutation(api.screening.screen.screenVendor, { vendorId: ids.vendors.cleanco as Id<"vendors"> });
     await expect(admin.as.mutation(api.screening.screen.review, { screeningId: clear.screeningId, decision: "false_positive", note: "nothing to see" })).rejects.toThrow(/clear/);
   });
@@ -289,11 +291,11 @@ describe("screening: Convex functions", () => {
     const { t } = await setup();
     const ob = await asUser(t, "clerk");
     const clearId = await ob.as.mutation(api.onboarding.createVendor, { name: "Juniper Creative Studio", domain: "junipercreative.example" });
-    expect((await t.query(api.screening.screen.forVendor, { vendorId: clearId })).latest).toMatchObject({ status: "clear", subject: "Juniper Creative Studio" });
+    expect((await ob.as.query(api.screening.screen.forVendor, { vendorId: clearId })).latest).toMatchObject({ status: "clear", subject: "Juniper Creative Studio" });
     const hitId = await ob.as.mutation(api.onboarding.createVendor, { name: "Granite Ridge Packaging", domain: "graniteridge.example" });
-    const fv = await t.query(api.screening.screen.forVendor, { vendorId: hitId });
+    const fv = await ob.as.query(api.screening.screen.forVendor, { vendorId: hitId });
     expect(fv.latest).toMatchObject({ status: "potential_match" });
     expect(fv.latest!.matches[0].entry).toBe("Granite Ridge Packaging Intl");
-    expect((await t.query(api.screening.screen.pending, {})).map((p) => p.vendorName)).toEqual(["Granite Ridge Packaging"]);
+    expect((await ob.as.query(api.screening.screen.pending, {})).map((p) => p.vendorName)).toEqual(["Granite Ridge Packaging"]);
   });
 });

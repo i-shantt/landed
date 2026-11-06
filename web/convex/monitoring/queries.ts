@@ -11,6 +11,7 @@ import { dispositionFor, summariseLabels } from "./labels";
 import { FEATURE_NAMES } from "../risk/model/features";
 import reference from "../risk/weights/transaction_reference.json";
 import { TRANSACTION_TREES, TRANSACTION_WEIGHTS } from "../risk/model/assessPayment";
+import { requireActor } from "../controls/actor";
 
 const REFERENCE = reference as Reference;
 
@@ -19,6 +20,7 @@ const DAY = 86_400_000;
 export const overview = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const t = await now(ctx);
     const policy = await getPolicy(ctx);
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
@@ -57,7 +59,11 @@ export async function trendRead(ctx: QueryCtx, { window }: { window: "7d" | "30d
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
     return { window, now: t, data: await computeTrend(ctx, { now: t, days: window === "7d" ? 7 : 30, rows }) };
 }
-export const trend = query({ args: trendArgs, handler: trendRead });
+export const trend = query({ args: trendArgs, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return trendRead(ctx, a);
+  },
+});
 export const trendInternal = internalQuery({ args: trendArgs, handler: trendRead });
 
 export async function vendorTrustRead(ctx: QueryCtx, { vendorId }: { vendorId: Id<"vendors"> }) {
@@ -65,7 +71,11 @@ export async function vendorTrustRead(ctx: QueryCtx, { vendorId }: { vendorId: I
     if (!vnd) return null;
     return computeVendorTrust(ctx, vnd, await now(ctx));
 }
-export const vendorTrust = query({ args: { vendorId: v.id("vendors") }, handler: vendorTrustRead });
+export const vendorTrust = query({ args: { vendorId: v.id("vendors") }, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return vendorTrustRead(ctx, a);
+  },
+});
 export const vendorTrustInternal = internalQuery({ args: { vendorId: v.id("vendors") }, handler: vendorTrustRead });
 
 /** Health of the shipped model on read: score stability, drift against the training reference, agreement with the baseline. */
@@ -86,7 +96,11 @@ export async function healthRead(ctx: QueryCtx) {
       windowLimit: 500,
     };
 }
-export const health = query({ args: {}, handler: healthRead });
+export const health = query({ args: {}, handler: async (ctx) => {
+    await requireActor(ctx);
+    return healthRead(ctx);
+  },
+});
 export const healthInternal = internalQuery({ args: {}, handler: healthRead });
 
 /**
@@ -124,7 +138,11 @@ export async function labelsRead(ctx: QueryCtx) {
     }
     return { now: t, featureNames: [...FEATURE_NAMES], summary: summariseLabels(dispositions), rows: out };
 }
-export const labels = query({ args: {}, handler: labelsRead });
+export const labels = query({ args: {}, handler: async (ctx) => {
+    await requireActor(ctx);
+    return labelsRead(ctx);
+  },
+});
 export const labelsInternal = internalQuery({ args: {}, handler: labelsRead });
 
 export async function forPaymentRead(ctx: QueryCtx, { paymentId }: { paymentId: Id<"payments"> }) {
@@ -132,5 +150,9 @@ export async function forPaymentRead(ctx: QueryCtx, { paymentId }: { paymentId: 
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
     return rows.find((r) => r.paymentId === paymentId) ?? null;
 }
-export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });
+export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return forPaymentRead(ctx, a);
+  },
+});
 export const forPaymentInternal = internalQuery({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });

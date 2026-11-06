@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { scoreRisk, isValidAbaRouting, tierFor, type RiskInput } from "../convex/risk/score";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, manualEdit, VENDOR_B_ACCOUNT } from "./harness";
+import { setup, manualEdit, VENDOR_B_ACCOUNT, asUser } from "./harness";
 
 const T = 1_800_000_000_000;
 
@@ -97,22 +97,23 @@ describe("risk scoring (pure)", () => {
 describe("risk assessment (engine)", () => {
   it("a manual edit is scored from stored facts and a reused account across vendors is flagged", async () => {
     const { t, ids } = await setup();
+    const reader = await asUser(t, "clerk");
     const cleanco = ids.vendors.cleanco as Id<"vendors">;
     const northpeak = ids.vendors.northpeak as Id<"vendors">;
     const r1 = await manualEdit(t, cleanco, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber, ids.accounts.cleanco_main as Id<"bankAccounts">);
-    const a1 = (await t.query(api.risk.assess.forCase, { caseId: r1.caseId }))!;
+    const a1 = (await reader.as.query(api.risk.assess.forCase, { caseId: r1.caseId }))!;
     expect(a1.signals.map((s) => s.id)).toContain("manual_edit_no_document");
     expect(a1.signals.map((s) => s.id)).not.toContain("account_reused_across_vendors");
 
     const r2 = await manualEdit(t, northpeak, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber, ids.accounts.northpeak_main as Id<"bankAccounts">);
-    const a2 = (await t.query(api.risk.assess.forCase, { caseId: r2.caseId }))!;
+    const a2 = (await reader.as.query(api.risk.assess.forCase, { caseId: r2.caseId }))!;
     expect(a2.signals.map((s) => s.id)).toContain("account_reused_across_vendors");
     expect(a2.score).toBeGreaterThan(a1.score);
     // and the first case now sees the reuse too (derived on read)
-    const a1b = (await t.query(api.risk.assess.forCase, { caseId: r1.caseId }))!;
+    const a1b = (await reader.as.query(api.risk.assess.forCase, { caseId: r1.caseId }))!;
     expect(a1b.signals.map((s) => s.id)).toContain("account_reused_across_vendors");
 
-    const all = await t.query(api.risk.assess.forAll, {});
+    const all = await reader.as.query(api.risk.assess.forAll, {});
     expect(all[r2.caseId].tier).toBe(a2.tier);
   });
 });

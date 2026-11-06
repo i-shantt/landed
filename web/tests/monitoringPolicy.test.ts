@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
-import { setup, setupFull, pay, drain, actors, clockNow } from "./harness";
+import { setup, setupFull, pay, drain, actors, clockNow, asUser } from "./harness";
 import { evaluateCandidateFor, computeMonitoring, computeVendorTrust } from "../convex/monitoring/evaluate";
 
 const CC = "CC-2026-0412"; // cleanco, $42,000 open, cleanco_main verified
@@ -13,11 +13,12 @@ const roles = actors; // signed-in admin / approver / clerk
 describe("monitoring read model", () => {
   it("a sent payment is scored with the history before it and shows up in the overview; every monitoring query writes nothing", async () => {
     const { t, ids } = await setupFull();
+    const reader = await asUser(t, "clerk");
     const before = await t.run(async (ctx) => (await ctx.db.query("payments").collect()).length);
     expect(before).toBe(0);
     const res = await pay(t, ids.invoices[CC] as Id<"invoices">);
     expect(res.ok).toBe(true);
-    const o = await t.query(api.monitoring.queries.overview, {});
+    const o = await reader.as.query(api.monitoring.queries.overview, {});
     expect(o.stats.scored).toBe(1);
     const row = o.recent[0];
     expect(row.invoiceNumber).toBe(CC);
@@ -27,10 +28,10 @@ describe("monitoring read model", () => {
     expect(o.trend30.length).toBe(30);
     expect(o.trend30.reduce((s, d) => s + d.payments, 0)).toBe(1);
     expect(o.trust.length).toBeGreaterThan(0);
-    const tr = await t.query(api.monitoring.queries.trend, { window: "7d" });
+    const tr = await reader.as.query(api.monitoring.queries.trend, { window: "7d" });
     expect(tr.data.length).toBe(7);
     expect(tr.data[6].payments).toBe(1);
-    const fp = await t.query(api.monitoring.queries.forPayment, { paymentId: (res as { paymentId: Id<"payments"> }).paymentId });
+    const fp = await reader.as.query(api.monitoring.queries.forPayment, { paymentId: (res as { paymentId: Id<"payments"> }).paymentId });
     expect(fp!.monitoring.flagScore).toBe(row.monitoring.flagScore);
     // no monitoring query wrote anything: payments, approvals and events are exactly what the one payment produced
     const counts = await t.run(async (ctx) => ({ payments: (await ctx.db.query("payments").collect()).length, approvals: (await ctx.db.query("approvals").collect()).length }));
@@ -39,12 +40,13 @@ describe("monitoring read model", () => {
 
   it("model health reports the shipped and baseline versions, counts the scored payment, and withholds distribution blocks below the minimum", async () => {
     const { t, ids } = await setupFull();
-    const empty = await t.query(api.monitoring.queries.health, {});
+    const reader = await asUser(t, "clerk");
+    const empty = await reader.as.query(api.monitoring.queries.health, {});
     expect(empty.scored).toBe(0);
     expect(empty.flaggedRate).toBeNull();
     const res = await pay(t, ids.invoices[CC] as Id<"invoices">);
     expect(res.ok).toBe(true);
-    const h = await t.query(api.monitoring.queries.health, {});
+    const h = await reader.as.query(api.monitoring.queries.health, {});
     expect(h.version).toMatch(/^transaction_gbm-/);
     expect(h.linearVersion).toMatch(/^transaction_lr-/);
     expect(h.referenceVersion).toMatch(/^transaction_reference-/);
@@ -59,7 +61,7 @@ describe("monitoring read model", () => {
     expect(rows[0].modelFeatures!.length).toBe(20);
     expect(rows[0].modelLinearProbability).not.toBeNull();
     const counts = await t.run(async (ctx) => ({ payments: (await ctx.db.query("payments").collect()).length, events: (await ctx.db.query("events").collect()).length }));
-    const again = await t.query(api.monitoring.queries.health, {});
+    const again = await reader.as.query(api.monitoring.queries.health, {});
     expect(again.scored).toBe(1);
     expect(await t.run(async (ctx) => ({ payments: (await ctx.db.query("payments").collect()).length, events: (await ctx.db.query("events").collect()).length }))).toEqual(counts);
   });
@@ -85,12 +87,13 @@ describe("monitoring read model", () => {
 
   it("vendor trust reflects tenure, seeded history and open cases", async () => {
     const { t, ids } = await setupFull();
+    const reader = await asUser(t, "clerk");
     const clock = { now: await clockNow(t) };
     const cleanco = (await t.run(async (ctx) => ctx.db.get(ids.vendors.cleanco as Id<"vendors">)))!;
     const tr = await t.run(async (ctx) => computeVendorTrust(ctx, cleanco, clock.now));
     expect(tr.score).toBeGreaterThan(30);
     expect(tr.components.find((c) => c.id === "landed_payments")!.evidence).toMatch(/^3 payment/);
-    const viaApi = await t.query(api.monitoring.queries.vendorTrust, { vendorId: cleanco._id });
+    const viaApi = await reader.as.query(api.monitoring.queries.vendorTrust, { vendorId: cleanco._id });
     expect(viaApi!.score).toBe(tr.score);
   });
 });

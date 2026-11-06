@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { scoreRisk, type RiskAssessment, type ModelBlock } from "./score";
 import { now } from "../clock";
 import { assessPayment, EMAIL_WEIGHTS, scoreEmail } from "./model";
+import { requireActor } from "../controls/actor";
 
 const DAY = 86_400_000;
 
@@ -86,7 +87,11 @@ export async function forCaseRead(ctx: QueryCtx, { caseId }: { caseId: Id<"cases
     if (!c) return null;
     return assessCase(ctx, c);
 }
-export const forCase = query({ args: { caseId: v.id("cases") }, handler: forCaseRead });
+export const forCase = query({ args: { caseId: v.id("cases") }, handler: async (ctx, a) => {
+    await requireActor(ctx);
+    return forCaseRead(ctx, a);
+  },
+});
 export const forCaseInternal = internalQuery({ args: { caseId: v.id("cases") }, handler: forCaseRead });
 
 /** Score for every case, keyed by id; used by the case queue, the dashboard and the REST vendor view. */
@@ -99,5 +104,9 @@ export async function forAllRead(ctx: QueryCtx) {
     }
     return out as Record<Id<"cases">, { score: number; tier: RiskAssessment["tier"]; top: string | null }>;
 }
-export const forAll = query({ args: {}, handler: forAllRead });
+export const forAll = query({ args: {}, handler: async (ctx) => {
+    await requireActor(ctx);
+    return forAllRead(ctx);
+  },
+});
 export const forAllInternal = internalQuery({ args: {}, handler: forAllRead });

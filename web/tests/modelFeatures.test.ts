@@ -65,10 +65,11 @@ describe("Landed feature mapping", () => {
 
   it("a manual bank edit creates an unverified destination that scores as a first payment to the account", async () => {
     const { t, ids } = await setup();
+    const reader = await asUser(t, "clerk");
     const vendorId = ids.vendors.cleanco as Id<"vendors">;
     const { caseId } = await manualEdit(t, vendorId, VENDOR_B_ACCOUNT.routing, VENDOR_B_ACCOUNT.accountNumber, ids.accounts.cleanco_main as Id<"bankAccounts">);
     const c = (await t.run(async (ctx) => ctx.db.get(caseId)))!;
-    const risk = await t.query(api.risk.assess.forCase, { caseId });
+    const risk = await reader.as.query(api.risk.assess.forCase, { caseId });
     expect(risk!.model).toBeDefined();
     expect(risk!.model!.text).toBeNull(); // no trigger email on a manual edit
     expect(risk!.model!.payment).not.toBeNull();
@@ -123,9 +124,10 @@ describe("read models carry the model", () => {
 
   it("forPayment scores a sent payment with the history that existed before it", async () => {
     const { t, ids } = await setup();
+    const reader = await asUser(t, "clerk");
     const res = await pay(t, ids.invoices[CC] as Id<"invoices">);
     expect(res.ok).toBe(true);
-    const r = await t.query(api.risk.model.assessPayment.forPayment, { paymentId: (res as { paymentId: Id<"payments"> }).paymentId });
+    const r = await reader.as.query(api.risk.model.assessPayment.forPayment, { paymentId: (res as { paymentId: Id<"payments"> }).paymentId });
     expect(r).not.toBeNull();
     expect(r!.contributions.find((k) => k.feature === "bene_count_24h")!.value).toBe(0); // itself excluded
     expect(r!.contributions.find((k) => k.feature === "is_new_beneficiary")!.value).toBe(0); // account had firstPaidAt before
