@@ -1,8 +1,10 @@
 # ml/ — the learned layer of Landed's risk engine
 
 Landed's risk engine is rule-based and explainable (`web/convex/risk/score.ts`). This directory adds a
-learned layer next to it: two small logistic-regression models trained offline in Python on public
-datasets, exported as JSON weights, and scored inside Convex in TypeScript (`web/convex/risk/model/`).
+learned layer next to it: a gradient-boosted tree model over payment behaviour (shipped as node arrays and
+walked in TypeScript with path attributions), a logistic-regression baseline on the same features, and a
+TF-IDF text model over request emails, all trained offline in Python on public datasets, exported as JSON,
+and scored inside Convex in TypeScript (`web/convex/risk/model/`).
 The model informs people and the policy threshold. It has no write path and cannot release money.
 
 ## One command
@@ -42,7 +44,8 @@ data/fetch.py        resumable download + sha256 + MANIFEST.json
 loaders.py           each source -> one canonical transaction frame (payer, beneficiary, amount, at, type, hour, weekday, label, split)
 features.py          the feature contract shared with web/convex/risk/model/features.ts
 text.py              tokenizer + TF-IDF pipeline shared with web/convex/risk/model/text.ts
-train.py             logistic regression vs HistGradientBoosting, time-based splits
+train.py             logistic regression (baseline) and HistGradientBoosting (shipped), time-based splits
+trees.py             HistGradientBoosting -> node arrays; dependency-free scorer with Saabas path attributions (mirrored by trees.ts)
 evaluate.py          ROC/PR AUC, precision@k, recall@FPR, Brier, reliability, cost-ratio threshold, SVG plots
 scenarios/           synthetic AP scenario generator (held-out, labelled "agreement with our own generator")
 export.py            weights -> artifacts/*.json, parity fixtures -> web/tests/fixtures/model-parity/

@@ -60,7 +60,7 @@
   <rect x="864" y="190" width="256" height="98" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1"/>
   <text x="876" y="210" font-weight="700" fill="#1e3a8a">Risk (derived on read, no writes)</text>
   <text x="876" y="227" fill="#1e40af">16 deterministic signals + evidence</text>
-  <text x="876" y="243" fill="#1e40af">payment LR (20 feats) · email TF-IDF</text>
+  <text x="876" y="243" fill="#1e40af">payment trees (200×d4) · email TF-IDF</text>
   <text x="876" y="259" fill="#1e40af">combined = max(rules, model)</text>
   <text x="876" y="275" fill="#1e40af">weights JSON trained in ml/ (Python)</text>
   <rect x="576" y="298" width="272" height="98" rx="8" fill="#eff6ff" stroke="#1d4ed8" stroke-width="1"/>
