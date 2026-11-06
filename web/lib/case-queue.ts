@@ -69,3 +69,46 @@ export function nextCaseAction(state: string) {
   if (isClosed(state)) return "View record";
   return "View verification";
 }
+
+// ---- URL state and saved views ----
+export type QueueSource = "all" | "live" | "demo";
+export type QueueState = { query: string; filter: QueueFilter; sort: QueueSort; source: QueueSource };
+export const QUEUE_DEFAULTS: QueueState = { query: "", filter: "all", sort: "priority", source: "all" };
+const FILTERS: readonly QueueFilter[] = ["all", "attention", "progress", "ready", "blocked", "closed"];
+const SORTS: readonly QueueSort[] = ["priority", "newest", "amount"];
+const SOURCES: readonly QueueSource[] = ["all", "live", "demo"];
+
+/** Read the queue state from `?q=&filter=&sort=&source=`; anything unknown falls back to the default. */
+export function parseQueueParams(sp: { get(key: string): string | null }): QueueState {
+  const pick = <V extends string>(key: string, allowed: readonly V[], d: V): V => {
+    const v = sp.get(key);
+    return v !== null && (allowed as readonly string[]).includes(v) ? (v as V) : d;
+  };
+  return {
+    query: (sp.get("q") ?? "").slice(0, 200),
+    filter: pick("filter", FILTERS, QUEUE_DEFAULTS.filter),
+    sort: pick("sort", SORTS, QUEUE_DEFAULTS.sort),
+    source: pick("source", SOURCES, QUEUE_DEFAULTS.source),
+  };
+}
+/** The search string for a state: only non-default keys, in a stable order, so equal views give equal links. */
+export function queueParamsToSearch(s: QueueState): string {
+  const p = new URLSearchParams();
+  if (s.query.trim()) p.set("q", s.query.trim());
+  if (s.filter !== QUEUE_DEFAULTS.filter) p.set("filter", s.filter);
+  if (s.sort !== QUEUE_DEFAULTS.sort) p.set("sort", s.sort);
+  if (s.source !== QUEUE_DEFAULTS.source) p.set("source", s.source);
+  return p.toString();
+}
+export type SavedView = { key: string; label: string; state: Partial<QueueState>; hint: string };
+export const SAVED_VIEWS: readonly SavedView[] = [
+  { key: "attention", label: "Needs attention", state: { filter: "attention", sort: "priority" }, hint: "recovery, unconfirmed landings and cases waiting on a person, most urgent first" },
+  { key: "ready", label: "Ready to pay", state: { filter: "ready", sort: "amount" }, hint: "verified destinations with open invoices, largest first" },
+  { key: "holds", label: "Largest holds", state: { filter: "blocked", sort: "amount" }, hint: "money the boundary is holding, largest first" },
+  { key: "demo", label: "Demo cases", state: { source: "demo" }, hint: "the three seeded walkthrough cases" },
+];
+/** A saved view is active when every key it sets matches and every key it does not set is at its default (search excepted). */
+export function isSavedViewActive(view: SavedView, s: QueueState): boolean {
+  const keys: (keyof QueueState)[] = ["filter", "sort", "source"];
+  return keys.every((k) => (k in view.state ? view.state[k] === s[k] : s[k] === QUEUE_DEFAULTS[k]));
+}

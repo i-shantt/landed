@@ -1,6 +1,7 @@
 "use client";
-import { useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -14,6 +15,8 @@ import {
   Inbox,
   Banknote,
   Download,
+  Link2,
+  Check,
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/landed/badges";
 import { Loading } from "@/components/landed/primitives";
@@ -29,8 +32,13 @@ import {
   matchesQueueFilter,
   nextCaseAction,
   selectQueue,
+  parseQueueParams,
+  queueParamsToSearch,
+  isSavedViewActive,
+  SAVED_VIEWS,
   type QueueFilter,
   type QueueSort,
+  type QueueState,
 } from "@/lib/case-queue";
 
 const filters: { key: QueueFilter; label: string }[] = [
@@ -43,14 +51,59 @@ const filters: { key: QueueFilter; label: string }[] = [
 ];
 
 export default function CasesPage() {
+  return (
+    <Suspense fallback={<Loading label="Loading cases…" />}>
+      <CasesQueue />
+    </Suspense>
+  );
+}
+
+function CasesQueue() {
   const cases = useCases();
   const risk = useRiskForAll();
   const now = useNow();
   const settings = useSettings();
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<QueueFilter>("all");
-  const [sort, setSort] = useState<QueueSort>("priority");
-  const [source, setSource] = useState("all");
+  // Filter, sort, source and search live in the URL (?filter=&sort=&source=&q=) so a view can be linked and reloaded.
+  const sp = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const state = useMemo<QueueState>(() => parseQueueParams(sp), [sp]);
+  const { filter, sort, source } = state;
+  const [query, setQueryInput] = useState(state.query);
+  const [copied, setCopied] = useState(false);
+  function update(patch: Partial<QueueState>) {
+    const search = queueParamsToSearch({ ...state, ...patch });
+    router.replace(search ? `${pathname}?${search}` : pathname, { scroll: false });
+  }
+  const setFilter = (f: QueueFilter) => update({ filter: f });
+  const setSort = (s: QueueSort) => update({ sort: s });
+  const setSource = (s: string) => update({ source: s as QueueState["source"] });
+  const setQuery = (q: string) => {
+    setQueryInput(q);
+    if (!q) update({ query: "" });
+  };
+  // Typed search reaches the URL after a short pause; the back button then restores the words too.
+  useEffect(() => {
+    if (query.trim() === state.query) return;
+    const id = setTimeout(() => update({ query }), 300);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+  // When the URL's search text changes under us (back button, a pasted link), adopt it; adjusted during render, not in an effect.
+  const [urlQuerySeen, setUrlQuerySeen] = useState(state.query);
+  if (state.query !== urlQuerySeen) {
+    setUrlQuerySeen(state.query);
+    if (query.trim() !== state.query) setQueryInput(state.query);
+  }
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
   const demoIds = useMemo(() => {
     try {
       const parsed: unknown = JSON.parse(settings?.demoCases ?? "[]");
@@ -198,6 +251,30 @@ export default function CasesPage() {
               </span>
             </button>
           ))}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2 text-xs" role="group" aria-label="Saved views">
+          <span className="text-muted-foreground">Saved views</span>
+          {SAVED_VIEWS.map((v) => {
+            const active = isSavedViewActive(v, state);
+            const search = queueParamsToSearch({ ...state, filter: "all", sort: "priority", source: "all", ...v.state });
+            return (
+              <Link
+                key={v.key}
+                href={search ? `${pathname}?${search}` : pathname}
+                replace
+                scroll={false}
+                aria-current={active ? "page" : undefined}
+                title={v.hint}
+                className={`rounded-full border px-2.5 py-0.5 ${active ? "border-slate-900 bg-slate-900 text-white" : "bg-card hover:bg-slate-50"}`}
+              >
+                {v.label}
+              </Link>
+            );
+          })}
+          <button type="button" className="ml-auto inline-flex items-center gap-1 rounded border px-2 py-0.5 hover:bg-slate-50" onClick={copyLink} aria-live="polite">
+            {copied ? <Check size={12} aria-hidden /> : <Link2 size={12} aria-hidden />}
+            {copied ? "Link copied" : "Copy link to this view"}
+          </button>
         </div>
         <div className="ops-toolbar">
           <div className="ops-search-field">
@@ -378,9 +455,8 @@ export default function CasesPage() {
                   type="button"
                   className="ops-button"
                   onClick={() => {
-                    setQuery("");
-                    setFilter("all");
-                    setSource("all");
+                    setQueryInput("");
+                    update({ query: "", filter: "all", source: "all" });
                   }}
                 >
                   Reset filters

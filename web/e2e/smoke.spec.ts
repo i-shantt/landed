@@ -85,6 +85,21 @@ test("/invoices lists the CleanCo $42,000 invoice with its remit account and a b
   await expect(page.getByText(/no invoice matches/i)).toBeVisible();
 });
 
+test("/cases keeps its view in the URL: a deep link restores filter, sort and source; a saved view rewrites it", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/cases?filter=attention&sort=amount&source=demo");
+  await expect(page.getByRole("group", { name: /filter cases by status/i }).getByRole("button", { name: /needs attention/i })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("Sort cases")).toHaveValue("amount");
+  await expect(page.getByLabel("Case record source")).toHaveValue("demo");
+  await page.getByRole("group", { name: /saved views/i }).getByRole("link", { name: /ready to pay/i }).click();
+  await expect(page).toHaveURL(/filter=ready/);
+  await expect(page).toHaveURL(/sort=amount/);
+  await expect(page).not.toHaveURL(/source=demo/);
+  await expect(page.getByRole("group", { name: /filter cases by status/i }).getByRole("button", { name: /ready to pay/i })).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("Sort cases").selectOption("newest");
+  await expect(page).toHaveURL(/sort=newest/);
+});
+
 test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");
