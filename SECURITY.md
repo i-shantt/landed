@@ -12,7 +12,13 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 - Account numbers: HMAC-SHA256 hashed and AES-256-GCM encrypted at rest; public queries return routing and last four only.
 - No LLM-calling action (`intake.run`, `packageProse.draft`, `explain.narrate`) can reach verification, payment, exceptional release, or contact/account status (I5).
 
-## Public queries (read-only)
+## Reads
+
+Every public query calls `requireActor(ctx)` and refuses a caller without an operator session (`ConvexError("unauthenticated")`), except six that are public by design: `health.status` (`/health`, no secrets), `evalRuns.list` (the posted eval run on `/about` and `/pitch`), `settings.demoCases` (seeded demo-case ids for `/pitch`), `controls.operators.me` (null when signed out; the shell needs it to decide), and the two vendor-portal reads `channels.portal.openRequestsForSession` / `tokenInfo` (gated by the portal session and confirmation tokens). `tests/security.test.ts` fails if a query is added outside that list without `requireActor`; `tests/readGating.test.ts` proves the refusal and the clerk path for the fourteen core reads and the allowlist signed out. Machine callers that carry no session (the REST handlers, `/eval/*`, the demo seed) read through `internalQuery` twins (`<name>Internal`) that share the handler body. The browser subscribes only once the Convex client holds the session token (`useAuthedQuery`), so a signed-out visitor to `/about` or `/health` gets a public shell and no workspace reads.
+
+The projection rules below still hold for a signed-in reader: no query returns ciphertext, hashes, probe amounts, key plaintext or webhook secrets.
+
+## Queries (session required unless listed above)
 
 | Function | Returns | Why safe |
 |---|---|---|
@@ -23,8 +29,9 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 | `bankAccounts.listForVendor`, `bankAccounts.get`, `vendors.*`, `invoices.*`, `contacts.listForVendor`, `messages.*` | vendor master, invoices, threads | no ciphertext/hash; messages are the inbox simulator |
 | `settings.get`, `settings.all` | mode flags, demoCases | `simVendorStatement:*` and `portalLock:*` keys are filtered out |
 | `timers.pendingForCase`, `timers.nextDue`, `timerQueries.*`, `demoControls.nextStep`, `clock.get` | timers and clock | demo-time only |
-| `judge.scenarios`, `judge.get`, `judge.recent`, `evalRuns.list`, `exportCase.caseExport`, `package.getForCase`, `env.presence`, `health.status`, `seed.status` | scenarios, run rows, exports, key presence as booleans | no key values; exports exclude probe amounts |
-| `channels.portal.openRequestsForSession`, `channels.portal.tokenInfo` | portal data for a valid session token | session token required; tokens bound to the vendor |
+| `judge.scenarios`, `judge.get`, `judge.recent`, `exportCase.caseExport`, `package.getForCase`, `env.presence`, `seed.status` | scenarios, run rows, exports, key presence as booleans | no key values; exports exclude probe amounts |
+| `health.status`, `evalRuns.list`, `settings.demoCases` (public) | counts and the posted eval run, demo-case ids | no secrets; the only workspace data readable without a session |
+| `channels.portal.openRequestsForSession`, `channels.portal.tokenInfo` (public) | portal data for a valid session token | session token required; tokens bound to the vendor |
 
 ## Public mutations and actions (what they can change)
 
@@ -95,7 +102,7 @@ Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `wri
 
 ## Known limits (prototype)
 
-- **Identity.** Operators sign in with email and password (Convex Auth, self-hosted; no third-party identity provider). Every mutation and action that acts as an operator resolves the signed-in user to an active `operators` row and checks the role on the server; the browser never names an operator. Still open: **public queries** (case views, vendor lists, the audit log) are readable by any client that knows the deployment URL because the eval runner, `/pitch` and `/health` rely on them; gating reads behind the same session is the next step. SSO (SAML/OIDC) would replace the Password provider without changing a rule.
+- **Identity.** Operators sign in with email and password (Convex Auth, self-hosted; no third-party identity provider). Every mutation and action that acts as an operator resolves the signed-in user to an active `operators` row and checks the role on the server; the browser never names an operator. Reads require the same session (see Reads above). SSO (SAML/OIDC) would replace the Password provider without changing a rule.
 - **Demo accounts are public by design.** `demo@landed.example` (approver) and `clerk@landed.example` (clerk) with the passwords printed on `/signin` let a reviewer use the deployed app. An approver cannot change policy, mint API keys, manage webhooks or operators, or flip the demo kill switch; the admin account is invited by email and its password is set by its owner at sign-up.
 
 - The portal "login" is a seeded credential table, not an identity provider.

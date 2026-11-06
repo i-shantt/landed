@@ -42,7 +42,7 @@ Companion documents: `SECURITY.md` (the public surface, function by function), `
 | **E** a clerk changes policy or approves their own request | role check on the server; segregation of duties in `approvals.decide` | `auth.test.ts` "a clerk cannot change policy", "the requester cannot approve their own request" |
 | **E** a deactivated operator keeps a live session | `requireActor` re-reads `active` on every call | `auth.test.ts` "a deactivated operator is refused on the next call" |
 | **T** approval used as a substitute for verification | approval is consumed only after `canPay` passes, inside `payments.send` | `policy.test.ts`, `auth.test.ts` "the approval is consumed by send" |
-| **I** public queries readable without a session | accepted for now (eval runner, `/pitch`, `/health` rely on them); projections never carry ciphertext, hashes, probe amounts or key material | `invariants.test.ts` 11–12; `hardening2.test.ts` "probe transcripts are never returned to the browser" |
+| **I** workspace data read without a session | every public query calls `requireActor`; six allowlisted reads (health, eval runs, demo-case ids, `operators.me`, two token-gated portal reads) carry no secrets; machine callers use internal twins; projections never carry ciphertext, hashes, probe amounts or key material | `security.test.ts` "every public query requires a session"; `readGating.test.ts`; `invariants.test.ts` 11–12; `hardening2.test.ts` "probe transcripts are never returned to the browser" |
 | **R** an action without an actor | every state change appends an event with actor and operator name | `audit.chain` recomputed; `auth.test.ts` "the audit payload names them" |
 
 ### B2. Inbound documents → intake (LLM and rules extractors)

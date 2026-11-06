@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-06 — reads require a session
+
+- **Every public query calls `requireActor`** (68 queries; 14 in the frozen core files, changed with the failing test first). Six reads stay public by design and are allowlisted in `tests/security.test.ts`, which now fails when a query is added without the session check: `health.status`, `evalRuns.list`, the new `settings.demoCases` (demo-case ids for `/pitch`), `controls.operators.me` and the two token-gated vendor-portal reads.
+- **Internal twins for machine callers** (`<name>Read` handler + `<name>Internal` internalQuery): the REST API, `/eval/*` and the demo seed read through them; the eval suite stayed 40/40 throughout.
+- **Browser**: `useAuthedQuery` skips every workspace subscription until the Convex client holds the session token, so sign-out no longer races the redirect; `/about` and `/health` render a public shell for a signed-out visitor. The prod smoke test (`scripts/checkpoint2.mjs`) signs in as the demo approver first.
+- **Docs**: `SECURITY.md` Reads section (the Known-limits item is closed), threat model B1 row, controls matrix row A5 "Authenticated reads" (20 → 21 controls).
+- Tests: 315 → 320 vitest.
+
 ## 2026-11-06 — property pass over monitoring and the model
 
 - **18 more fast-check properties** (`tests/monitoringProperties.test.ts`), 300 runs each, over the pure modules the first pass left to fixed examples: the monitoring flag score is exactly the capped sum of what fired and ignores history order and future rows; structuring clusters, weekly partitions and the robust z-score keep their definitions (band, window, disjointness; shift and scale invariance); the trust score is a bounded integer whose band follows its cut points and which is monotone in every input; the trend conserves the rows inside its window; PSI is non-negative and symmetric, average ranks and Spearman keep their textbook properties, `modelHealth` partitions the paired rows and goes silent exactly below `MIN_ROWS`; label summaries partition and add; dispositions keep their precedence; the 20-feature contract is well-formed for any candidate and both scorers' attributions sum to the logit for any vector, not only the parity fixtures; the tokenizer is idempotent and case-insensitive on ASCII.
