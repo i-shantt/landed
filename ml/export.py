@@ -57,7 +57,7 @@ def export_transaction(metrics: dict) -> dict:
     return payload
 
 
-def export_transaction_gbm(metrics: dict) -> tuple[dict, object]:
+def export_transaction_gbm(metrics: dict) -> tuple[dict, object, np.ndarray]:
     """The shipped payment model: HistGradientBoosting trees as node arrays. Platt parameters are fitted on the
     (never subsampled) validation window of the same sources, like the logistic regression's."""
     from evaluate import platt_fit
@@ -71,7 +71,42 @@ def export_transaction_gbm(metrics: dict) -> tuple[dict, object]:
     payload = {"family": "transaction_gbm", "trained_on": trained_on, "features": list(FEATURE_NAMES), **export_trees(gbm),
                "threshold": r(m["threshold"]), "calibration": {"method": "platt", "a": r(a), "b": r(b)}}
     payload["version"] = version_of(payload)
-    return payload, gbm
+    return payload, gbm, va
+
+
+REFERENCE_QUANTILES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+SCORE_EDGES = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+
+
+def bin_proportions(values: np.ndarray, edges: list[float]) -> list[float]:
+    """Proportion of values in each of len(edges)+1 bins; value <= edge_i falls in bin i (mirrors drift.ts binProportions)."""
+    idx = np.searchsorted(np.asarray(edges, dtype=float), values, side="left")
+    counts = np.bincount(idx, minlength=len(edges) + 1).astype(float)
+    return [r(c / max(len(values), 1)) for c in counts]
+
+
+def export_reference(gb: dict, gbm, va: np.ndarray) -> dict:
+    """Training-time distributions the live drift monitor compares against (web/convex/monitoring/drift.ts).
+    Per feature: decile edges on the validation window (a single 0.5 edge for indicator features) and the
+    proportion of validation rows in each bin; plus the shipped model's score distribution on the same rows."""
+    X, y = va[:, :-1], va[:, -1].astype(int)
+    features = []
+    for k, name in enumerate(FEATURE_NAMES):
+        col = X[:, k]
+        distinct = np.unique(col)
+        if len(distinct) <= 2:
+            edges = [0.5]
+        else:
+            q = np.quantile(col, REFERENCE_QUANTILES)
+            edges = sorted({r(float(e)) for e in q})
+        features.append({"name": name, "edges": edges, "proportions": bin_proportions(col, edges)})
+    p_val = gbm.predict_proba(X)[:, 1]
+    payload = {"family": "transaction_reference", "model": gb["version"], "source": "validation windows of " + " + ".join(gb["trained_on"]),
+               "n": int(len(X)), "positives": int(y.sum()), "features": features,
+               "score": {"edges": SCORE_EDGES, "proportions": bin_proportions(p_val, SCORE_EDGES)},
+               "flagged_rate": r(float(np.mean(p_val >= gb["threshold"])))}
+    payload["version"] = version_of(payload)
+    return payload
 
 
 def score_transaction_exported(w: dict, x: list[float]) -> dict:
@@ -143,7 +178,8 @@ def main(argv=None) -> int:
         tx_fixture.append({"id": c["id"], "features": c["features"], "inputs": {**c["inputs"], "bene_history": c["inputs"]["bene_history"], "payer_history": c["inputs"]["payer_history"]},
                            "logit": s["logit"], "probability": float(s["probability"]), "contributions": s["contributions"]})
 
-    gb, gbm = export_transaction_gbm(metrics)
+    gb, gbm, va = export_transaction_gbm(metrics)
+    ref = export_reference(gb, gbm, va)
     p_gbm = gbm.predict_proba(X)[:, 1]
     gb_fixture = []
     for c, ps in zip(tx_cases, p_gbm):
@@ -161,12 +197,13 @@ def main(argv=None) -> int:
         assert abs(pe - ps) < 1e-4, (t[:40], pe, ps)
         txt_fixture.append({"text": t, "probability": pe})
 
-    for path, payload in ((ART / "transaction_gbm.json", gb), (ART / "transaction_lr.json", tx), (ART / "email_tfidf_lr.json", txt)):
+    for path, payload in ((ART / "transaction_gbm.json", gb), (ART / "transaction_lr.json", tx), (ART / "email_tfidf_lr.json", txt), (ART / "transaction_reference.json", ref)):
         path.write_text(json.dumps(payload, separators=(",", ":")) + "\n")
         print(f"wrote {path.relative_to(ML.parent)} ({path.stat().st_size / 1024:.1f} KB) version {payload['version']}")
     if not a.no_fixtures:
         WEIGHTS_DIR.mkdir(parents=True, exist_ok=True); FIXTURES_DIR.mkdir(parents=True, exist_ok=True)
         (WEIGHTS_DIR / "transaction_gbm.json").write_text(json.dumps(gb, separators=(",", ":")) + "\n")
+        (WEIGHTS_DIR / "transaction_reference.json").write_text(json.dumps(ref, separators=(",", ":")) + "\n")
         (WEIGHTS_DIR / "transaction_lr.json").write_text(json.dumps(tx, separators=(",", ":")) + "\n")
         (WEIGHTS_DIR / "email_tfidf_lr.json").write_text(json.dumps(txt, separators=(",", ":")) + "\n")
         (FIXTURES_DIR / "transaction.json").write_text(json.dumps({"version": tx["version"], "cases": tx_fixture}, indent=1) + "\n")

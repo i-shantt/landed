@@ -41,6 +41,18 @@ def test_exported_bundles_have_expected_shape_and_size():
     assert gb["calibration"]["method"] == "platt" and 0 < gb["threshold"] < 1
     assert all(n[0] == -1 or (0 <= n[0] < len(FEATURE_NAMES) and n[2] < len(t) and n[3] < len(t)) for t in gb["trees"] for n in t)
     assert (ART / "transaction_gbm.json").stat().st_size < 200 * 1024
+    ref = json.loads((ART / "transaction_reference.json").read_text())
+    assert ref["model"] == gb["version"] and [f["name"] for f in ref["features"]] == FEATURE_NAMES
+    for f in ref["features"]:
+        assert f["edges"] == sorted(f["edges"]) and len(f["proportions"]) == len(f["edges"]) + 1
+        assert abs(sum(f["proportions"]) - 1) < 1e-4
+    assert len(ref["score"]["proportions"]) == 10 and abs(sum(ref["score"]["proportions"]) - 1) < 1e-4
+    assert 0 <= ref["flagged_rate"] <= 1
+
+
+def test_bin_proportions_puts_values_on_an_edge_in_the_lower_bin():
+    from export import bin_proportions
+    assert bin_proportions(np.array([0.0, 0.5, 1.0, 2.0]), [0.5, 1.5]) == [0.5, 0.25, 0.25]
 
 
 @needs_artifacts
