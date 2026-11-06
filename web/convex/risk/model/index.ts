@@ -3,9 +3,10 @@ import emailWeights from "../weights/email_tfidf_lr.json";
 import { scoreText as scoreTextWith, type TextScore, type TextWeights } from "./text";
 
 export { scoreLinear, type LinearWeights, type Contribution } from "./linear";
+export { scoreTrees, type TreeWeights, type TreeScore } from "./trees";
 export { tokenize, ngrams, type TextScore } from "./text";
 export { buildPaymentFeatures, candidateFeatures, FEATURE_NAMES, type HistoryRow } from "./features";
-export { assessPayment, assessSentPayment, TRANSACTION_WEIGHTS, type ModelAssessment } from "./assessPayment";
+export { assessPayment, assessSentPayment, TRANSACTION_WEIGHTS, TRANSACTION_TREES, type ModelAssessment } from "./assessPayment";
 
 export const EMAIL_WEIGHTS = emailWeights as TextWeights;
 

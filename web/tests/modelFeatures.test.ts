@@ -76,7 +76,10 @@ describe("Landed feature mapping", () => {
     const p = risk!.model!.payment!;
     const newBene = p.contributions.find((k) => k.feature === "is_new_beneficiary")!;
     expect(newBene.value).toBe(1);
-    expect(p.version).toMatch(/^transaction_lr-/);
+    expect(p.version).toMatch(/^transaction_gbm-/);
+    expect(p.family).toBe("transaction_gbm");
+    expect(p.linear.version).toMatch(/^transaction_lr-/);
+    expect(p.linear.contributions.find((k) => k.feature === "is_new_beneficiary")!.value).toBe(1);
     expect(risk!.model!.combinedScore).toBeGreaterThanOrEqual(risk!.score);
     expect(risk!.model!.combinedScore).toBe(Math.max(risk!.score, Math.round(100 * p.probability)));
     // rules score is unchanged by the model (policy input, scenario suite)
@@ -95,8 +98,11 @@ describe("Landed feature mapping", () => {
     await adm.as.mutation(api.controls.policy.set, { patch: { dualApprovalAboveCents: 4_400_000 } }); // $42,000 is within 90% of $44,000
     const a1 = await t.run(async (ctx) => assessPayment(ctx, { invoice: inv, destination: dest, at: clock.now, rail: "ach" }));
     expect(a1.contributions.find((k) => k.feature === "just_under_threshold")!.value).toBe(1);
-    expect(a1.probability).not.toBe(a0.probability); // the feature carries weight (negative on the public data: structuring is an AP pattern the rules/monitoring layer owns)
-    expect(a1.contributions.find((k) => k.feature === "just_under_threshold")!.contribution).not.toBe(a0.contributions.find((k) => k.feature === "just_under_threshold")!.contribution);
+    // The linear baseline always moves with the feature (it carries a weight: negative on the public data, structuring is an AP pattern
+    // the rules/monitoring layer owns). The trees split on it in 9 of 200 trees, so they move only when the path reaches one of those splits.
+    expect(a1.linear.probability).not.toBe(a0.linear.probability);
+    expect(a1.linear.contributions.find((k) => k.feature === "just_under_threshold")!.contribution).not.toBe(a0.linear.contributions.find((k) => k.feature === "just_under_threshold")!.contribution);
+    expect(a1.contributions.length).toBe(20);
     const writes = await t.run(async (ctx) => ctx.db.query("payments").collect());
     expect(writes.length).toBe(0);
   });

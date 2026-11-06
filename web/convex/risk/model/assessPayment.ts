@@ -5,20 +5,27 @@ import type { QueryCtx, MutationCtx } from "../../_generated/server";
 import type { Doc } from "../../_generated/dataModel";
 import { v } from "convex/values";
 import transactionWeights from "../weights/transaction_lr.json";
+import treeWeights from "../weights/transaction_gbm.json";
 import { scoreLinear, type Contribution, type LinearWeights } from "./linear";
+import { scoreTrees, type TreeWeights } from "./trees";
 import { buildPaymentFeatures } from "./features";
 import { loadHistory } from "./history";
 import { getPolicy } from "../../controls/policy";
 
+/** Glass-box baseline: logistic regression on the same features, reported next to the shipped score. */
 export const TRANSACTION_WEIGHTS = transactionWeights as LinearWeights;
+/** Shipped payment model: gradient-boosted trees (ml/trees.py), scored by scoreTrees with path attributions. */
+export const TRANSACTION_TREES = treeWeights as TreeWeights;
 
 export type ModelAssessment = {
-  version: string;
+  version: string;          // version of the shipped (tree) model
+  family: string;           // "transaction_gbm"
   probability: number;      // raw model probability, the quantity the threshold was chosen on
   score: number;            // round(100 * probability)
   flagged: boolean;         // probability >= shipped threshold
   threshold: number;
-  contributions: Contribution[]; // every feature, sorted by |contribution|
+  contributions: Contribution[]; // every feature's path attribution, sorted by |contribution|; sums to logit - bias
+  linear: { version: string; probability: number; contributions: Contribution[] }; // the logistic-regression baseline on the same vector
 };
 
 export async function assessPayment(
@@ -45,14 +52,17 @@ export async function assessPayment(
     timezone: company?.timezone ?? "America/Los_Angeles",
     thresholdCents: policy.dualApprovalAboveCents,
   });
-  const s = scoreLinear(TRANSACTION_WEIGHTS, vector);
+  const s = scoreTrees(TRANSACTION_TREES, vector);
+  const lin = scoreLinear(TRANSACTION_WEIGHTS, vector);
   return {
-    version: TRANSACTION_WEIGHTS.version,
+    version: TRANSACTION_TREES.version,
+    family: TRANSACTION_TREES.family,
     probability: s.probability,
     score: Math.round(100 * s.probability),
-    flagged: s.probability >= TRANSACTION_WEIGHTS.threshold,
-    threshold: TRANSACTION_WEIGHTS.threshold,
+    flagged: s.probability >= TRANSACTION_TREES.threshold,
+    threshold: TRANSACTION_TREES.threshold,
     contributions: s.contributions,
+    linear: { version: TRANSACTION_WEIGHTS.version, probability: lin.probability, contributions: lin.contributions },
   };
 }
 

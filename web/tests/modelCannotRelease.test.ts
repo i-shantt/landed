@@ -45,7 +45,7 @@ describe("learned and monitoring layers cannot release money", () => {
     }
   });
   it("exported weights are data, not code", () => {
-    for (const f of ["transaction_lr.json", "email_tfidf_lr.json"]) {
+    for (const f of ["transaction_gbm.json", "transaction_lr.json", "email_tfidf_lr.json"]) {
       const parsed = JSON.parse(readFileSync(join(root, "risk", "weights", f), "utf8"));
       expect(typeof parsed.version).toBe("string");
     }

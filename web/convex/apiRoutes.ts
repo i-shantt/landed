@@ -239,7 +239,7 @@ export function registerApiRoutes(http: HttpRouter) {
     if (parts[4] === "risk") {
       const r = await ctx.runQuery(api.risk.model.assessPayment.forPayment, { paymentId }).catch(() => null);
       if (!r) return apiError(404, "not_found", "No such payment");
-      return json({ object: "payment_risk", payment_id: paymentId, model_version: r.version, probability: r.probability, score: r.score, flagged: r.flagged, threshold: r.threshold, contributions: r.contributions.map((k) => ({ feature: k.feature, value: k.value, contribution: k.contribution })) });
+      return json({ object: "payment_risk", payment_id: paymentId, model_version: r.version, model_family: r.family, probability: r.probability, score: r.score, flagged: r.flagged, threshold: r.threshold, contributions: r.contributions.map((k) => ({ feature: k.feature, value: k.value, contribution: k.contribution })), linear_baseline: { model_version: r.linear.version, probability: r.linear.probability } });
     }
     if (parts[4]) return apiError(404, "not_found", "Unknown payment sub-resource");
     return json(paymentOut(row));

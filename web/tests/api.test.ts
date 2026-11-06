@@ -28,7 +28,10 @@ describe("REST API: payment risk", () => {
     expect(risk.status).toBe(200);
     const body = await risk.json();
     expect(body.object).toBe("payment_risk");
-    expect(body.model_version).toMatch(/^transaction_lr-/);
+    expect(body.model_version).toMatch(/^transaction_gbm-/);
+    expect(body.model_family).toBe("transaction_gbm");
+    expect(body.linear_baseline.model_version).toMatch(/^transaction_lr-/);
+    expect(body.linear_baseline.probability).toBeGreaterThanOrEqual(0);
     expect(body.probability).toBeGreaterThanOrEqual(0);
     expect(body.probability).toBeLessThanOrEqual(1);
     expect(body.contributions.length).toBe(20);
