@@ -37,7 +37,10 @@ export const me = query({
 
 export const list = query({
   args: {},
-  handler: async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name));
+  },
 });
 
 export const create = mutation({

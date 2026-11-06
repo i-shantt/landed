@@ -98,7 +98,8 @@ describe("monitoring read model", () => {
 describe("policy.monitoringReviewAbove", () => {
   it("defaults to null and leaves a normal payment payable", async () => {
     const { t, ids } = await setup();
-    const policy = await t.query(api.controls.policy.get, {});
+    const { clerk } = await actors(t);
+    const policy = await clerk.as.query(api.controls.policy.get, {});
     expect(policy.monitoringReviewAbove).toBeNull();
     expect((await pay(t, ids.invoices[CC] as Id<"invoices">)).ok).toBe(true);
   });

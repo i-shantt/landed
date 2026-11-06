@@ -165,7 +165,10 @@ export async function evaluatePaymentPolicy(
 
 export const get = query({
   args: {},
-  handler: async (ctx) => getPolicy(ctx),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return getPolicy(ctx);
+  },
 });
 
 export const set = mutation({

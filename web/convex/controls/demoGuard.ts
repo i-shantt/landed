@@ -21,7 +21,10 @@ export async function assertDemoControls(ctx: QueryCtx | MutationCtx) {
 
 export const enabled = query({
   args: {},
-  handler: async (ctx) => demoControlsEnabled(ctx),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return demoControlsEnabled(ctx);
+  },
 });
 
 export const check = internalQuery({

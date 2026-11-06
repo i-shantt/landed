@@ -67,6 +67,7 @@ export const decide = mutation({
 export const list = query({
   args: { status: v.optional(v.union(v.literal("pending"), v.literal("approved"), v.literal("rejected"), v.literal("consumed"))) },
   handler: async (ctx, { status }) => {
+    await requireActor(ctx);
     const rows = status ? await ctx.db.query("approvals").withIndex("by_status", (q) => q.eq("status", status)).collect() : await ctx.db.query("approvals").collect();
     rows.sort((x, y) => y.requestedAt - x.requestedAt);
     const out = [];
@@ -87,7 +88,10 @@ export const list = query({
 
 export const forInvoice = query({
   args: { invoiceId: v.id("invoices") },
-  handler: async (ctx, { invoiceId }) => ctx.db.query("approvals").withIndex("by_invoice", (q) => q.eq("invoiceId", invoiceId)).collect(),
+  handler: async (ctx, { invoiceId }) => {
+    await requireActor(ctx);
+    return ctx.db.query("approvals").withIndex("by_invoice", (q) => q.eq("invoiceId", invoiceId)).collect();
+  },
 });
 
 export type ApprovalId = Id<"approvals">;

@@ -9,7 +9,8 @@ const operators = actors; // signed-in clerk / approver / admin
 describe("payment policy (controls layer, enforced inside payments.send)", () => {
   it("defaults are off: a verified destination pays exactly as before", async () => {
     const { t, ids } = await setup();
-    const p = await t.query(api.controls.policy.get, {});
+    const { clerk } = await actors(t);
+    const p = await clerk.as.query(api.controls.policy.get, {});
     expect(p).toEqual(DEFAULT_POLICY);
     const res = await pay(t, ids.invoices["CC-2026-0412"] as Id<"invoices">);
     expect(res.ok).toBe(true);
@@ -61,7 +62,7 @@ describe("payment policy (controls layer, enforced inside payments.send)", () =>
     await expect(clerk.as.mutation(api.controls.policy.set, { patch: { dualApprovalAboveCents: 5 } })).rejects.toThrow();
     await expect(admin.as.mutation(api.controls.policy.set, { patch: { coolingOffHours: -1 } })).rejects.toThrow();
     await admin.as.mutation(api.controls.policy.set, { patch: { blockWireForFirstPayment: true } });
-    expect((await t.query(api.controls.policy.get, {})).blockWireForFirstPayment).toBe(true);
+    expect((await clerk.as.query(api.controls.policy.get, {})).blockWireForFirstPayment).toBe(true);
   });
 
   it("wire to a never-paid account is refused when the control is on; ACH still passes", async () => {

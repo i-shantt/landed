@@ -6,7 +6,7 @@ import { setup, drain } from "./harness";
 describe("auth schema (core: Convex Auth tables + operator link)", () => {
   it("users and authSessions tables exist, users carry operatorId, operators are indexed by email", async () => {
     const { t } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
+    const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)));
     const admin = ops.find((o) => o.role === "admin")!;
     const userId = await t.run(async (ctx) => ctx.db.insert("users", { email: "priya@meridianoutdoor.example", name: "Priya", operatorId: admin._id }));
     const sessionId = await t.run(async (ctx) => ctx.db.insert("authSessions", { userId, expirationTime: Date.now() + 3600_000 }));
@@ -19,7 +19,7 @@ describe("auth schema (core: Convex Auth tables + operator link)", () => {
 
   it("reseed never touches users, auth sessions or operators", async () => {
     const { t } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
+    const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)));
     const userId = await t.run(async (ctx) => ctx.db.insert("users", { email: "x@landed.example", operatorId: ops[0]._id }));
     await t.run(async (ctx) => ctx.db.insert("authSessions", { userId, expirationTime: Date.now() + 3600_000 }));
     await t.action(internal.seed.reseedInternal, { which: "minimal" });
@@ -43,7 +43,7 @@ async function newUser(t: Awaited<ReturnType<typeof setup>>["t"], email: string,
 describe("sign-up gating (invite = operator row with the email; first user bootstraps an admin)", () => {
   it("an email that matches an active operator is linked with its role preserved and an audit event", async () => {
     const { t } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
+    const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)));
     const approver = ops.find((o) => o.role === "approver")!;
     const userId = await newUser(t, approver.email!.toUpperCase());
     await t.run(async (ctx) => onUserCreatedOrUpdated(ctx, { userId, existingUserId: null, profile: { email: approver.email!.toUpperCase() } }));
@@ -59,7 +59,7 @@ describe("sign-up gating (invite = operator row with the email; first user boots
 
   it("an unknown email is refused when users already exist; the same operator cannot be linked twice; a sign-in to an existing account is a no-op", async () => {
     const { t } = await setup();
-    const ops = await t.query(api.controls.operators.list, {});
+    const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)));
     const clerk = ops.find((o) => o.role === "clerk")!;
     const u1 = await newUser(t, clerk.email!);
     await t.run(async (ctx) => onUserCreatedOrUpdated(ctx, { userId: u1, existingUserId: null, profile: { email: clerk.email! } }));
@@ -103,7 +103,7 @@ describe("sign-up gating (invite = operator row with the email; first user boots
     const demo = await t.run(async (ctx) => ctx.db.query("users").withIndex("email", (q) => q.eq("email", "demo@landed.example")).unique());
     const demoOp = await t.run(async (ctx) => operatorForUser(ctx, demo!._id as Id<"users">));
     expect(demoOp!.role).toBe("approver");
-    const ops = await t.query(api.controls.operators.list, {});
+    const ops = await t.run(async (ctx) => (await ctx.db.query("operators").collect()).filter((o) => o.active).sort((a, b) => a.name.localeCompare(b.name)));
     expect(ops.filter((o) => o.email === "clerk@landed.example").length).toBe(1);
   });
 });
@@ -117,7 +117,7 @@ describe("requireActor: identity resolves to the operator; roles and segregation
     const { clerk, admin } = await actors(t);
     await expect(clerk.as.mutation(api.controls.policy.set, { patch: { riskReviewAbove: 50 } })).rejects.toThrow(/role_clerk_cannot_do_this_requires_admin/);
     await admin.as.mutation(api.controls.policy.set, { patch: { riskReviewAbove: 50 } });
-    expect((await t.query(api.controls.policy.get, {})).riskReviewAbove).toBe(50);
+    expect((await clerk.as.query(api.controls.policy.get, {})).riskReviewAbove).toBe(50);
     const ev = await t.run(async (ctx) => (await ctx.db.query("events").collect()).filter((e) => e.type === "policy_changed"));
     expect(ev.length).toBe(1);
     expect(ev[0].payload).toMatchObject({ by: admin.operator.name, operatorId: admin.operatorId });
@@ -176,7 +176,9 @@ describe("requireActor: identity resolves to the operator; roles and segregation
     await expect(t.action(api.exports.paymentFiles.build, { format: "nacha" })).rejects.toThrow(/unauthenticated/);
     const files = await t.query(api.exports.paymentFiles.list, {});
     expect(files[0].createdBy).toBe(clerk.operator.name);
-    expect((await t.query(api.controls.policy.get, {})).dualApprovalAboveCents).toBe(null); // public reads unchanged
+    // reads need the session too: signed out is refused, any operator may read
+    await expect(t.query(api.controls.policy.get, {})).rejects.toThrow(/unauthenticated/);
+    expect((await clerk.as.query(api.controls.policy.get, {})).dualApprovalAboveCents).toBe(null);
   });
 });
 
