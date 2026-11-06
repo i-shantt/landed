@@ -40,6 +40,7 @@ export const create = action({
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("apiKeys").collect();
     const out = [];
     for (const k of rows.sort((a, b) => b.createdAt - a.createdAt)) {

@@ -95,6 +95,7 @@ describe("REST API: payment risk", () => {
 describe("REST API", () => {
   it("rejects missing, malformed, unknown and revoked keys; enforces scopes", async () => {
     const { t } = await setup();
+    const reader = await asUser(t, "clerk");
     expect((await t.fetch("/api/v1/ping")).status).toBe(401);
     expect((await t.fetch("/api/v1/ping", { headers: { authorization: "Bearer nope" } })).status).toBe(401);
     expect((await t.fetch("/api/v1/ping", { headers: { authorization: "Bearer ld_live_sk_0000" } })).status).toBe(401);
@@ -104,7 +105,7 @@ describe("REST API", () => {
     expect((await ok.json()).scopes).toEqual(["read"]);
     const denied = await t.fetch("/api/v1/payments", { method: "POST", headers: H(key), body: JSON.stringify({ invoice_id: "x" }) });
     expect(denied.status).toBe(403);
-    const keys = await t.query(api.api.keys.list, {});
+    const keys = await reader.as.query(api.api.keys.list, {});
     expect(keys[0].prefix.startsWith("ld_live_sk_")).toBe(true);
     expect(JSON.stringify(keys)).not.toContain(key);
     await admin.as.mutation(api.api.keys.revoke, { apiKeyId: keys[0]._id });
@@ -236,7 +237,7 @@ describe("webhooks", () => {
     });
     await t.mutation(internal.webhooks.dispatch.pump, {});
     await drain(t);
-    const deliveries = await t.query(api.webhooks.dispatch.deliveries, { endpointId: ep.id });
+    const deliveries = await clerk.as.query(api.webhooks.dispatch.deliveries, { endpointId: ep.id });
     expect(deliveries.length).toBe(1);
     expect(deliveries[0].eventType).toBe("payment_sent");
     expect(deliveries[0].status).toBe("delivered");
@@ -251,7 +252,7 @@ describe("webhooks", () => {
     process.env.CONVEX_SITE_URL = "https://test.convex.site";
     const inboxEp = await admin.as.mutation(api.webhooks.dispatch.createInboxEndpoint, {});
     expect(inboxEp.id).toBeTruthy();
-    const endpoints = await t.query(api.webhooks.dispatch.endpoints, {});
+    const endpoints = await clerk.as.query(api.webhooks.dispatch.endpoints, {});
     const inboxUrl = endpoints.find((e) => e._id === inboxEp.id)!.url;
     const secret = await t.run(async (ctx) => (await ctx.db.get(inboxEp.id))!.secret);
     const body = JSON.stringify({ id: "evt_x", type: "ping", data: { object: {} } });
@@ -259,7 +260,7 @@ describe("webhooks", () => {
     expect(good.status).toBe(200);
     const bad = await t.fetch(new URL(inboxUrl).pathname, { method: "POST", headers: { "landed-signature": "t=1,v1=00", "content-type": "application/json" }, body });
     expect(bad.status).toBe(400);
-    const inbox = await t.query(api.webhooks.dispatch.inbox, {});
+    const inbox = await clerk.as.query(api.webhooks.dispatch.inbox, {});
     expect(inbox.map((r) => r.signatureValid).sort()).toEqual([false, true]);
 
     // failure path: 500 -> failed with a future retry, attempt counted
@@ -273,7 +274,7 @@ describe("webhooks", () => {
     await drain(t);
     await t.mutation(internal.webhooks.dispatch.pump, {});
     await drain(t);
-    const d2 = (await t.query(api.webhooks.dispatch.deliveries, { endpointId: ep.id })).find((d) => d.status !== "delivered")!;
+    const d2 = (await clerk.as.query(api.webhooks.dispatch.deliveries, { endpointId: ep.id })).find((d) => d.status !== "delivered")!;
     expect(d2.status).toBe("failed");
     expect(d2.attempt).toBe(1);
     expect(d2.nextAttemptAt).toBeGreaterThan(Date.now() + 30_000);

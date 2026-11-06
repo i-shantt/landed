@@ -122,12 +122,17 @@ export async function endpointsRead(ctx: QueryCtx) {
     }
     return out;
 }
-export const endpoints = query({ args: {}, handler: endpointsRead });
+export const endpoints = query({ args: {}, handler: async (ctx) => {
+    await requireActor(ctx);
+    return endpointsRead(ctx);
+  },
+});
 export const endpointsInternal = internalQuery({ args: {}, handler: endpointsRead });
 
 export const deliveries = query({
   args: { endpointId: v.optional(v.id("webhookEndpoints")), limit: v.optional(v.number()) },
   handler: async (ctx, { endpointId, limit }) => {
+    await requireActor(ctx);
     const rows = endpointId ? await ctx.db.query("webhookDeliveries").withIndex("by_endpoint", (q) => q.eq("endpointId", endpointId)).collect() : await ctx.db.query("webhookDeliveries").order("desc").take(limit ?? 100);
     rows.sort((a, b) => b._creationTime - a._creationTime);
     return rows.slice(0, limit ?? 100).map((d) => ({ _id: d._id, endpointId: d.endpointId, eventId: d.eventId, eventType: d.eventType, attempt: d.attempt, status: d.status, nextAttemptAt: d.nextAttemptAt, lastStatusCode: d.lastStatusCode ?? null, lastError: d.lastError ?? null, deliveredAt: d.deliveredAt ?? null, createdAt: d._creationTime }));
@@ -136,7 +141,10 @@ export const deliveries = query({
 
 export const inbox = query({
   args: {},
-  handler: async (ctx) => (await ctx.db.query("webhookInbox").order("desc").take(50)).map((r) => ({ ...r, body: r.body.slice(0, 4000) })),
+  handler: async (ctx) => {
+    await requireActor(ctx);
+    return (await ctx.db.query("webhookInbox").order("desc").take(50)).map((r) => ({ ...r, body: r.body.slice(0, 4000) }));
+  },
 });
 
 // ---- dispatch ----

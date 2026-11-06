@@ -4,6 +4,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { advanceBy, now } from "./clock";
+import { requireActor } from "./controls/actor";
 
 const ORDER = ["probe_settle", "probe_available", "landing_check", "landing_deadline", "confirmation_sla"] as const;
 
@@ -23,6 +24,7 @@ async function nextForCase(ctx: Parameters<typeof now>[0], caseId: import("./_ge
 export const nextStep = query({
   args: { caseId: v.id("cases") },
   handler: async (ctx, { caseId }) => {
+    await requireActor(ctx);
     const n = await nextForCase(ctx, caseId);
     if (!n) return null;
     const t = await now(ctx);

@@ -13,6 +13,7 @@ import type { Fixture } from "./fixtureTypes";
 import { setSetting } from "./settings";
 import { createUnverifiedWithHash } from "./bankAccounts";
 import fixtureData from "./fixtureData.json";
+import { requireActor } from "./controls/actor";
 
 const TABLES: TableNames[] = [
   "company", "clock", "vendors", "contacts", "bankAccounts", "messages", "invoices", "cases", "probes",
@@ -221,6 +222,7 @@ export const reseed = action({
 export const status = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const company = await ctx.db.query("company").first();
     const vendors = await ctx.db.query("vendors").collect();
     return { seeded: !!company, companyName: company?.name ?? null, vendorCount: vendors.length };

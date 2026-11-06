@@ -8,6 +8,7 @@ import { v } from "convex/values";
 import { api, internal } from "./_generated/api";
 import scenarioData from "./scenarioData.json";
 import { getSetting } from "./settings";
+import { requireActor } from "./controls/actor";
 
 type Step = Record<string, unknown>;
 export type Scenario = { id: string; family: string; vendor?: string; extractor?: string; steps: Step[]; expect: Record<string, unknown>; description?: string };
@@ -53,18 +54,25 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const scenarios = query({
   args: {},
-  handler: async () =>
-    allScenarios().map((s) => ({ id: s.id, family: s.family, vendor: s.vendor ?? "cleanco", description: s.description ?? null, steps: s.steps.map((st) => Object.keys(st)[0]), expect: s.expect })),
+  handler: async (ctx) =>
+    {
+    await requireActor(ctx);
+    return allScenarios().map((s) => ({ id: s.id, family: s.family, vendor: s.vendor ?? "cleanco", description: s.description ?? null, steps: s.steps.map((st) => Object.keys(st)[0]), expect: s.expect }));
+  },
 });
 
 export const get = query({
   args: { runId: v.string() },
-  handler: async (ctx, { runId }) => ctx.db.query("evalRuns").withIndex("by_scenario", (q) => q.eq("scenarioId", `judge:${runId}`)).first(),
+  handler: async (ctx, { runId }) => {
+    await requireActor(ctx);
+    return ctx.db.query("evalRuns").withIndex("by_scenario", (q) => q.eq("scenarioId", `judge:${runId}`)).first();
+  },
 });
 
 export const recent = query({
   args: {},
   handler: async (ctx) => {
+    await requireActor(ctx);
     const rows = await ctx.db.query("evalRuns").order("desc").take(200);
     return rows.filter((r) => r.scenarioId.startsWith("judge:")).slice(0, 10);
   },
