@@ -63,6 +63,7 @@ import type * as invoices from "../invoices.js";
 import type * as judge from "../judge.js";
 import type * as messages from "../messages.js";
 import type * as monitoring_beneficiaryTrust from "../monitoring/beneficiaryTrust.js";
+import type * as monitoring_drift from "../monitoring/drift.js";
 import type * as monitoring_evaluate from "../monitoring/evaluate.js";
 import type * as monitoring_queries from "../monitoring/queries.js";
 import type * as monitoring_signals from "../monitoring/signals.js";
@@ -168,6 +169,7 @@ declare const fullApi: ApiFromModules<{
   judge: typeof judge;
   messages: typeof messages;
   "monitoring/beneficiaryTrust": typeof monitoring_beneficiaryTrust;
+  "monitoring/drift": typeof monitoring_drift;
   "monitoring/evaluate": typeof monitoring_evaluate;
   "monitoring/queries": typeof monitoring_queries;
   "monitoring/signals": typeof monitoring_signals;

@@ -37,6 +37,33 @@ describe("monitoring read model", () => {
     expect(counts).toEqual({ payments: 1, approvals: 0 });
   });
 
+  it("model health reports the shipped and baseline versions, counts the scored payment, and withholds distribution blocks below the minimum", async () => {
+    const { t, ids } = await setupFull();
+    const empty = await t.query(api.monitoring.queries.health, {});
+    expect(empty.scored).toBe(0);
+    expect(empty.flaggedRate).toBeNull();
+    const res = await pay(t, ids.invoices[CC] as Id<"invoices">);
+    expect(res.ok).toBe(true);
+    const h = await t.query(api.monitoring.queries.health, {});
+    expect(h.version).toMatch(/^transaction_gbm-/);
+    expect(h.linearVersion).toMatch(/^transaction_lr-/);
+    expect(h.referenceVersion).toMatch(/^transaction_reference-/);
+    expect(h.scored).toBe(1);
+    expect(h.withFeatures).toBe(1);
+    expect(h.agreement.n).toBe(1);
+    expect(h.scoreStability).toBeNull();
+    expect(h.scoreShift).toBeNull();
+    expect(h.domainShift).toBeNull();
+    expect(h.minRows).toBe(10);
+    const rows = await t.run(async (ctx) => computeMonitoring(ctx, null));
+    expect(rows[0].modelFeatures!.length).toBe(20);
+    expect(rows[0].modelLinearProbability).not.toBeNull();
+    const counts = await t.run(async (ctx) => ({ payments: (await ctx.db.query("payments").collect()).length, events: (await ctx.db.query("events").collect()).length }));
+    const again = await t.query(api.monitoring.queries.health, {});
+    expect(again.scored).toBe(1);
+    expect(await t.run(async (ctx) => ({ payments: (await ctx.db.query("payments").collect()).length, events: (await ctx.db.query("events").collect()).length }))).toEqual(counts);
+  });
+
   it("history is cut strictly before the candidate: a live payment changes the vendor baseline only for later candidates", async () => {
     const { t, ids } = await setupFull();
     const inv = (await t.run(async (ctx) => ctx.db.get(ids.invoices[CC] as Id<"invoices">)))!;

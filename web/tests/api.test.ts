@@ -62,6 +62,17 @@ describe("REST API: payment risk", () => {
     expect(trb.data[29].payments).toBe(1);
     expect((await t.fetch("/api/v1/risk/trend?window=90d", { headers: H(key) })).status).toBe(400);
     expect((await t.fetch("/api/v1/risk/trend")).status).toBe(401);
+    const health = await t.fetch("/api/v1/model/health", { headers: H(key) });
+    expect(health.status).toBe(200);
+    const hb = await health.json();
+    expect(hb.object).toBe("model_health");
+    expect(hb.model_version).toMatch(/^transaction_gbm-/);
+    expect(hb.scored).toBe(1);
+    expect(hb.score_stability).toBeNull();
+    expect(hb.agreement.n).toBe(1);
+    expect((await t.fetch("/api/v1/model/health")).status).toBe(401);
+    expect(spec.paths["/model/health"]).toBeDefined();
+    expect(spec.components.schemas.ModelHealth).toBeDefined();
     expect(spec.paths["/risk/trend"]).toBeDefined();
     expect(spec.paths["/vendors/{id}/trust"]).toBeDefined();
     expect(spec.components.schemas.PaymentRefused.properties.error.properties.reason.enum).toContain("policy_monitoring_review_required");

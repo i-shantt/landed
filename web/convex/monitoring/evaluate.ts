@@ -3,7 +3,8 @@
 import type { QueryCtx, MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { loadHistory } from "../risk/model/history";
-import { assessSentPayment } from "../risk/model/assessPayment";
+import { assessSentPayment, TRANSACTION_WEIGHTS } from "../risk/model/assessPayment";
+import { FEATURE_NAMES } from "../risk/model/features";
 import { evaluateCandidate, type MonitoringResult } from "./signals";
 import { trustScore, type TrustResult } from "./beneficiaryTrust";
 import { buildTrend, localDate, type TrendDay } from "./trend";
@@ -67,6 +68,10 @@ export type MonitoredPayment = {
   monitoring: MonitoringResult;
   modelProbability: number | null;
   modelVersion: string | null;
+  modelFlagged: boolean | null;
+  modelLinearProbability: number | null; // glass-box baseline on the same feature vector
+  modelLinearFlagged: boolean | null;
+  modelFeatures: number[] | null;        // the 20 features, FEATURE_NAMES order (for drift monitoring)
 };
 
 export const MONITOR_LIMIT = 500;
@@ -89,11 +94,20 @@ export async function computeMonitoring(ctx: Ctx, thresholdCents: number | null)
     const monitoring = await evaluateCandidateFor(ctx, { invoice: candidate, destination: dest, at: p.sentAt, rail: p.rail, thresholdCents });
     let modelProbability: number | null = null;
     let modelVersion: string | null = null;
+    let modelFlagged: boolean | null = null;
+    let modelLinearProbability: number | null = null;
+    let modelLinearFlagged: boolean | null = null;
+    let modelFeatures: number[] | null = null;
     try {
       const m = await assessSentPayment(ctx, p);
       if (m) {
         modelProbability = m.probability;
         modelVersion = m.version;
+        modelFlagged = m.flagged;
+        modelLinearProbability = m.linear.probability;
+        modelLinearFlagged = m.linear.probability >= TRANSACTION_WEIGHTS.threshold;
+        const byName = new Map(m.contributions.map((c) => [c.feature, c.value]));
+        modelFeatures = FEATURE_NAMES.map((n) => byName.get(n) ?? 0);
       }
     } catch {
       /* model inputs missing: monitoring still stands on its own */
@@ -112,6 +126,10 @@ export async function computeMonitoring(ctx: Ctx, thresholdCents: number | null)
       monitoring,
       modelProbability,
       modelVersion,
+      modelFlagged,
+      modelLinearProbability,
+      modelLinearFlagged,
+      modelFeatures,
     });
   }
   return out;

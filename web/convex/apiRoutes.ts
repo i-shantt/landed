@@ -253,6 +253,21 @@ export function registerApiRoutes(http: HttpRouter) {
     return json({ object: "risk_trend", window: w, as_of: new Date(r.now).toISOString(), data: r.data.map((d) => ({ date: d.date, payments: d.payments, flagged: d.flagged, avg_risk: d.avgRisk, sent_cents: d.sentCents, held_cents: d.heldCents })) });
   }) });
 
+  // ---- model health (score stability, drift vs the training reference, agreement with the baseline) ----
+  http.route({ path: "/api/v1/model/health", method: "GET", handler: route("read", async (ctx) => {
+    const h = await ctx.runQuery(api.monitoring.queries.health, {});
+    return json({
+      object: "model_health", as_of: new Date(h.now).toISOString(), model_version: h.version, linear_version: h.linearVersion,
+      reference: { version: h.referenceVersion, source: h.referenceSource, flagged_rate: h.referenceFlaggedRate },
+      scored: h.scored, with_features: h.withFeatures, min_rows: h.minRows, threshold: h.threshold,
+      flagged_rate: h.flaggedRate, mean_probability: h.meanProbability,
+      agreement: { n: h.agreement.n, spearman: h.agreement.spearman, both_flagged: h.agreement.bothFlagged, trees_only: h.agreement.treesOnly, linear_only: h.agreement.linearOnly, neither: h.agreement.neither, disagreement_rate: h.agreement.disagreementRate },
+      score_stability: h.scoreStability ? { recent_n: h.scoreStability.recentN, earlier_n: h.scoreStability.earlierN, psi: h.scoreStability.psi, status: h.scoreStability.status } : null,
+      score_shift: h.scoreShift,
+      domain_shift: h.domainShift ? { n: h.domainShift.n, drifted: h.domainShift.drifted, moderate: h.domainShift.moderate, features: h.domainShift.features } : null,
+    });
+  }) });
+
   // ---- events (audit feed with cursor) ----
   http.route({ path: "/api/v1/events", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const limit = Math.min(100, Number(url.searchParams.get("limit") ?? 50) || 50);

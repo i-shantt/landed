@@ -4,6 +4,11 @@ import { v } from "convex/values";
 import { now } from "../clock";
 import { getPolicy } from "../controls/policy";
 import { computeMonitoring, computeTrend, computeVendorTrust } from "./evaluate";
+import { modelHealth, type Reference } from "./drift";
+import reference from "../risk/weights/transaction_reference.json";
+import { TRANSACTION_TREES, TRANSACTION_WEIGHTS } from "../risk/model/assessPayment";
+
+const REFERENCE = reference as Reference;
 
 const DAY = 86_400_000;
 
@@ -56,6 +61,28 @@ export const vendorTrust = query({
     const vnd = await ctx.db.get(vendorId);
     if (!vnd) return null;
     return computeVendorTrust(ctx, vnd, await now(ctx));
+  },
+});
+
+/** Health of the shipped model on read: score stability, drift against the training reference, agreement with the baseline. */
+export const health = query({
+  args: {},
+  handler: async (ctx) => {
+    const t = await now(ctx);
+    const policy = await getPolicy(ctx);
+    const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
+    const scored = rows.filter((r) => r.modelProbability !== null);
+    return {
+      now: t,
+      ...modelHealth({
+        rows: scored.map((r) => ({ sentAt: r.sentAt, probability: r.modelProbability as number, linearProbability: r.modelLinearProbability, flagged: r.modelFlagged ?? false, linearFlagged: r.modelLinearFlagged, vector: r.modelFeatures })),
+        reference: REFERENCE,
+        version: TRANSACTION_TREES.version,
+        linearVersion: TRANSACTION_WEIGHTS.version,
+      }),
+      threshold: TRANSACTION_TREES.threshold,
+      windowLimit: 500,
+    };
   },
 });
 
