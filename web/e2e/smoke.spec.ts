@@ -100,6 +100,22 @@ test("/cases keeps its view in the URL: a deep link restores filter, sort and so
   await expect(page).toHaveURL(/sort=newest/);
 });
 
+test("/cases: selecting rows shows the bulk bar with the count and only the actions every selected case accepts", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/cases?source=demo");
+  const all = page.getByLabel("Select all visible cases");
+  await expect(all).toBeEnabled();
+  await all.check();
+  const bar = page.getByRole("region", { name: /bulk actions/i });
+  await expect(bar).toBeVisible();
+  await expect(bar).toContainText(/\d+ selected/);
+  // The seeded demo cases are a human review, a recovery and a closed record: nothing can be escalated or rejected as a set.
+  await expect(bar.getByRole("button", { name: /request human review/i })).toBeDisabled();
+  await expect(bar.getByRole("button", { name: /^reject change$/i })).toBeDisabled();
+  await bar.getByRole("button", { name: /clear selection/i }).click();
+  await expect(bar).toBeHidden();
+});
+
 test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");

@@ -112,3 +112,30 @@ export function isSavedViewActive(view: SavedView, s: QueueState): boolean {
   const keys: (keyof QueueState)[] = ["filter", "sort", "source"];
   return keys.every((k) => (k in view.state ? view.state[k] === s[k] : s[k] === QUEUE_DEFAULTS[k]));
 }
+
+// ---- bulk actions ----
+// The same state sets `cases.requestHumanReview` and `cases.rejectChange` enforce on the server; the client only
+// decides whether to offer the button. A mixed selection gets an action only when every selected case accepts it.
+export const REVIEW_FROM: readonly string[] = ["HELD", "PROBE_SENT", "AWAITING_CONFIRMATION"];
+export const REJECT_FROM: readonly string[] = [...REVIEW_FROM, "NEEDS_HUMAN"];
+export type BulkEligibility = { count: number; requestReview: boolean; rejectChange: boolean; reviewBlockedBy: number; rejectBlockedBy: number };
+export function bulkEligibility(states: readonly string[]): BulkEligibility {
+  const reviewBlockedBy = states.filter((s) => !REVIEW_FROM.includes(s)).length;
+  const rejectBlockedBy = states.filter((s) => !REJECT_FROM.includes(s)).length;
+  return {
+    count: states.length,
+    requestReview: states.length > 0 && reviewBlockedBy === 0,
+    rejectChange: states.length > 0 && rejectBlockedBy === 0,
+    reviewBlockedBy,
+    rejectBlockedBy,
+  };
+}
+export type BulkResult = { id: string; name: string; ok: boolean; error?: string };
+/** One line for the status region after a bulk run: what succeeded, and which rows failed with the server's reason. */
+export function summariseBulk(verb: string, results: readonly BulkResult[]): string {
+  const ok = results.filter((r) => r.ok).length;
+  const failed = results.filter((r) => !r.ok);
+  const head = `${ok} of ${results.length} ${verb}`;
+  if (failed.length === 0) return `${head}.`;
+  return `${head}; ${failed.length} failed: ${failed.map((f) => `${f.name} (${f.error ?? "error"})`).join(", ")}.`;
+}

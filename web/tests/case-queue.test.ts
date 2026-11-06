@@ -90,3 +90,20 @@ describe("queue state in the URL", () => {
     for (const v of SAVED_VIEWS) expect(isSavedViewActive(v, parseQueueParams(new URLSearchParams(queueParamsToSearch({ ...QUEUE_DEFAULTS, ...v.state }))))).toBe(true);
   });
 });
+
+import { bulkEligibility, summariseBulk } from "../lib/case-queue";
+describe("bulk actions on the queue", () => {
+  it("offers an action only when every selected case accepts it, and says how many block it", () => {
+    expect(bulkEligibility(["HELD", "PROBE_SENT", "AWAITING_CONFIRMATION"])).toMatchObject({ count: 3, requestReview: true, rejectChange: true, reviewBlockedBy: 0, rejectBlockedBy: 0 });
+    expect(bulkEligibility(["HELD", "NEEDS_HUMAN"])).toMatchObject({ requestReview: false, rejectChange: true, reviewBlockedBy: 1, rejectBlockedBy: 0 });
+    expect(bulkEligibility(["NEEDS_HUMAN", "RECOVERY", "CLOSED"])).toMatchObject({ requestReview: false, rejectChange: false, reviewBlockedBy: 3, rejectBlockedBy: 2 });
+  });
+  it("an empty selection, or one that is all paid or closed, offers nothing", () => {
+    expect(bulkEligibility([])).toMatchObject({ count: 0, requestReview: false, rejectChange: false });
+    expect(bulkEligibility(["PAID", "LANDED", "VERIFIED"])).toMatchObject({ requestReview: false, rejectChange: false, reviewBlockedBy: 3, rejectBlockedBy: 3 });
+  });
+  it("the summary names each failure with the server's reason", () => {
+    expect(summariseBulk("escalated", [{ id: "a", name: "CleanCo", ok: true }, { id: "b", name: "Bluewater", ok: true }])).toBe("2 of 2 escalated.");
+    expect(summariseBulk("rejected", [{ id: "a", name: "CleanCo", ok: true }, { id: "b", name: "Bluewater", ok: false, error: "cannot_reject_from_RECOVERY" }])).toBe("1 of 2 rejected; 1 failed: Bluewater (cannot_reject_from_RECOVERY).");
+  });
+});

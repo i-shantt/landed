@@ -20,7 +20,9 @@ import {
 } from "lucide-react";
 import { CaseStatusBadge } from "@/components/landed/badges";
 import { Loading } from "@/components/landed/primitives";
-import { useCases, useNow, useRiskForAll, useSettings } from "@/lib/hooks";
+import { useCases, useCaseActions, useNow, useRiskForAll, useSettings } from "@/lib/hooks";
+import { ReasonDialog, errorMessage } from "@/components/landed/ReasonDialog";
+import type { Id } from "@/convex/_generated/dataModel";
 import { RiskBadge } from "@/components/landed/RiskPanel";
 import { usd, absDate, countdown } from "@/lib/format";
 import { triggerLabel, stateLabel } from "@/lib/labels";
@@ -36,6 +38,9 @@ import {
   queueParamsToSearch,
   isSavedViewActive,
   SAVED_VIEWS,
+  bulkEligibility,
+  summariseBulk,
+  type BulkResult,
   type QueueFilter,
   type QueueSort,
   type QueueState,
@@ -95,6 +100,11 @@ function CasesQueue() {
     setUrlQuerySeen(state.query);
     if (query.trim() !== state.query) setQueryInput(state.query);
   }
+  // Bulk actions: a selection over the visible rows; each case goes through the same mutation the case page calls.
+  const { requestReview, rejectChange } = useCaseActions();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDialog, setBulkDialog] = useState<null | "review" | "reject">(null);
+  const [bulkStatus, setBulkStatus] = useState<string | null>(null);
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -124,6 +134,34 @@ function CasesQueue() {
       (source === "demo" ? demoIds.has(c._id) : !demoIds.has(c._id)),
   );
   const rows = selectQueue(scoped, query, filter, sort);
+  const selectedRows = rows.filter((c) => selected.has(c._id));
+  const eligibility = bulkEligibility(selectedRows.map((c) => c.state));
+  const allVisibleSelected = rows.length > 0 && selectedRows.length === rows.length;
+  function toggleAll() {
+    setSelected(allVisibleSelected ? new Set() : new Set(rows.map((c) => c._id)));
+  }
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+  async function runBulk(kind: "review" | "reject", reason: string) {
+    const results: BulkResult[] = [];
+    for (const c of selectedRows) {
+      try {
+        if (kind === "review") await requestReview({ caseId: c._id as Id<"cases">, reason });
+        else await rejectChange({ caseId: c._id as Id<"cases">, reason });
+        results.push({ id: c._id, name: c.vendorName, ok: true });
+      } catch (e) {
+        results.push({ id: c._id, name: c.vendorName, ok: false, error: errorMessage(e) });
+      }
+    }
+    setBulkStatus(summariseBulk(kind === "review" ? "escalated to a human" : "changes rejected", results));
+    setSelected(new Set());
+  }
   const attention = selectQueue(scoped, "", "attention", "priority");
   const blocked = scoped.filter((c) => isBlocked(c.state));
   const closed = scoped.filter((c) => isClosed(c.state));
@@ -319,6 +357,41 @@ function CasesQueue() {
             </div>
           </div>
         </div>
+        {selectedRows.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 border-b bg-amber-50/60 px-4 py-2 text-xs" role="region" aria-label="Bulk actions">
+            <strong>{selectedRows.length} selected</strong>
+            <span className="text-muted-foreground">· {usd(selectedRows.reduce((n, c) => n + c.amountAtStakeCents, 0))} at stake</span>
+            <button
+              type="button"
+              className="ops-button"
+              disabled={!eligibility.requestReview}
+              title={eligibility.requestReview ? "Escalate every selected case to a human" : `${eligibility.reviewBlockedBy} selected case(s) cannot be escalated from their state`}
+              onClick={() => setBulkDialog("review")}
+            >
+              Request human review
+            </button>
+            <button
+              type="button"
+              className="ops-button"
+              disabled={!eligibility.rejectChange}
+              title={eligibility.rejectChange ? "Reject the bank change on every selected case" : `${eligibility.rejectBlockedBy} selected case(s) cannot be rejected from their state`}
+              onClick={() => setBulkDialog("reject")}
+            >
+              Reject change
+            </button>
+            <button type="button" className="ml-auto underline" onClick={() => setSelected(new Set())}>
+              Clear selection
+            </button>
+          </div>
+        )}
+        {bulkStatus && (
+          <p className="border-b px-4 py-2 text-xs text-slate-700" role="status">
+            {bulkStatus}{" "}
+            <button type="button" className="underline" onClick={() => setBulkStatus(null)}>
+              Dismiss
+            </button>
+          </p>
+        )}
         {cases === undefined ? (
           <div className="ops-queue-loading">
             <Loading label="Loading cases…" />
@@ -329,6 +402,18 @@ function CasesQueue() {
               <table className="ops-table">
                 <thead>
                   <tr>
+                    <th className="w-8">
+                      <input
+                        type="checkbox"
+                        aria-label="Select all visible cases"
+                        checked={allVisibleSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = selectedRows.length > 0 && !allVisibleSelected;
+                        }}
+                        onChange={toggleAll}
+                        disabled={rows.length === 0}
+                      />
+                    </th>
                     <th>Vendor</th>
                     <th>Status</th>
                     <th className="ops-hide-small">Risk</th>
@@ -340,7 +425,10 @@ function CasesQueue() {
                 </thead>
                 <tbody>
                   {rows.map((c) => (
-                    <tr key={c._id}>
+                    <tr key={c._id} className={selected.has(c._id) ? "bg-amber-50/40" : undefined}>
+                      <td>
+                        <input type="checkbox" aria-label={`Select case ${c.vendorName}`} checked={selected.has(c._id)} onChange={() => toggleOne(c._id)} />
+                      </td>
                       <td>
                         <Link
                           className="ops-vendor-link"
@@ -542,6 +630,23 @@ function CasesQueue() {
           </Link>
         </section>
       </div>
+      <ReasonDialog
+        open={bulkDialog === "review"}
+        onOpenChange={(o) => !o && setBulkDialog(null)}
+        title={`Request human review for ${selectedRows.length} case${selectedRows.length === 1 ? "" : "s"}`}
+        description="Each case is escalated with this reason under your name; payments to its destination stay blocked. Cases are processed one at a time and any refusal is reported."
+        confirmLabel="Escalate all"
+        onConfirm={(reason) => runBulk("review", reason)}
+      />
+      <ReasonDialog
+        open={bulkDialog === "reject"}
+        onOpenChange={(o) => !o && setBulkDialog(null)}
+        title={`Reject the bank change on ${selectedRows.length} case${selectedRows.length === 1 ? "" : "s"}`}
+        description="The new account is rejected and the invoices return to the account of record on every selected case. Cases are processed one at a time and any refusal is reported."
+        confirmLabel="Reject all"
+        destructive
+        onConfirm={(reason) => runBulk("reject", reason)}
+      />
     </div>
   );
 }
