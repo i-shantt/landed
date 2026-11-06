@@ -78,7 +78,7 @@ Confirmed by `web/tests/security.test.ts` (static) and `web/tests/portalHardenin
 
 ### REST API `/api/v1/*`
 
-Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `write:payments`, `write:vendors`, `files:read`, `webhooks:manage`. `Idempotency-Key` on POST: same key + same body replays the stored response (24 h), same key + different body → 409. Every write calls the same mutation the dashboard calls: `POST /payments` runs `payments.send` and returns 409 with the guard's or policy's reason; `POST /bank-changes` runs `bankAccounts.manualEdit` (new unverified version + case). Typed errors, cursor pagination, OpenAPI 3.1 at `/api/v1/openapi.json` (no key needed for the spec).
+Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `write:payments`, `write:vendors`, `files:read`, `webhooks:manage`. `Idempotency-Key` on POST: same key + same body replays the stored response (24 h), same key + different body → 409. Every write calls the same mutation the dashboard calls: `POST /payments` runs `payments.send` and returns 409 with the guard's or policy's reason; `POST /bank-changes` runs `bankAccounts.manualEdit` (new unverified version + case). Typed errors, cursor pagination, OpenAPI 3.1 at `/api/v1/openapi.json` (no key needed for the spec). The two model routes are `read`-scoped: `GET /model/health` returns aggregates only; `GET /model/labels` returns, per labelled payment, the amount, vendor id, rail, the operator disposition and the 20 scored feature values (ratios, counts, ages), never an account number, a probe amount or free text. Bursts beyond the per-key bucket, including write conflicts on the bucket itself, answer 429 with `retry_after_ms`, never 500.
 
 ## Fixed after review (2026-10-25)
 
