@@ -43,6 +43,11 @@ test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");
   await expect(page.getByRole("heading", { name: /transaction monitoring/i })).toBeVisible();
+  // model health and the operator-feedback summary are computed on read from the same window
+  await expect(page.getByRole("heading", { name: /^model health$/i })).toBeVisible();
+  await expect(page.getByText(/shipped model transaction_gbm-/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^operator feedback$/i })).toBeVisible();
+  await expect(page.getByText("Labelled payments", { exact: true })).toBeVisible();
 });
 
 test("sign out returns to /signin and the session is gone", async ({ page }) => {

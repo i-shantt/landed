@@ -244,6 +244,9 @@ export function useMonitoring() {
 export function useModelHealth() {
   return useQuery(api.monitoring.queries.health, {});
 }
+export function useModelLabels() {
+  return useQuery(api.monitoring.queries.labels, {});
+}
 export function useVendorTrust(vendorId: Id<"vendors">) {
   return useQuery(api.monitoring.queries.vendorTrust, { vendorId });
 }

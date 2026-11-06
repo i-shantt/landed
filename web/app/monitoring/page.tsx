@@ -5,7 +5,7 @@ import { PageHeader, Section, StatCard, EmptyState, Loading } from "@/components
 import { Sparkline } from "@/components/landed/charts";
 import { TrustBadge, TrustComponents } from "@/components/landed/TrustBadge";
 import { ModelBadge } from "@/components/landed/ModelPanel";
-import { useMonitoring, useModelHealth } from "@/lib/hooks";
+import { useMonitoring, useModelHealth, useModelLabels } from "@/lib/hooks";
 import { featureLabel } from "@/components/landed/ModelPanel";
 import { usd, absTime } from "@/lib/format";
 
@@ -76,6 +76,50 @@ function ModelHealthSection() {
       ) : (
         <p className="mt-3 text-xs text-muted-foreground">Per-feature drift appears once {h.minRows} payments have been scored ({h.withFeatures} so far).</p>
       )}
+    </Section>
+  );
+}
+
+type LabelRow = { label: 0 | 1; flagged: boolean | null; rulesFlagged: boolean };
+
+function confusion(rows: LabelRow[], flag: (r: LabelRow) => boolean | null) {
+  let tp = 0, fp = 0, fn = 0, tn = 0, n = 0;
+  for (const r of rows) {
+    const f = flag(r);
+    if (f === null) continue;
+    n++;
+    if (f && r.label === 1) tp++;
+    else if (f && r.label === 0) fp++;
+    else if (!f && r.label === 1) fn++;
+    else tn++;
+  }
+  return { tp, fp, fn, tn, n };
+}
+
+function FeedbackSection() {
+  const l = useModelLabels();
+  if (l === undefined) return null;
+  const s = l.summary;
+  const trees = confusion(l.rows, (r) => r.flagged);
+  const rules = confusion(l.rows, (r) => r.rulesFlagged);
+  const caught = (c: ReturnType<typeof confusion>) => (c.tp + c.fn ? `${c.tp} of ${c.tp + c.fn}` : "—");
+  const alarms = (c: ReturnType<typeof confusion>, none: string) => (c.n ? `${c.fp} false alarm${c.fp === 1 ? "" : "s"} among ${c.fp + c.tn} benign` : none);
+  return (
+    <Section
+      title="Operator feedback"
+      description="Each payment in the window earns a label from what happened after it (rail or attested landing, unconfirmed landing, recovery, fraud report), never from the model. Served with the send-time feature vector as GET /api/v1/model/labels; make -C ml feedback scores the shipped model on it."
+    >
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Labelled payments" value={String(s.labelled)} hint={`${s.pending} still pending in the monitoring window`} />
+        <StatCard
+          label="Suspicious / benign"
+          value={`${s.positives} / ${s.negatives}`}
+          hint={`Fraud reported ${s.bySource.fraud_reported}, recovery ${s.bySource.case_recovery}, unconfirmed ${s.bySource.unconfirmed}; landed ${s.bySource.landed}, attested ${s.bySource.attested_landed}`}
+          tone={s.positives > 0 ? "amber" : undefined}
+        />
+        <StatCard label="Suspicious caught by the model" value={caught(trees)} hint={alarms(trees, "No labelled payment carries a model score yet")} />
+        <StatCard label="Suspicious caught by the rules" value={caught(rules)} hint={alarms(rules, "No labelled payments yet")} />
+      </div>
     </Section>
   );
 }
@@ -204,6 +248,7 @@ export default function MonitoringPage() {
         </div>
       </div>
       <ModelHealthSection />
+      <FeedbackSection />
     </div>
   );
 }
