@@ -211,6 +211,13 @@ export function useScreeningSummary() {
 export function useScreeningPending() {
   return useAuthedQuery(api.screening.screen.pending, {});
 }
+/** Which sanctions list is in force (demo constant or a loaded OFAC list), next refresh, last failure. */
+export function useWatchlistStatus() {
+  return useAuthedQuery(api.screening.watchlistStore.status, {});
+}
+export function useWatchlistActions() {
+  return { refreshNow: useAction(api.screening.watchlistStore.refreshNow) };
+}
 export function useScreeningActions() {
   return { screenVendor: useMutation(api.screening.screen.screenVendor), screenAll: useMutation(api.screening.screen.screenAll), review: useMutation(api.screening.screen.review) };
 }

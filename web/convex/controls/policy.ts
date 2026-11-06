@@ -13,6 +13,7 @@ import { requireActor } from "./actor";
 import { assessCase } from "../risk/assess";
 import { now as clockNow } from "../clock";
 import { evaluateCandidateFor, destinationVerifiedAt } from "../monitoring/evaluate";
+import { loadedWatchlist } from "../screening/listState";
 
 export type Policy = {
   /** Payments at or above this amount need a second, distinct approver. null = off. */
@@ -59,7 +60,8 @@ export type PolicyRefusal =
   | "policy_cooling_off"
   | "policy_velocity_exceeded"
   | "policy_wire_blocked_for_new_account"
-  | "policy_screening_hit";
+  | "policy_screening_hit"
+  | "policy_screening_pending";
 
 export type PolicyDecision = { ok: true; approvalId?: Id<"approvals"> } | { ok: false; reason: PolicyRefusal; detail?: Record<string, unknown> };
 
@@ -132,8 +134,19 @@ export async function evaluatePaymentPolicy(
   const policy = await getPolicy(ctx);
 
   if (policy.blockOnScreeningHit) {
-    const hits = (await ctx.db.query("screenings").withIndex("by_vendor", (q) => q.eq("vendorId", invoice.vendorId)).collect()).filter((s) => s.status === "potential_match" || s.status === "confirmed_match");
+    const rows = await ctx.db.query("screenings").withIndex("by_vendor", (q) => q.eq("vendorId", invoice.vendorId)).collect();
+    const hits = rows.filter((s) => s.status === "potential_match" || s.status === "confirmed_match");
     if (hits.length) return { ok: false, reason: "policy_screening_hit", detail: { screenings: hits.map((h) => h._id) } };
+    // A loaded OFAC list fails closed: no payment until the vendor's current name has been screened against it.
+    const loaded = await loadedWatchlist(ctx);
+    if (loaded) {
+      rows.sort((a, b) => b.screenedAt - a.screenedAt || b._creationTime - a._creationTime);
+      const latest = rows[0];
+      const vendor = await ctx.db.get(invoice.vendorId);
+      if (!latest || latest.listVersion !== loaded.version || (vendor && latest.subject !== vendor.name)) {
+        return { ok: false, reason: "policy_screening_pending", detail: { listVersion: loaded.version, screenedAgainst: latest?.listVersion ?? null } };
+      }
+    }
   }
 
   if (policy.blockWireForFirstPayment && rail === "wire" && destination.firstPaidAt === undefined) {

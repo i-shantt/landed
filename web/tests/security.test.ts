@@ -49,6 +49,20 @@ describe("security surface", () => {
     const hits = Object.entries(src).filter(([, s]) => /status:\s*"(disputed|rejected|superseded|verified|unverified|probing)"/.test(s) && /ctx\.db\.patch/.test(s)).map(([f]) => f).sort();
     expect(hits).toEqual(["bankAccounts.ts", "cases.ts", "probes.ts"]);
   });
+  it("the sanctions-list loader is the only outbound fetch in screening/ and it reaches only the two fixed OFAC export URLs", () => {
+    for (const [f, text] of Object.entries(src)) {
+      if (f.startsWith("screening/") && f !== "screening/watchlistStore.ts") expect(text, f).not.toMatch(/\bfetch\(/);
+    }
+    const loader = src["screening/watchlistStore.ts"];
+    expect((loader.match(/\bfetch\(/g) ?? []).length).toBe(1);
+    expect(loader).toMatch(/export async function fetchExport\(url: string\)[\s\S]*?const res = await fetch\(url,/);
+    const callers = [...loader.matchAll(/fetchExport\(([^)]*)\)/g)].map((m) => m[1]).filter((a) => a !== "url: string");
+    expect(new Set(callers)).toEqual(new Set(["SDN_URL", "ALT_URL"]));
+    expect(loader).toMatch(/const OFAC_EXPORTS = "https:\/\/sanctionslistservice\.ofac\.treas\.gov\/api\/PublicationPreview\/exports\/"/);
+    expect(loader).toMatch(/const SDN_URL = `\$\{OFAC_EXPORTS\}SDN\.CSV`/);
+    expect(loader).toMatch(/const ALT_URL = `\$\{OFAC_EXPORTS\}ALT\.CSV`/);
+  });
+
   it("every public query requires a session (requireActor) unless it is on the documented allowlist", () => {
     // SECURITY.md → Reads. The allowlist is the whole public read surface without a session.
     const allow = new Set([

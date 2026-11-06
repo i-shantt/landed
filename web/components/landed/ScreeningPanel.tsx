@@ -42,7 +42,7 @@ export function ScreeningPanel({ vendorId }: { vendorId: Id<"vendors"> }) {
           onClick={async () => {
             try {
               const r = await screenVendor({ vendorId });
-              setMsg(r.inserted ? `Screened: ${LABEL[r.status]}.` : "No change since the last screening.");
+              setMsg(r.pending ? "Screening against the loaded sanctions list is scheduled; this panel updates when the result lands." : r.inserted ? `Screened: ${LABEL[r.status]}.` : "No change since the last screening.");
             } catch (e) {
               setMsg(errorMessage(e));
             }

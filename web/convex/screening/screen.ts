@@ -6,12 +6,15 @@
 import { mutation, query } from "../_generated/server";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
+import { internal } from "../_generated/api";
 import { v, ConvexError } from "convex/values";
 import { now } from "../clock";
 import { append } from "../events";
+import { getSetting, setSetting } from "../settings";
 import { requireActor } from "../controls/actor";
 import { classify, scoreNames, REPORT_ABOVE, STRONG_MATCH_THRESHOLD, type Classification, type MatchMethod } from "./match";
 import { DEMO_LIST_VERSION, DEMO_WATCHLIST, watchlistNames, type WatchlistEntry } from "./watchlist";
+import { RESCREEN_KEY, loadedWatchlist } from "./listState";
 
 export type ScreenMatch = { entry: string; program: string; score: number; method: MatchMethod };
 
@@ -43,7 +46,7 @@ export function screenName(name: string, opts: { list?: WatchlistEntry[]; listVe
   return { subject: name, listVersion: opts.listVersion ?? DEMO_LIST_VERSION, status: classify(top), strong: top >= STRONG_MATCH_THRESHOLD, matches };
 }
 
-async function latestFor(ctx: QueryCtx | MutationCtx, vendorId: Id<"vendors">): Promise<Doc<"screenings"> | null> {
+export async function latestFor(ctx: QueryCtx | MutationCtx, vendorId: Id<"vendors">): Promise<Doc<"screenings"> | null> {
   const rows = await ctx.db.query("screenings").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect();
   rows.sort((a, b) => b.screenedAt - a.screenedAt || (b._creationTime - a._creationTime));
   return rows[0] ?? null;
@@ -52,16 +55,25 @@ async function latestFor(ctx: QueryCtx | MutationCtx, vendorId: Id<"vendors">): 
 /** Was this screening's automated status resolved by a reviewer? */
 const isReviewed = (s: Doc<"screenings">) => s.status === "confirmed_match" || s.status === "false_positive";
 
+export type RecordedScreening = { screeningId: Id<"screenings">; status: Doc<"screenings">["status"]; inserted: boolean };
+export type EnsureScreenedResult = {
+  screeningId: Id<"screenings"> | null;
+  /** "pending" when a loaded list applies and the vendor's screening against it is scheduled but not recorded yet. */
+  status: Doc<"screenings">["status"] | "pending";
+  inserted: boolean;
+  pending: boolean;
+  listVersion: string;
+};
+
 /**
- * Screen one vendor and record the result. Idempotent per (vendor, listVersion): if the latest row
- * is for the same list version and the fresh result has the same automated status, the existing row
+ * Record one screening result. Idempotent per (vendor, listVersion, subject): if the latest row is for
+ * the same list version and name and the fresh result has the same automated status, the existing row
  * is returned (a reviewed row counts as its original status, so a false_positive is not re-opened by
  * re-running against the same list). A changed status, or a new list version, inserts a new row.
  */
-export async function ensureScreened(ctx: MutationCtx, vendorId: Id<"vendors">): Promise<{ screeningId: Id<"screenings">; status: Doc<"screenings">["status"]; inserted: boolean }> {
+export async function recordResult(ctx: MutationCtx, vendorId: Id<"vendors">, result: { subject: string; listVersion: string; status: Classification; matches: ScreenMatch[] }): Promise<RecordedScreening> {
   const vendor = await ctx.db.get(vendorId);
   if (!vendor) throw new ConvexError("vendor_not_found");
-  const result = screenName(vendor.name);
   const latest = await latestFor(ctx, vendorId);
   if (latest && latest.listVersion === result.listVersion && latest.subject === result.subject) {
     const previousAutomated = latest.status === "clear" ? "clear" : "potential_match";
@@ -86,23 +98,70 @@ export async function ensureScreened(ctx: MutationCtx, vendorId: Id<"vendors">):
   return { screeningId, status: result.status, inserted: true };
 }
 
+/**
+ * With a loaded OFAC list, screening runs in an action (mutations cannot read file storage). One
+ * `rescreen` is scheduled per burst of requests: a flag in settings is set here and cleared when the
+ * action starts, so onboarding twenty vendors books one run, not twenty.
+ */
+export async function scheduleRescreen(ctx: MutationCtx): Promise<boolean> {
+  if ((await getSetting(ctx, RESCREEN_KEY)) !== null) return false;
+  await setSetting(ctx, RESCREEN_KEY, String(Date.now()));
+  await ctx.scheduler.runAfter(0, internal.screening.watchlistStore.rescreen, {});
+  return true;
+}
+
+/**
+ * Screen one vendor against the list in force. Demo list: scored and recorded here. Loaded OFAC list:
+ * the latest row is returned when it is already against that version and name; otherwise a rescreen is
+ * scheduled and the result is `pending` until the action records it.
+ */
+export async function ensureScreened(ctx: MutationCtx, vendorId: Id<"vendors">): Promise<EnsureScreenedResult> {
+  const vendor = await ctx.db.get(vendorId);
+  if (!vendor) throw new ConvexError("vendor_not_found");
+  const loaded = await loadedWatchlist(ctx);
+  if (loaded) {
+    const latest = await latestFor(ctx, vendorId);
+    if (latest && latest.listVersion === loaded.version && latest.subject === vendor.name) {
+      return { screeningId: latest._id, status: latest.status, inserted: false, pending: false, listVersion: loaded.version };
+    }
+    await scheduleRescreen(ctx);
+    return { screeningId: latest?._id ?? null, status: latest?.status ?? "pending", inserted: false, pending: true, listVersion: loaded.version };
+  }
+  const r = await recordResult(ctx, vendorId, screenName(vendor.name));
+  return { ...r, pending: false, listVersion: DEMO_LIST_VERSION };
+}
+
 export const screenVendor = mutation({
   args: { vendorId: v.id("vendors") },
-  handler: async (ctx, { vendorId }) => ensureScreened(ctx, vendorId),
+  handler: async (ctx, { vendorId }): Promise<EnsureScreenedResult> => ensureScreened(ctx, vendorId),
 });
 
 export const screenAll = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ screened: number; potentialMatches: number; listVersion: string; pending: number }> => {
     const vendors = await ctx.db.query("vendors").collect();
+    const loaded = await loadedWatchlist(ctx);
     let screened = 0;
     let potentialMatches = 0;
+    if (loaded) {
+      let pending = 0;
+      for (const vnd of vendors) {
+        const latest = await latestFor(ctx, vnd._id);
+        if (!latest || latest.listVersion !== loaded.version || latest.subject !== vnd.name) pending++;
+        else {
+          screened++;
+          if (latest.status === "potential_match" || latest.status === "confirmed_match") potentialMatches++;
+        }
+      }
+      if (pending > 0) await scheduleRescreen(ctx);
+      return { screened, potentialMatches, listVersion: loaded.version, pending };
+    }
     for (const vnd of vendors) {
       const r = await ensureScreened(ctx, vnd._id);
       screened++;
       if (r.status === "potential_match" || r.status === "confirmed_match") potentialMatches++;
     }
-    return { screened, potentialMatches, listVersion: DEMO_LIST_VERSION };
+    return { screened, potentialMatches, listVersion: DEMO_LIST_VERSION, pending: 0 };
   },
 });
 
@@ -163,19 +222,34 @@ export const summary = query({
       const prev = byVendor.get(s.vendorId);
       if (!prev || s.screenedAt > prev.screenedAt || (s.screenedAt === prev.screenedAt && s._creationTime > prev._creationTime)) byVendor.set(s.vendorId, s);
     }
+    const loaded = await loadedWatchlist(ctx);
     let potentialMatches = 0;
     let confirmed = 0;
     let falsePositives = 0;
     let screenedVendors = 0;
+    // With a loaded list: vendors whose latest screening is against an older list (or none at all).
+    let stale = 0;
     for (const vnd of vendors) {
       const s = byVendor.get(vnd._id);
+      if (loaded && (!s || s.listVersion !== loaded.version || s.subject !== vnd.name)) stale++;
       if (!s) continue;
       screenedVendors++;
       if (s.status === "potential_match") potentialMatches++;
       else if (s.status === "confirmed_match") confirmed++;
       else if (s.status === "false_positive") falsePositives++;
     }
-    return { screenedVendors, unscreened: vendors.length - screenedVendors, potentialMatches, confirmed, falsePositives, listVersion: DEMO_LIST_VERSION, listSize: DEMO_WATCHLIST.length };
+    return {
+      screenedVendors,
+      unscreened: vendors.length - screenedVendors,
+      potentialMatches,
+      confirmed,
+      falsePositives,
+      listVersion: loaded?.version ?? DEMO_LIST_VERSION,
+      listSize: loaded?.entries ?? DEMO_WATCHLIST.length,
+      loaded: loaded !== null,
+      loadedAt: loaded?.loadedAt ?? null,
+      stale,
+    };
   },
 });
 

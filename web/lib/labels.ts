@@ -60,6 +60,11 @@ export const EVENT_LABELS: Record<string, string> = {
   contact_superseded: "Contact superseded",
   record_contact_added: "Contact of record added",
   vendor_onboarded: "Vendor onboarded",
+  vendor_screened: "Vendor screened against the sanctions list",
+  screening_reviewed: "Screening match reviewed",
+  watchlist_loaded: "Sanctions list loaded",
+  watchlist_refresh_failed: "Sanctions list refresh failed",
+  watchlist_refresh_requested: "Sanctions list refresh requested",
   portal_credential_issued: "Portal credential issued",
   eml_ingested: "Email file ingested (.eml)",
   attachment_received:
@@ -187,6 +192,7 @@ export const REFUSAL_LABELS: Record<string, string> = {
   policy_velocity_exceeded: "Company policy: this payment would exceed the daily limit for this vendor.",
   policy_wire_blocked_for_new_account: "Company policy: the first payment to a new account must go by ACH, which can be recalled, not by wire.",
   policy_screening_hit: "Company policy: this vendor has an unresolved sanctions-screening match. Resolve it before paying.",
+  policy_screening_pending: "Company policy: this vendor has not been screened against the current sanctions list yet. Screening is scheduled; it clears on its own once the result is recorded.",
   destination_missing: "Destination account does not exist",
   destination_vendor_mismatch:
     "Destination account belongs to a different vendor",

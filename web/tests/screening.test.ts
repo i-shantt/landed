@@ -173,7 +173,7 @@ describe("screening: Convex functions", () => {
     expect(first.status).toBe("clear");
     expect(first.inserted).toBe(true);
     const again = await t.mutation(api.screening.screen.screenVendor, { vendorId: cleanco });
-    expect(again).toEqual({ screeningId: first.screeningId, status: "clear", inserted: false });
+    expect(again).toEqual({ screeningId: first.screeningId, status: "clear", inserted: false, pending: false, listVersion: DEMO_LIST_VERSION });
     const rows = await t.run(async (ctx) => ctx.db.query("screenings").collect());
     expect(rows.length).toBe(1);
     expect(rows[0]).toMatchObject({ vendorId: cleanco, subject: "CleanCo Facilities", listVersion: DEMO_LIST_VERSION, status: "clear" });
@@ -240,7 +240,7 @@ describe("screening: Convex functions", () => {
     expect(reviewed.payload).toMatchObject({ decision: "false_positive", reviewedBy: approver.operator.name, vendorName: NEAR_MISS_NAME });
     // the resolved row is not re-opened by re-screening against the same list
     const again = await t.mutation(api.screening.screen.screenVendor, { vendorId });
-    expect(again).toEqual({ screeningId, status: "false_positive", inserted: false });
+    expect(again).toEqual({ screeningId, status: "false_positive", inserted: false, pending: false, listVersion: DEMO_LIST_VERSION });
     expect((await clerk.as.query(api.screening.screen.pending, {})).length).toBe(0);
     expect((await clerk.as.query(api.screening.screen.forVendor, { vendorId })).latest).toMatchObject({ reviewedByName: approver.operator.name });
   });

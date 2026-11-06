@@ -18,8 +18,10 @@ import { requireActor } from "./controls/actor";
 const TABLES: TableNames[] = [
   "company", "clock", "vendors", "contacts", "bankAccounts", "messages", "invoices", "cases", "probes",
   "confirmations", "payments", "events", "timers", "packages", "portalCredentials", "portalSessions",
-  "confirmTokens", "simLedger", "settings",
+  "confirmTokens", "simLedger", "settings", "screenings",
 ];
+// Settings under `watchlist:` point at a loaded OFAC list (screening/listState.ts); a demo reset keeps them.
+const keepSetting = (row: { key?: string }) => typeof row.key === "string" && row.key.startsWith("watchlist:");
 // `evalRuns` is intentionally NOT wiped by reset: eval results survive a re-seed so the /eval page keeps the last run.
 
 export const DAY = 86_400_000;
@@ -57,6 +59,7 @@ export const reset = internalMutation({
     for (const table of TABLES) {
       const rows = await ctx.db.query(table).collect();
       for (const r of rows) {
+        if (table === "settings" && keepSetting(r as { key?: string })) continue;
         await ctx.db.delete(r._id);
         deleted++;
       }
