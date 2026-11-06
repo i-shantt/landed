@@ -1,11 +1,12 @@
 // Monitoring read API for the UI and REST layer. Queries only; computed on read, never cached.
-import { query } from "../_generated/server";
+import { internalQuery, query } from "../_generated/server";
+import type { QueryCtx } from "../_generated/server";
 import { v } from "convex/values";
 import { now } from "../clock";
 import { getPolicy } from "../controls/policy";
 import { computeMonitoring, computeTrend, computeVendorTrust } from "./evaluate";
 import { modelHealth, type Reference } from "./drift";
-import type { Doc } from "../_generated/dataModel";
+import type { Doc, Id } from "../_generated/dataModel";
 import { dispositionFor, summariseLabels } from "./labels";
 import { FEATURE_NAMES } from "../risk/model/features";
 import reference from "../risk/weights/transaction_reference.json";
@@ -48,29 +49,27 @@ export const overview = query({
   },
 });
 
-export const trend = query({
-  args: { window: v.union(v.literal("7d"), v.literal("30d")) },
-  handler: async (ctx, { window }) => {
+// Reads are plain functions exposed twice: the public query (workspace) and an internal twin (REST layer, no session).
+const trendArgs = { window: v.union(v.literal("7d"), v.literal("30d")) };
+export async function trendRead(ctx: QueryCtx, { window }: { window: "7d" | "30d" }) {
     const t = await now(ctx);
     const policy = await getPolicy(ctx);
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
     return { window, now: t, data: await computeTrend(ctx, { now: t, days: window === "7d" ? 7 : 30, rows }) };
-  },
-});
+}
+export const trend = query({ args: trendArgs, handler: trendRead });
+export const trendInternal = internalQuery({ args: trendArgs, handler: trendRead });
 
-export const vendorTrust = query({
-  args: { vendorId: v.id("vendors") },
-  handler: async (ctx, { vendorId }) => {
+export async function vendorTrustRead(ctx: QueryCtx, { vendorId }: { vendorId: Id<"vendors"> }) {
     const vnd = await ctx.db.get(vendorId);
     if (!vnd) return null;
     return computeVendorTrust(ctx, vnd, await now(ctx));
-  },
-});
+}
+export const vendorTrust = query({ args: { vendorId: v.id("vendors") }, handler: vendorTrustRead });
+export const vendorTrustInternal = internalQuery({ args: { vendorId: v.id("vendors") }, handler: vendorTrustRead });
 
 /** Health of the shipped model on read: score stability, drift against the training reference, agreement with the baseline. */
-export const health = query({
-  args: {},
-  handler: async (ctx) => {
+export async function healthRead(ctx: QueryCtx) {
     const t = await now(ctx);
     const policy = await getPolicy(ctx);
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
@@ -86,16 +85,15 @@ export const health = query({
       threshold: TRANSACTION_TREES.threshold,
       windowLimit: 500,
     };
-  },
-});
+}
+export const health = query({ args: {}, handler: healthRead });
+export const healthInternal = internalQuery({ args: {}, handler: healthRead });
 
 /**
  * Operator dispositions joined with the feature vector at send time: the retraining export (ml/feedback.py).
  * Labels come from landing state, case outcome and fraud reports, never from the model. Pending payments are counted, not exported.
  */
-export const labels = query({
-  args: {},
-  handler: async (ctx) => {
+export async function labelsRead(ctx: QueryCtx) {
     const t = await now(ctx);
     const policy = await getPolicy(ctx);
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
@@ -125,14 +123,14 @@ export const labels = query({
       });
     }
     return { now: t, featureNames: [...FEATURE_NAMES], summary: summariseLabels(dispositions), rows: out };
-  },
-});
+}
+export const labels = query({ args: {}, handler: labelsRead });
+export const labelsInternal = internalQuery({ args: {}, handler: labelsRead });
 
-export const forPayment = query({
-  args: { paymentId: v.id("payments") },
-  handler: async (ctx, { paymentId }) => {
+export async function forPaymentRead(ctx: QueryCtx, { paymentId }: { paymentId: Id<"payments"> }) {
     const policy = await getPolicy(ctx);
     const rows = await computeMonitoring(ctx, policy.dualApprovalAboveCents);
     return rows.find((r) => r.paymentId === paymentId) ?? null;
-  },
-});
+}
+export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });
+export const forPaymentInternal = internalQuery({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });

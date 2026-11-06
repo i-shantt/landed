@@ -3,6 +3,7 @@
 // retried on a fixed schedule; after the last attempt the delivery is marked exhausted. Payloads are
 // the redacted audit payloads, so probe amounts never leave the server through this path either.
 import { action, internalAction, internalMutation, internalQuery, mutation, query } from "../_generated/server";
+import type { QueryCtx } from "../_generated/server";
 import type { Id } from "../_generated/dataModel";
 import { v, ConvexError } from "convex/values";
 import { internal } from "../_generated/api";
@@ -103,9 +104,7 @@ export const remove = mutation({
   },
 });
 
-export const endpoints = query({
-  args: {},
-  handler: async (ctx) => {
+export async function endpointsRead(ctx: QueryCtx) {
     const rows = await ctx.db.query("webhookEndpoints").collect();
     const out = [];
     for (const e of rows.sort((a, b) => b.createdAt - a.createdAt)) {
@@ -122,8 +121,9 @@ export const endpoints = query({
       });
     }
     return out;
-  },
-});
+}
+export const endpoints = query({ args: {}, handler: endpointsRead });
+export const endpointsInternal = internalQuery({ args: {}, handler: endpointsRead });
 
 export const deliveries = query({
   args: { endpointId: v.optional(v.id("webhookEndpoints")), limit: v.optional(v.number()) },

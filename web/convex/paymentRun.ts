@@ -1,7 +1,7 @@
 // Payment run (additive, read-only evaluation): every open invoice with its destination and the
 // guard's decision, computed with the same pure `canPay` the payment mutation uses. Nothing here
 // writes; "Run payable" on the page calls payments.send per line (human-initiated, sequential).
-import { query } from "./_generated/server";
+import { internalQuery, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import { canPay } from "./guard";
 import { evaluatePaymentPolicy, type PolicyDecision } from "./controls/policy";
@@ -70,6 +70,11 @@ export async function computePaymentRun(ctx: QueryCtx) {
 }
 
 export const preview = query({
+  args: {},
+  handler: async (ctx) => computePaymentRun(ctx),
+});
+/** The same preview for the eval harness (key-authenticated, no session). */
+export const previewInternal = internalQuery({
   args: {},
   handler: async (ctx) => computePaymentRun(ctx),
 });

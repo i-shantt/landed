@@ -1,5 +1,5 @@
 // Inbox simulator. Inserting a message dispatches intake (a hop, not a timer).
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
@@ -112,6 +112,11 @@ export const thread = query({
 });
 
 export const get = query({
+  args: { messageId: v.id("messages") },
+  handler: async (ctx, { messageId }) => ctx.db.get(messageId),
+});
+/** The eval harness reads a message by id with its key, not a session. */
+export const getInternal = internalQuery({
   args: { messageId: v.id("messages") },
   handler: async (ctx, { messageId }) => ctx.db.get(messageId),
 });

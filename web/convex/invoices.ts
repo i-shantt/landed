@@ -1,4 +1,6 @@
-import { query } from "./_generated/server";
+import { internalQuery, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { v } from "convex/values";
 
 export const listForVendor = query({
@@ -6,9 +8,7 @@ export const listForVendor = query({
   handler: async (ctx, { vendorId }) => ctx.db.query("invoices").withIndex("by_vendor", (q) => q.eq("vendorId", vendorId)).collect(),
 });
 
-export const listOpen = query({
-  args: {},
-  handler: async (ctx) => {
+export async function listOpenRead(ctx: QueryCtx) {
     const rows = await ctx.db.query("invoices").collect();
     const open = rows.filter((i) => i.status !== "paid");
     const out = [];
@@ -18,13 +18,15 @@ export const listOpen = query({
       out.push({ ...i, vendorName: vendor?.name ?? "?", remitStatus: acct?.status ?? "missing", remitLast4: acct?.accountLast4 ?? "????" });
     }
     return out.sort((a, b) => a.dueAt - b.dueAt);
-  },
-});
+}
+export const listOpen = query({ args: {}, handler: listOpenRead });
+export const listOpenInternal = internalQuery({ args: {}, handler: listOpenRead });
 
-export const get = query({
-  args: { invoiceId: v.id("invoices") },
-  handler: async (ctx, { invoiceId }) => ctx.db.get(invoiceId),
-});
+export async function getRead(ctx: QueryCtx, { invoiceId }: { invoiceId: Id<"invoices"> }) {
+  return ctx.db.get(invoiceId);
+}
+export const get = query({ args: { invoiceId: v.id("invoices") }, handler: getRead });
+export const getInternal = internalQuery({ args: { invoiceId: v.id("invoices") }, handler: getRead });
 
 export const byNumber = query({
   args: { number: v.string() },

@@ -233,7 +233,7 @@ http.route({ path: "/eval/portalConfirm", method: "POST", handler: httpAction(as
 
 http.route({ path: "/eval/paymentRun", method: "GET", handler: httpAction(async (ctx, req) => {
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
-  return json(await ctx.runQuery(api.paymentRun.preview, {}));
+  return json(await ctx.runQuery(internal.paymentRun.previewInternal, {}));
 }) });
 
 http.route({ path: "/eval/overview", method: "GET", handler: httpAction(async (ctx, req) => {
@@ -273,7 +273,7 @@ http.route({ pathPrefix: "/eval/message/", method: "GET", handler: httpAction(as
   if (!authorized(req)) return json({ error: "unauthorized" }, 401);
   const id = new URL(req.url).pathname.split("/").pop()!;
   try {
-    const m = await ctx.runQuery(api.messages.get, { messageId: id as Id<"messages"> });
+    const m = await ctx.runQuery(internal.messages.getInternal, { messageId: id as Id<"messages"> });
     return m ? json(m) : json({ error: "not_found" }, 404);
   } catch (e) {
     return json({ error: errorPayload(e) }, 400);

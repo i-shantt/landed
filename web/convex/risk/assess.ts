@@ -1,7 +1,7 @@
 // Risk assessment for a case, derived on read from stored facts (additive; nothing is written).
 // `assessCase` is shared by the public query (case page, case list) and by the policy engine,
 // which may require a human sign-off above a configurable score.
-import { query } from "../_generated/server";
+import { internalQuery, query } from "../_generated/server";
 import type { QueryCtx, MutationCtx } from "../_generated/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import { v } from "convex/values";
@@ -81,19 +81,16 @@ async function modelBlock(
   return { payment, text, combinedScore: Math.max(rulesScore, Math.round(100 * p)) };
 }
 
-export const forCase = query({
-  args: { caseId: v.id("cases") },
-  handler: async (ctx, { caseId }) => {
+export async function forCaseRead(ctx: QueryCtx, { caseId }: { caseId: Id<"cases"> }) {
     const c = await ctx.db.get(caseId);
     if (!c) return null;
     return assessCase(ctx, c);
-  },
-});
+}
+export const forCase = query({ args: { caseId: v.id("cases") }, handler: forCaseRead });
+export const forCaseInternal = internalQuery({ args: { caseId: v.id("cases") }, handler: forCaseRead });
 
-/** Score for every case, keyed by id; used by the case queue and the dashboard. */
-export const forAll = query({
-  args: {},
-  handler: async (ctx) => {
+/** Score for every case, keyed by id; used by the case queue, the dashboard and the REST vendor view. */
+export async function forAllRead(ctx: QueryCtx) {
     const rows = await ctx.db.query("cases").collect();
     const out: Record<string, { score: number; tier: RiskAssessment["tier"]; top: string | null }> = {};
     for (const c of rows) {
@@ -101,5 +98,6 @@ export const forAll = query({
       out[c._id as string] = { score: a.score, tier: a.tier, top: a.signals[0]?.title ?? null };
     }
     return out as Record<Id<"cases">, { score: number; tier: RiskAssessment["tier"]; top: string | null }>;
-  },
-});
+}
+export const forAll = query({ args: {}, handler: forAllRead });
+export const forAllInternal = internalQuery({ args: {}, handler: forAllRead });

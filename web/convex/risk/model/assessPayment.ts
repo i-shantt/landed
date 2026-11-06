@@ -1,8 +1,8 @@
 // Model assessment of one candidate (or sent) payment, derived on read. Nothing here writes; the
 // result informs people and the policy threshold and can never release money (tests/modelCannotRelease.test.ts).
-import { query } from "../../_generated/server";
+import { internalQuery, query } from "../../_generated/server";
 import type { QueryCtx, MutationCtx } from "../../_generated/server";
-import type { Doc } from "../../_generated/dataModel";
+import type { Doc, Id } from "../../_generated/dataModel";
 import { v } from "convex/values";
 import transactionWeights from "../weights/transaction_lr.json";
 import treeWeights from "../weights/transaction_gbm.json";
@@ -75,11 +75,10 @@ export async function assessSentPayment(ctx: QueryCtx | MutationCtx, p: Doc<"pay
   return assessPayment(ctx, { invoice: { ...invoice, amountCents: p.amountCents }, destination: dest, at: p.sentAt, rail: p.rail });
 }
 
-export const forPayment = query({
-  args: { paymentId: v.id("payments") },
-  handler: async (ctx, { paymentId }) => {
+export async function forPaymentRead(ctx: QueryCtx, { paymentId }: { paymentId: Id<"payments"> }) {
     const p = await ctx.db.get(paymentId);
     if (!p) return null;
     return assessSentPayment(ctx, p);
-  },
-});
+}
+export const forPayment = query({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });
+export const forPaymentInternal = internalQuery({ args: { paymentId: v.id("payments") }, handler: forPaymentRead });

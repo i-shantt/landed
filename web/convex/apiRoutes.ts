@@ -135,7 +135,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- vendors ----
   http.route({ path: "/api/v1/vendors", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
-    const vendors = await ctx.runQuery(api.vendors.list, {});
+    const vendors = await ctx.runQuery(internal.vendors.listInternal, {});
     return json(page(vendors.map((vnd) => ({ ...vendorOut(vnd), _id: vnd._id as string, account_count: vnd.accountCount, verified_count: vnd.verifiedCount, open_cases: vnd.openCases })), url));
   }) });
   http.route({ path: "/api/v1/vendors", method: "POST", handler: route("write:vendors", async (ctx, _req, key, { body }) => {
@@ -146,21 +146,21 @@ export function registerApiRoutes(http: HttpRouter) {
     if (typeof body.contact_of_record_phone === "string" && body.contact_of_record_phone.trim()) {
       await ctx.runMutation(internal.onboarding.attestRecordContactFromApi, { vendorId, kind: "phone", value: body.contact_of_record_phone.trim(), attestedBy: `api:${key.name}`, reason: String(body.contact_attestation ?? "contact of record supplied at onboarding through the API") });
     }
-    const vnd = await ctx.runQuery(api.vendors.get, { vendorId });
+    const vnd = await ctx.runQuery(internal.vendors.getInternal, { vendorId });
     return json(vnd ? { ...vendorOut(vnd), accounts: vnd.accounts.map(accountOut) } : { id: vendorId, object: "vendor" }, 201);
   }, { idempotent: true }) });
   http.route({ pathPrefix: "/api/v1/vendors/", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const parts = url.pathname.split("/").filter(Boolean); // api v1 vendors :id [trust]
     const id = parts[3];
-    const vnd = await ctx.runQuery(api.vendors.get, { vendorId: id as Id<"vendors"> }).catch(() => null);
+    const vnd = await ctx.runQuery(internal.vendors.getInternal, { vendorId: id as Id<"vendors"> }).catch(() => null);
     if (!vnd) return apiError(404, "not_found", "No such vendor");
     if (parts[4] === "trust") {
-      const tr = await ctx.runQuery(api.monitoring.queries.vendorTrust, { vendorId: id as Id<"vendors"> });
+      const tr = await ctx.runQuery(internal.monitoring.queries.vendorTrustInternal, { vendorId: id as Id<"vendors"> });
       if (!tr) return apiError(404, "not_found", "No such vendor");
       return json({ object: "vendor_trust", vendor_id: id, score: tr.score, band: tr.band, components: tr.components, computed_at: new Date(tr.computedAt).toISOString() });
     }
     if (parts[4]) return apiError(404, "not_found", "Unknown vendor sub-resource");
-    const risk = await ctx.runQuery(api.risk.assess.forAll, {});
+    const risk = await ctx.runQuery(internal.risk.assess.forAllInternal, {});
     return json({
       ...vendorOut(vnd),
       accounts: vnd.accounts.map(accountOut),
@@ -197,7 +197,7 @@ export function registerApiRoutes(http: HttpRouter) {
       return json({ object: "list", data: evs.map((e) => ({ id: `evt_${e._id}`, object: "event", type: e.type, actor: e.actor, created: Math.floor(e.at / 1000), data: { object: e.payload } })), has_more: false });
     }
     if (sub === "risk") {
-      const r = await ctx.runQuery(api.risk.assess.forCase, { caseId }).catch(() => null);
+      const r = await ctx.runQuery(internal.risk.assess.forCaseInternal, { caseId }).catch(() => null);
       return r ? json({ object: "risk_assessment", case_id: caseId, ...r }) : apiError(404, "not_found", "No such case");
     }
     const c = await ctx.runQuery(api.cases.get, { caseId: id as Id<"cases"> }).catch(() => null);
@@ -207,7 +207,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- invoices ----
   http.route({ path: "/api/v1/invoices", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
-    const rows = await ctx.runQuery(api.invoices.listOpen, {});
+    const rows = await ctx.runQuery(internal.invoices.listOpenInternal, {});
     return json(page(rows.map((i) => ({ ...invoiceOut(i), _id: i._id as string, vendor_name: (i as { vendorName?: string }).vendorName })), url));
   }) });
   http.route({ path: "/api/v1/invoices", method: "POST", handler: route("write:changes", async (ctx, _req, key, { body }) => {
@@ -217,7 +217,7 @@ export function registerApiRoutes(http: HttpRouter) {
     if (!vendorId || !number || !Number.isInteger(amountCents) || amountCents <= 0) return apiError(400, "invalid_request", "vendor_id, number and a positive integer amount_cents are required");
     const dueInDays = Number(body.due_in_days ?? 30);
     const res = await ctx.runMutation(internal.api.mutations.createInvoice, { vendorId: vendorId as Id<"vendors">, number, amountCents, dueInDays: Number.isFinite(dueInDays) ? dueInDays : 30, createdBy: `api:${key.name}` });
-    const inv = await ctx.runQuery(api.invoices.get, { invoiceId: res.invoiceId });
+    const inv = await ctx.runQuery(internal.invoices.getInternal, { invoiceId: res.invoiceId });
     return json(inv ? { ...invoiceOut(inv), created_by: `api:${key.name}` } : { id: res.invoiceId, object: "invoice" }, res.created ? 201 : 200);
   }, { idempotent: true }) });
 
@@ -244,12 +244,12 @@ export function registerApiRoutes(http: HttpRouter) {
     const row = rows.find((x) => x._id === paymentId);
     if (!row) return apiError(404, "not_found", "No such payment");
     if (parts[4] === "monitoring") {
-      const m = await ctx.runQuery(api.monitoring.queries.forPayment, { paymentId });
+      const m = await ctx.runQuery(internal.monitoring.queries.forPaymentInternal, { paymentId });
       if (!m) return apiError(404, "not_found", "No such payment");
       return json({ object: "payment_monitoring", payment_id: paymentId, flag_score: m.monitoring.flagScore, flagged: m.monitoring.flagged, signals: m.monitoring.signals, checked: m.monitoring.checked, model_probability: m.modelProbability, model_version: m.modelVersion });
     }
     if (parts[4] === "risk") {
-      const r = await ctx.runQuery(api.risk.model.assessPayment.forPayment, { paymentId }).catch(() => null);
+      const r = await ctx.runQuery(internal.risk.model.assessPayment.forPaymentInternal, { paymentId }).catch(() => null);
       if (!r) return apiError(404, "not_found", "No such payment");
       return json({ object: "payment_risk", payment_id: paymentId, model_version: r.version, model_family: r.family, probability: r.probability, score: r.score, flagged: r.flagged, threshold: r.threshold, contributions: r.contributions.map((k) => ({ feature: k.feature, value: k.value, contribution: k.contribution })), linear_baseline: { model_version: r.linear.version, probability: r.linear.probability } });
     }
@@ -261,13 +261,13 @@ export function registerApiRoutes(http: HttpRouter) {
   http.route({ path: "/api/v1/risk/trend", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const w = url.searchParams.get("window") ?? "7d";
     if (w !== "7d" && w !== "30d") return apiError(400, "invalid_request", "window must be 7d or 30d");
-    const r = await ctx.runQuery(api.monitoring.queries.trend, { window: w });
+    const r = await ctx.runQuery(internal.monitoring.queries.trendInternal, { window: w });
     return json({ object: "risk_trend", window: w, as_of: new Date(r.now).toISOString(), data: r.data.map((d) => ({ date: d.date, payments: d.payments, flagged: d.flagged, avg_risk: d.avgRisk, sent_cents: d.sentCents, held_cents: d.heldCents })) });
   }) });
 
   // ---- model health (score stability, drift vs the training reference, agreement with the baseline) ----
   http.route({ path: "/api/v1/model/health", method: "GET", handler: route("read", async (ctx) => {
-    const h = await ctx.runQuery(api.monitoring.queries.health, {});
+    const h = await ctx.runQuery(internal.monitoring.queries.healthInternal, {});
     return json({
       object: "model_health", as_of: new Date(h.now).toISOString(), model_version: h.version, linear_version: h.linearVersion,
       reference: { version: h.referenceVersion, source: h.referenceSource, flagged_rate: h.referenceFlaggedRate },
@@ -282,7 +282,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- labels: operator dispositions joined with the feature vector at send time (retraining export) ----
   http.route({ path: "/api/v1/model/labels", method: "GET", handler: route("read", async (ctx) => {
-    const l = await ctx.runQuery(api.monitoring.queries.labels, {});
+    const l = await ctx.runQuery(internal.monitoring.queries.labelsInternal, {});
     return json({
       object: "list", as_of: new Date(l.now).toISOString(), feature_names: l.featureNames, summary: l.summary,
       data: l.rows.map((r) => ({
@@ -299,7 +299,7 @@ export function registerApiRoutes(http: HttpRouter) {
   http.route({ path: "/api/v1/events", method: "GET", handler: route("read", async (ctx, _req, _key, { url }) => {
     const limit = Math.min(100, Number(url.searchParams.get("limit") ?? 50) || 50);
     const type = url.searchParams.get("type");
-    const r = await ctx.runQuery(api.audit.events, { type: type ?? undefined, limit: 2000 });
+    const r = await ctx.runQuery(internal.audit.eventsInternal, { type: type ?? undefined, limit: 2000 });
     const rows = r.events.slice().reverse().map((e) => ({ _id: `evt_${e._id}`, id: `evt_${e._id}`, object: "event", type: e.type, actor: e.actor, created: Math.floor(e.at / 1000), case_id: e.caseId, vendor_name: e.vendorName, data: { object: e.payload } }));
     const u = new URL(url.toString());
     u.searchParams.set("limit", String(limit));
@@ -308,7 +308,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- payment files (full file, server-side only otherwise) ----
   http.route({ path: "/api/v1/payment-files", method: "GET", handler: route("files:read", async (ctx, _req, _key, { url }) => {
-    const rows = await ctx.runQuery(api.exports.paymentFiles.list, {});
+    const rows = await ctx.runQuery(internal.exports.paymentFiles.listInternal, {});
     return json(page(rows.map((f) => ({ _id: f._id as string, id: f._id, object: "payment_file", format: f.format, created_at: new Date(f.createdAt).toISOString(), created_by: f.createdBy, entry_count: f.entryCount, total_cents: f.totalCents, sha256: f.sha256 })), url));
   }) });
   http.route({ pathPrefix: "/api/v1/payment-files/", method: "GET", handler: route("files:read", async (ctx, _req, _key, { id }) => {
@@ -322,7 +322,7 @@ export function registerApiRoutes(http: HttpRouter) {
 
   // ---- webhook endpoints (management through the API, same rules as the dashboard) ----
   http.route({ path: "/api/v1/webhook-endpoints", method: "GET", handler: route("webhooks:manage", async (ctx) => {
-    const rows = await ctx.runQuery(api.webhooks.dispatch.endpoints, {});
+    const rows = await ctx.runQuery(internal.webhooks.dispatch.endpointsInternal, {});
     return json({ object: "list", data: rows.map((e) => ({ id: e._id, object: "webhook_endpoint", url: e.url, description: e.description, event_types: e.eventTypes, active: e.active, created_at: new Date(e.createdAt).toISOString(), stats: e.stats })), has_more: false });
   }) });
 

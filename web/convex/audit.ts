@@ -1,13 +1,14 @@
 // Auditor view (additive, read-only): every event across all cases with filters, plus a hash chain
 // recomputed on read (SHA-256 over `prev || at || actor || type || canonical payload`). `events`
 // is never modified; the chain is a property of the stored order.
-import { action, query } from "./_generated/server";
-import { v } from "convex/values";
+import { action, internalQuery, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
+import { v, type ObjectType } from "convex/values";
 import { api } from "./_generated/api";
 
-export const events = query({
-  args: { vendorId: v.optional(v.id("vendors")), caseId: v.optional(v.id("cases")), actor: v.optional(v.string()), type: v.optional(v.string()), from: v.optional(v.number()), to: v.optional(v.number()), limit: v.optional(v.number()) },
-  handler: async (ctx, a) => {
+const eventsArgs = { vendorId: v.optional(v.id("vendors")), caseId: v.optional(v.id("cases")), actor: v.optional(v.string()), type: v.optional(v.string()), from: v.optional(v.number()), to: v.optional(v.number()), limit: v.optional(v.number()) };
+
+export async function eventsRead(ctx: QueryCtx, a: ObjectType<typeof eventsArgs>) {
     let rows = a.caseId ? await ctx.db.query("events").withIndex("by_case", (q) => q.eq("caseId", a.caseId!)).collect() : await ctx.db.query("events").collect();
     const caseVendor = new Map<string, string>();
     if (a.vendorId) {
@@ -29,8 +30,9 @@ export const events = query({
     }
     const limit = a.limit ?? 2000;
     return { total: rows.length, events: rows.slice(-limit).map((e) => ({ _id: e._id, at: e.at, actor: e.actor, type: e.type, caseId: e.caseId ?? null, vendorName: e.caseId ? caseVendor.get(e.caseId as string) ?? null : null, payload: e.payload })) };
-  },
-});
+}
+export const events = query({ args: eventsArgs, handler: eventsRead });
+export const eventsInternal = internalQuery({ args: eventsArgs, handler: eventsRead });
 
 export function canonical(v: unknown): string {
   if (v === null || typeof v !== "object") return JSON.stringify(v);

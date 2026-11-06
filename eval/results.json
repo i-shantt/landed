@@ -2,8 +2,8 @@
   {
     "scenarioId": "compromised_inbox_01",
     "family": "compromised_inbox",
-    "startedAt": 1793933485437,
-    "finishedAt": 1793933497871,
+    "startedAt": 1793942493098,
+    "finishedAt": 1793942509279,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -20,11 +20,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 2340,
+      "time_to_hold_ms": 2422,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 12434,
+      "wall_ms": 16180,
       "extractor_off": false
     },
     "log": [
@@ -37,8 +37,8 @@
   {
     "scenarioId": "compromised_inbox_01__off",
     "family": "compromised_inbox",
-    "startedAt": 1793933497872,
-    "finishedAt": 1793933507298,
+    "startedAt": 1793942509279,
+    "finishedAt": 1793942522205,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -55,15 +55,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 169,
+      "time_to_hold_ms": 170,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9426,
+      "wall_ms": 12925,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j97be940xspb9a7phatm1xbsz98hpehh reused=False",
+      "manual_edit -> case j97dkmsp03k7rc2x8ft7xm88t58hpz5h reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -72,8 +72,8 @@
   {
     "scenarioId": "compromised_inbox_02",
     "family": "compromised_inbox",
-    "startedAt": 1793933507298,
-    "finishedAt": 1793933518836,
+    "startedAt": 1793942522205,
+    "finishedAt": 1793942535191,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -90,11 +90,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 2342,
+      "time_to_hold_ms": 3634,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 11538,
+      "wall_ms": 12985,
       "extractor_off": false
     },
     "log": [
@@ -107,8 +107,8 @@
   {
     "scenarioId": "compromised_inbox_02__off",
     "family": "compromised_inbox",
-    "startedAt": 1793933518836,
-    "finishedAt": 1793933528347,
+    "startedAt": 1793942535191,
+    "finishedAt": 1793942544743,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -125,15 +125,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 163,
+      "time_to_hold_ms": 174,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9511,
+      "wall_ms": 9551,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j976v2x2d1crwvaa9s541a42nd8hq6dh reused=False",
+      "manual_edit -> case j976vbv1ed5fqpn3nv020wc8bn8hqrp1 reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -142,8 +142,8 @@
   {
     "scenarioId": "compromised_inbox_03",
     "family": "compromised_inbox",
-    "startedAt": 1793933528347,
-    "finishedAt": 1793933538644,
+    "startedAt": 1793942544743,
+    "finishedAt": 1793942554796,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -160,11 +160,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 892,
+      "time_to_hold_ms": 863,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10296,
+      "wall_ms": 10053,
       "extractor_off": false
     },
     "log": [
@@ -177,8 +177,8 @@
   {
     "scenarioId": "compromised_inbox_03__off",
     "family": "compromised_inbox",
-    "startedAt": 1793933538644,
-    "finishedAt": 1793933548076,
+    "startedAt": 1793942554796,
+    "finishedAt": 1793942564436,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -195,15 +195,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 176,
+      "time_to_hold_ms": 167,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9431,
+      "wall_ms": 9640,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j975m9c4yfw66rhm5n9w21txed8hpjsn reused=False",
+      "manual_edit -> case j975pnnqxzq9adgrhdk7cxb6818hqxgr reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -212,8 +212,8 @@
   {
     "scenarioId": "compromised_inbox_04",
     "family": "compromised_inbox",
-    "startedAt": 1793933548076,
-    "finishedAt": 1793933560786,
+    "startedAt": 1793942564436,
+    "finishedAt": 1793942577248,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -230,11 +230,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 885,
+      "time_to_hold_ms": 866,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 12710,
+      "wall_ms": 12812,
       "extractor_off": false
     },
     "log": [
@@ -248,8 +248,8 @@
   {
     "scenarioId": "compromised_inbox_04__off",
     "family": "compromised_inbox",
-    "startedAt": 1793933560787,
-    "finishedAt": 1793933570244,
+    "startedAt": 1793942577248,
+    "finishedAt": 1793942586790,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -266,15 +266,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 171,
+      "time_to_hold_ms": 216,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9457,
+      "wall_ms": 9542,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j977673aqyjtevwk3tyxtbd9qn8hq7fh reused=False",
+      "manual_edit -> case j970zm73bez54536e32d6rwsks8hq50z reused=False",
       "advance_to availability",
       "inject skipped (extractor off)",
       "expect_confirmation skipped (extractor off)",
@@ -285,8 +285,8 @@
   {
     "scenarioId": "compromised_inbox_05",
     "family": "compromised_inbox",
-    "startedAt": 1793933570244,
-    "finishedAt": 1793933580196,
+    "startedAt": 1793942586790,
+    "finishedAt": 1793942596642,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -303,11 +303,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 900,
+      "time_to_hold_ms": 883,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9952,
+      "wall_ms": 9851,
       "extractor_off": false
     },
     "log": [
@@ -318,8 +318,8 @@
   {
     "scenarioId": "compromised_inbox_05__off",
     "family": "compromised_inbox",
-    "startedAt": 1793933580196,
-    "finishedAt": 1793933589197,
+    "startedAt": 1793942596642,
+    "finishedAt": 1793942606033,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -336,23 +336,23 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 169,
+      "time_to_hold_ms": 168,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9000,
+      "wall_ms": 9391,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j978zwy5yvzdcbd97cazvykw018hqxmr reused=False",
+      "manual_edit -> case j97cysf8kx63ha2wz5v54zsg6x8hpdjz reused=False",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
     ]
   },
   {
     "scenarioId": "judge_01_legit_insistent",
     "family": "judge",
-    "startedAt": 1793933589197,
-    "finishedAt": 1793933601254,
+    "startedAt": 1793942606033,
+    "finishedAt": 1793942618563,
     "expected": {
       "final_state": "PAID",
       "payments_created": 1,
@@ -370,11 +370,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 923,
-      "time_to_release_demo_ms": 67013425,
+      "time_to_hold_ms": 1049,
+      "time_to_release_demo_ms": 57996624,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 12057,
+      "wall_ms": 12529,
       "extractor_off": false
     },
     "log": [
@@ -382,14 +382,14 @@
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd73x1wngb87r6002tn8kdp11d8hpr4x'}"
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd7ez2xdhzy2pn34xw6rtfet1s8hq67r'}"
     ]
   },
   {
     "scenarioId": "judge_01_legit_insistent__off",
     "family": "judge",
-    "startedAt": 1793933601255,
-    "finishedAt": 1793933612781,
+    "startedAt": 1793942618563,
+    "finishedAt": 1793942630228,
     "expected": {
       "final_state": "PAID",
       "payments_created": 1,
@@ -407,26 +407,26 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 174,
-      "time_to_release_demo_ms": 67001537,
+      "time_to_hold_ms": 205,
+      "time_to_release_demo_ms": 57984213,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 11526,
+      "wall_ms": 11664,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j9709vb7tqbky2smxdx570rac98hpxad reused=False",
+      "manual_edit -> case j97bn0489s43tw775mqnnh7nch8hp2ym reused=False",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd77p477emn61k3n286meht1jn8hq2qc'}"
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd78x1dy81mcg56zjd3ww79wy98hpz7b'}"
     ]
   },
   {
     "scenarioId": "judge_02_bank_letter_pdf",
     "family": "judge",
-    "startedAt": 1793933612781,
-    "finishedAt": 1793933622961,
+    "startedAt": 1793942630228,
+    "finishedAt": 1793942640737,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -443,11 +443,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 1103,
+      "time_to_hold_ms": 1162,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10179,
+      "wall_ms": 10508,
       "extractor_off": false
     },
     "log": [
@@ -460,8 +460,8 @@
   {
     "scenarioId": "judge_02_bank_letter_pdf__off",
     "family": "judge",
-    "startedAt": 1793933622961,
-    "finishedAt": 1793933632384,
+    "startedAt": 1793942640737,
+    "finishedAt": 1793942650160,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -478,7 +478,7 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 219,
+      "time_to_hold_ms": 165,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
@@ -486,7 +486,7 @@
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j977smqbyhgg6qp02nrhraz1698hqpzc reused=False",
+      "manual_edit -> case j97az7v52ztzsda98sdnshed918hqq6e reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -495,8 +495,8 @@
   {
     "scenarioId": "judge_03_bank_and_phone",
     "family": "judge",
-    "startedAt": 1793933632384,
-    "finishedAt": 1793933637858,
+    "startedAt": 1793942650161,
+    "finishedAt": 1793942655943,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -513,11 +513,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 908,
+      "time_to_hold_ms": 902,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 5473,
+      "wall_ms": 5782,
       "extractor_off": false
     },
     "log": [
@@ -528,8 +528,8 @@
   {
     "scenarioId": "judge_04_vendor_silent_two_days",
     "family": "judge",
-    "startedAt": 1793933637858,
-    "finishedAt": 1793933650236,
+    "startedAt": 1793942655943,
+    "finishedAt": 1793942668508,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -546,11 +546,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 925,
+      "time_to_hold_ms": 914,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 12377,
+      "wall_ms": 12565,
       "extractor_off": false
     },
     "log": [
@@ -563,8 +563,8 @@
   {
     "scenarioId": "judge_04_vendor_silent_two_days__off",
     "family": "judge",
-    "startedAt": 1793933650236,
-    "finishedAt": 1793933661744,
+    "startedAt": 1793942668508,
+    "finishedAt": 1793942680560,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -581,15 +581,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 182,
+      "time_to_hold_ms": 160,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 11507,
+      "wall_ms": 12052,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j976d0ykyd7711w5xzz00yb7ks8hpc65 reused=False",
+      "manual_edit -> case j976hhc2gywkjfa8fcg8kagh3s8hqxgr reused=False",
       "advance_to availability",
       "vendor_statement voicemail -> {'ok': True, 'accepted': False, 'delivered': True, 'rejectReason': 'no_answer'}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -598,8 +598,8 @@
   {
     "scenarioId": "judge_05_wrong_vendor_similar_name",
     "family": "judge",
-    "startedAt": 1793933661744,
-    "finishedAt": 1793933664671,
+    "startedAt": 1793942680560,
+    "finishedAt": 1793942683578,
     "expected": {
       "final_state": null,
       "payments_created": 0
@@ -619,19 +619,19 @@
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 2927,
+      "wall_ms": 3017,
       "extractor_off": false
     },
     "log": [
-      "craft_invoice -> k17ffsj94jtcrf7bf1x8ct83g98hqafz",
+      "craft_invoice -> k1714de2kkjj4141f8shdv525x8hp0xb",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_vendor_mismatch'}"
     ]
   },
   {
     "scenarioId": "legit_01",
     "family": "legit",
-    "startedAt": 1793933664671,
-    "finishedAt": 1793933679949,
+    "startedAt": 1793942683578,
+    "finishedAt": 1793942699040,
     "expected": {
       "final_state": "CLOSED",
       "payments_created": 1,
@@ -649,18 +649,18 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 921,
-      "time_to_release_demo_ms": 66937987,
+      "time_to_hold_ms": 887,
+      "time_to_release_demo_ms": 57918770,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 15277,
+      "wall_ms": 15461,
       "extractor_off": false
     },
     "log": [
       "inject -> case_opened mode=rules changed=True",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd75qf73xb5dse9m60vc0e325x8hqevj'}",
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd70p9fx0dbbxj4pxnxp85qqah8hp92m'}",
       "advance_to landing_check",
       "landing_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}"
     ]
@@ -668,8 +668,8 @@
   {
     "scenarioId": "legit_02",
     "family": "legit",
-    "startedAt": 1793933679949,
-    "finishedAt": 1793933695418,
+    "startedAt": 1793942699040,
+    "finishedAt": 1793942714663,
     "expected": {
       "final_state": "CLOSED",
       "payments_created": 1,
@@ -687,18 +687,18 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 895,
-      "time_to_release_demo_ms": 66923113,
+      "time_to_hold_ms": 1020,
+      "time_to_release_demo_ms": 57903912,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 15468,
+      "wall_ms": 15622,
       "extractor_off": false
     },
     "log": [
       "inject -> case_opened mode=rules changed=True",
       "advance_to availability",
       "portal_confirm correct -> {'attemptsLeft': 2, 'ok': True, 'verified': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd72vp3w8bm0sdw3t0a82g2tzd8hpg1v'}",
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd7cf24jkam1kdzyawk6tjjsx58hqf7f'}",
       "advance_to landing_check",
       "landing_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}"
     ]
@@ -706,8 +706,8 @@
   {
     "scenarioId": "legit_03",
     "family": "legit",
-    "startedAt": 1793933695418,
-    "finishedAt": 1793933714519,
+    "startedAt": 1793942714663,
+    "finishedAt": 1793942734016,
     "expected": {
       "final_state": "CLOSED",
       "payments_created": 1,
@@ -725,11 +725,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 912,
-      "time_to_release_demo_ms": 74110810,
+      "time_to_hold_ms": 902,
+      "time_to_release_demo_ms": 65091877,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 19100,
+      "wall_ms": 19352,
       "extractor_off": false
     },
     "log": [
@@ -737,7 +737,7 @@
       "advance_to availability",
       "vendor_statement voicemail -> {'ok': True, 'accepted': False, 'delivered': True, 'rejectReason': 'no_answer'}",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd75sarm1wq9sp681j0smrr4mh8hp6sk'}",
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd7e6j5f9nb0mfd1khzdad2n4d8hpna6'}",
       "advance_to landing_check",
       "landing_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}"
     ]
@@ -745,8 +745,8 @@
   {
     "scenarioId": "legit_04",
     "family": "legit",
-    "startedAt": 1793933714519,
-    "finishedAt": 1793933739234,
+    "startedAt": 1793942734016,
+    "finishedAt": 1793942761914,
     "expected": {
       "final_state": "VERIFIED",
       "payments_created": 1,
@@ -764,18 +764,18 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 969,
-      "time_to_release_demo_ms": 79190084,
+      "time_to_hold_ms": 934,
+      "time_to_release_demo_ms": 79190317,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 24714,
+      "wall_ms": 27897,
       "extractor_off": false
     },
     "log": [
       "inject -> case_opened mode=rules changed=True",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd79pvhaqrdarzrah46z1yv85n8hqas2'}",
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd7d22hkxfmzq9fkzvahcaz4dn8hpbyq'}",
       "advance_to landing_check",
       "landing_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
       "inject -> case_opened mode=rules changed=True",
@@ -786,8 +786,8 @@
   {
     "scenarioId": "legit_05",
     "family": "legit",
-    "startedAt": 1793933739234,
-    "finishedAt": 1793933754233,
+    "startedAt": 1793942761914,
+    "finishedAt": 1793942777314,
     "expected": {
       "final_state": "CLOSED",
       "payments_created": 1,
@@ -805,18 +805,18 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 965,
-      "time_to_release_demo_ms": 66863367,
+      "time_to_hold_ms": 920,
+      "time_to_release_demo_ms": 57840686,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 14999,
+      "wall_ms": 15400,
       "extractor_off": false
     },
     "log": [
       "inject -> case_opened mode=rules changed=True",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd7b834fzhzdq53wevfs3re5vn8hpwgq'}",
+      "pay -> {'duplicate': False, 'ok': True, 'paymentId': 'kd786w6701fy2rmwk3ecn6g4gx8hqc09'}",
       "advance_to landing_check",
       "landing_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}"
     ]
@@ -824,8 +824,8 @@
   {
     "scenarioId": "lookalike_01",
     "family": "lookalike",
-    "startedAt": 1793933754234,
-    "finishedAt": 1793933764617,
+    "startedAt": 1793942777314,
+    "finishedAt": 1793942787681,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -842,11 +842,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 924,
+      "time_to_hold_ms": 860,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10382,
+      "wall_ms": 10367,
       "extractor_off": false
     },
     "log": [
@@ -859,8 +859,8 @@
   {
     "scenarioId": "lookalike_01__off",
     "family": "lookalike",
-    "startedAt": 1793933764617,
-    "finishedAt": 1793933774190,
+    "startedAt": 1793942787682,
+    "finishedAt": 1793942797498,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -877,15 +877,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 179,
+      "time_to_hold_ms": 214,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9573,
+      "wall_ms": 9816,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j978dac5ggtng6srtndnqjezb98hqwbr reused=False",
+      "manual_edit -> case j97fam4jhbpy5g6wsj9ctzxvx18hpsc6 reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -894,8 +894,8 @@
   {
     "scenarioId": "lookalike_02",
     "family": "lookalike",
-    "startedAt": 1793933774190,
-    "finishedAt": 1793933784538,
+    "startedAt": 1793942797498,
+    "finishedAt": 1793942808248,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -912,11 +912,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 918,
+      "time_to_hold_ms": 888,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10348,
+      "wall_ms": 10750,
       "extractor_off": false
     },
     "log": [
@@ -929,8 +929,8 @@
   {
     "scenarioId": "lookalike_02__off",
     "family": "lookalike",
-    "startedAt": 1793933784538,
-    "finishedAt": 1793933794137,
+    "startedAt": 1793942808248,
+    "finishedAt": 1793942817812,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -947,15 +947,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 182,
+      "time_to_hold_ms": 177,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9598,
+      "wall_ms": 9564,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j975atb3axe9wygsewcnx9qe3x8hqwh8 reused=False",
+      "manual_edit -> case j974jr9tc31s9x8rawhzbp52ks8hpyv9 reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -964,8 +964,8 @@
   {
     "scenarioId": "lookalike_03",
     "family": "lookalike",
-    "startedAt": 1793933794137,
-    "finishedAt": 1793933804485,
+    "startedAt": 1793942817812,
+    "finishedAt": 1793942828314,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -982,11 +982,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 979,
+      "time_to_hold_ms": 928,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10348,
+      "wall_ms": 10502,
       "extractor_off": false
     },
     "log": [
@@ -999,8 +999,8 @@
   {
     "scenarioId": "lookalike_03__off",
     "family": "lookalike",
-    "startedAt": 1793933804485,
-    "finishedAt": 1793933814111,
+    "startedAt": 1793942828314,
+    "finishedAt": 1793942838372,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1017,15 +1017,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 209,
+      "time_to_hold_ms": 282,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9625,
+      "wall_ms": 10057,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j971wt655v3edrqcwyh3yqkzg98hpsg5 reused=False",
+      "manual_edit -> case j97f6d6s7ddv1bqv27e4pvjr9h8hq1bk reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -1034,8 +1034,8 @@
   {
     "scenarioId": "lookalike_04",
     "family": "lookalike",
-    "startedAt": 1793933814111,
-    "finishedAt": 1793933827011,
+    "startedAt": 1793942838372,
+    "finishedAt": 1793942851247,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1056,11 +1056,11 @@
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 12900,
+      "wall_ms": 12875,
       "extractor_off": false
     },
     "log": [
-      "create_vendor -> m973gbrfmjy21k8myncdw55pd18hq42m case=j97bm4rbm6qg1vaq0hmkp6dx9d8hq0fb",
+      "create_vendor -> m9767nj9j2wmg5gwj94903kqdx8hqzta case=j973a1rg47cdn6wnfp5p8bxsq98hqaa8",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}",
       "advance_to availability",
       "advance_to sla",
@@ -1070,8 +1070,8 @@
   {
     "scenarioId": "lookalike_05",
     "family": "lookalike",
-    "startedAt": 1793933827011,
-    "finishedAt": 1793933837299,
+    "startedAt": 1793942851247,
+    "finishedAt": 1793942861342,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1088,11 +1088,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 919,
+      "time_to_hold_ms": 917,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10287,
+      "wall_ms": 10094,
       "extractor_off": false
     },
     "log": [
@@ -1103,8 +1103,8 @@
   {
     "scenarioId": "lookalike_05__off",
     "family": "lookalike",
-    "startedAt": 1793933837299,
-    "finishedAt": 1793933846690,
+    "startedAt": 1793942861342,
+    "finishedAt": 1793942872469,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1121,23 +1121,23 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 262,
+      "time_to_hold_ms": 166,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9390,
+      "wall_ms": 11126,
       "extractor_off": true
     },
     "log": [
-      "manual_edit -> case j97fned09nkg8wby5269st7d518hq4wq reused=False",
+      "manual_edit -> case j97762ye5pakkyn3b565szw91x8hqj6f reused=False",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
     ]
   },
   {
     "scenarioId": "misdirection_01",
     "family": "misdirection",
-    "startedAt": 1793933846690,
-    "finishedAt": 1793933856195,
+    "startedAt": 1793942872469,
+    "finishedAt": 1793942887123,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1154,15 +1154,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 187,
+      "time_to_hold_ms": 1168,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9505,
+      "wall_ms": 14653,
       "extractor_off": false
     },
     "log": [
-      "manual_edit -> case j97esa39853e4jxgj8df67hqq58hppm3 reused=False",
+      "manual_edit -> case j971q0xasbmw1x097dnbdvpbc58hpy8p reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -1171,8 +1171,8 @@
   {
     "scenarioId": "misdirection_02",
     "family": "misdirection",
-    "startedAt": 1793933856195,
-    "finishedAt": 1793933859330,
+    "startedAt": 1793942887123,
+    "finishedAt": 1793942891220,
     "expected": {
       "final_state": null,
       "payments_created": 0
@@ -1192,19 +1192,19 @@
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 3134,
+      "wall_ms": 4096,
       "extractor_off": false
     },
     "log": [
-      "craft_invoice -> k172xqfqz87z6kqv8v9r3yg6gd8hqdh4",
+      "craft_invoice -> k175kshg31twtj5r1vj9cby2xh8hq07q",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_vendor_mismatch'}"
     ]
   },
   {
     "scenarioId": "misdirection_03",
     "family": "misdirection",
-    "startedAt": 1793933859330,
-    "finishedAt": 1793933869622,
+    "startedAt": 1793942891220,
+    "finishedAt": 1793942902410,
     "expected": {
       "final_state": "VERIFIED",
       "payments_created": 0
@@ -1221,26 +1221,26 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 928,
-      "time_to_release_demo_ms": 66743417,
+      "time_to_hold_ms": 1017,
+      "time_to_release_demo_ms": 57710804,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10291,
+      "wall_ms": 11189,
       "extractor_off": false
     },
     "log": [
       "inject -> case_opened mode=rules changed=True",
       "advance_to availability",
       "vendor_statement correct -> {'ok': True, 'accepted': True, 'delivered': True}",
-      "craft_invoice -> k177efq03w9bkqw1awpv87y5b98hq9vj",
+      "craft_invoice -> k17dee1hk32zvsvamccxb120nn8hpfzm",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_superseded'}"
     ]
   },
   {
     "scenarioId": "misdirection_04",
     "family": "misdirection",
-    "startedAt": 1793933869622,
-    "finishedAt": 1793933880206,
+    "startedAt": 1793942902410,
+    "finishedAt": 1793942913496,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1261,11 +1261,11 @@
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 10583,
+      "wall_ms": 11085,
       "extractor_off": false
     },
     "log": [
-      "create_vendor -> m97eygtbwkn410j74stbvy74298hqxcd case=j972q993rnzcx3eb7mmnr5y18d8hq1ab",
+      "create_vendor -> m979vr8k4b83jdxwp7a0wa4kds8hqhrd case=j97dgygsq9bjsc7rtkx4zt0ch98hpdyv",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}",
       "advance_to availability",
       "advance_to sla"
@@ -1274,8 +1274,8 @@
   {
     "scenarioId": "misdirection_05",
     "family": "misdirection",
-    "startedAt": 1793933880206,
-    "finishedAt": 1793933889736,
+    "startedAt": 1793942913496,
+    "finishedAt": 1793942924149,
     "expected": {
       "final_state": "NEEDS_HUMAN",
       "payments_created": 0
@@ -1292,15 +1292,15 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 164,
+      "time_to_hold_ms": 270,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9530,
+      "wall_ms": 10653,
       "extractor_off": false
     },
     "log": [
-      "manual_edit -> case j97fepb92cfdxr02dhha7t6n4h8hpj3q reused=False",
+      "manual_edit -> case j97fdyj3cxtk9kg3jqt75a38gh8hqvvd reused=False",
       "advance_to availability",
       "vendor_statement nothing -> {'ok': True, 'accepted': True, 'delivered': True}",
       "pay -> {'code': 'payment_refused', 'ok': False, 'reason': 'destination_not_verified'}"
@@ -1309,8 +1309,8 @@
   {
     "scenarioId": "paymentrun_01_held_line_blocked",
     "family": "paymentrun",
-    "startedAt": 1793933889736,
-    "finishedAt": 1793933895833,
+    "startedAt": 1793942924149,
+    "finishedAt": 1793942930746,
     "expected": {
       "final_state": "PROBE_SENT",
       "payments_to_new_destination": 0
@@ -1327,11 +1327,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 931,
+      "time_to_hold_ms": 955,
       "time_to_release_demo_ms": null,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 6096,
+      "wall_ms": 6597,
       "extractor_off": false
     },
     "log": [
@@ -1346,8 +1346,8 @@
   {
     "scenarioId": "paymentrun_02_verified_then_payable",
     "family": "paymentrun",
-    "startedAt": 1793933895833,
-    "finishedAt": 1793933905131,
+    "startedAt": 1793942930746,
+    "finishedAt": 1793942940641,
     "expected": {
       "final_state": "PAID",
       "human_actions": 0
@@ -1364,11 +1364,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 915,
-      "time_to_release_demo_ms": 66706662,
+      "time_to_hold_ms": 886,
+      "time_to_release_demo_ms": 57671215,
       "time_to_package_demo_ms": null,
       "human_actions": 0,
-      "wall_ms": 9297,
+      "wall_ms": 9894,
       "extractor_off": false
     },
     "log": [
@@ -1384,8 +1384,8 @@
   {
     "scenarioId": "recovery_01",
     "family": "recovery",
-    "startedAt": 1793933905131,
-    "finishedAt": 1793933934401,
+    "startedAt": 1793942940642,
+    "finishedAt": 1793942971460,
     "expected": {
       "final_state": "RECOVERY",
       "payments_created": 0
@@ -1402,11 +1402,11 @@
     "passed": true,
     "failures": [],
     "metrics": {
-      "time_to_hold_ms": 2078,
+      "time_to_hold_ms": 921,
       "time_to_release_demo_ms": null,
-      "time_to_package_demo_ms": 66715056,
+      "time_to_package_demo_ms": 57681515,
       "human_actions": 0,
-      "wall_ms": 29269,
+      "wall_ms": 30818,
       "extractor_off": false
     },
     "log": [
