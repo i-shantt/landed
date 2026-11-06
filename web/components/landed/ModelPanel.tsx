@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type ModelContribution = { feature: string; value: number; contribution: number };
-export type ModelPayment = { version: string; probability: number; score: number; flagged: boolean; threshold: number; contributions: ModelContribution[] };
+export type ModelPayment = { version: string; family?: string; probability: number; score: number; flagged: boolean; threshold: number; contributions: ModelContribution[]; linear?: { version: string; probability: number } };
 export type ModelText = { version: string; probability: number; flagged: boolean; topTokens: { token: string; contribution: number }[]; tokens: number };
 
 export const FEATURE_LABEL: Record<string, string> = {
@@ -106,6 +106,11 @@ export function ModelSection({ payment, text, combinedScore, rulesScore }: { pay
             </span>
           </div>
           <ContributionBars contributions={payment.contributions} />
+          {payment.linear && (
+            <p className="mt-1 text-[11px] text-muted-foreground" title="Logistic regression on the same 20 features; shown so the two scorers can be compared">
+              Linear baseline {pct(payment.linear.probability)} <span className="font-mono">({payment.linear.version})</span>
+            </p>
+          )}
         </div>
       )}
       {text && (
@@ -128,8 +133,8 @@ export function ModelSection({ payment, text, combinedScore, rulesScore }: { pay
         </div>
       )}
       <p className="mt-2 text-[11px] text-muted-foreground">
-        Logistic regression trained offline on public transaction and phishing datasets (
-        <span className="font-mono">{(payment ?? text)!.version}</span>). It raises attention; it cannot release or block a payment on its own.
+        Gradient-boosted trees (payments) and a TF-IDF logistic regression (emails) trained offline on public datasets (
+        <span className="font-mono">{(payment ?? text)!.version}</span>); bars are path attributions per feature. It raises attention; it cannot release or block a payment on its own.
       </p>
     </div>
   );
