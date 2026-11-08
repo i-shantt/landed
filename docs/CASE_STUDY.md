@@ -44,7 +44,7 @@ Reading those numbers honestly: PaySim and Sparkov are simulated consumer-paymen
 
 ## What was deliberately not done
 
-Convex is hosted, not self-hosted; the Docker image covers the Next.js app only. Public read queries are still callable without a session because the evaluation runner and the public pitch page rely on them; gating reads is the recorded next step. The bank rail is a simulated ledger (a Capital One Nessie adapter exists behind the same interface). The production watchlist is synthetic; the OFAC parsers are tested but no list is loaded on a schedule. Voice calls go only to numbers on an allow-list.
+Convex is hosted, not self-hosted; the Docker image covers the Next.js app only. Public read queries are still callable without a session because the evaluation runner and the public pitch page rely on them; gating reads is the recorded next step. The bank rail is a simulated ledger (a Capital One Nessie adapter exists behind the same interface). The OFAC SDN list loads from the Treasury's fixed export URLs on a daily chain and the vendor master is re-screened on every version change, but there is no second list (EU, UK) and no approver queue for the ordinary-name near-misses a 19k-entry list produces. Voice calls go only to numbers on an allow-list.
 
 ## By the numbers (2026-11-05)
 
@@ -52,7 +52,7 @@ Convex is hosted, not self-hosted; the Docker image covers the Next.js app only.
 |---|---|
 | Convex backend | ~10,400 lines TypeScript, 32 tables, 21 REST routes |
 | Web app | ~10,900 lines (Next.js 16, React 19, Tailwind 4) |
-| Tests | 335 vitest (convex-test, in-memory; 27 fast-check properties), 22 Python, 40 scenario runs, 10 Playwright |
+| Tests | 343 vitest (convex-test, in-memory; 27 fast-check properties), 22 Python, 40 scenario runs, 11 Playwright |
 | ML pipeline | ~1,700 lines Python; 4.6 M public transactions, 27.8 k emails; reproducible with `make -C ml all` |
 | Deploys | Vercel + Convex, smoke-tested after each; rollback recorded in `STATUS.md` |
 

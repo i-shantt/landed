@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-07 — production sanctions list (OFAC SDN)
+
+- **Loader** (`convex/screening/watchlistFetch.ts`, Node runtime; pure pieces in `watchlistSource.ts`; isolate queries and mutations in `watchlistStore.ts`): fetches `SDN.CSV` and `ALT.CSV` from the two fixed Treasury export URLs, versions the list by the SHA-256 of `SDN.CSV`, stores the parsed list as one JSON blob in file storage, points the setting `watchlist:current` at it and re-screens every vendor not yet screened against that version. A second run with an unchanged file stores and screens nothing. The default isolate ran out of memory on the real 5.8 MB `SDN.CSV`, hence the Node runtime for the fetch and parse.
+- **Schedule**: `refreshNow` (admin) starts a load and, when no run is booked, a daily chain through the scheduler (`crons.ts` untouched). Failures (`non-2xx`, over 64 MB, parse to empty) are recorded as `watchlist_refresh_failed` and leave the current list in force.
+- **Screening with a loaded list**: mutations cannot read file storage, so onboarding and Screen-all schedule one debounced `rescreen` and report `pending`; the vendor page and Controls say so.
+- **Policy fails closed**: `blockOnScreeningHit` now also refuses `policy_screening_pending` (new refusal reason, in the OpenAPI enum and the labels) for a vendor whose latest screening is not against the loaded version.
+- **Controls page**: a Sanctions list card (list in force, version, entries and names, next refresh, last failure, sources) with the admin-only *Load / Refresh OFAC list now*; the screening card distinguishes a loaded list from the demo list.
+- Re-seed keeps the list pointer and wipes screening rows. Static security test: the loader holds the only `fetch(` under `screening/` and it reaches only the two fixed URLs.
+- Live on the dev deployment: 19,221 entries, 20 vendors screened in 11 s, 6 potential matches for an approver to disposition.
+- Playwright: the Controls card (10 → 11 tests). Tests: 335 → 343 vitest.
+
 ## 2026-11-06 — saved views and bulk actions on the case queue
 
 - **URL state on `/cases`**: filter, sort, record source and the search text live in the query string (`?filter=&sort=&source=&q=`, written with `replace` and no scroll; typed search debounced), so a view can be linked, reloaded and shared. Unknown values fall back to the defaults.

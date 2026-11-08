@@ -85,7 +85,7 @@ Companion documents: `SECURITY.md` (the public surface, function by function), `
 | **I** the test-only probe-amount route on prod | exists only when `EVAL_PROBE_AMOUNT_ENDPOINT=1`; prod returns 404 | `scripts/checkpoint2.mjs --prod` checks it |
 | **T** demo controls (clock, simulated answers, reseed) abused | admin kill switch; reseed never touches users, sessions or operators | `demoControls.test.ts`; `auth.test.ts` "reseed never touches users" |
 
-### B6. Outbound webhooks
+### B6. Outbound requests (webhooks, sanctions list)
 
 | Threat | Control | Proof |
 |---|---|---|
@@ -93,6 +93,9 @@ Companion documents: `SECURITY.md` (the public surface, function by function), `
 | **E** SSRF through an endpoint URL | HTTPS only; private, loopback and link-local hosts refused | `api.test.ts` "refuses private and plaintext endpoint URLs" |
 | **I** payload leaks | payloads are the redacted audit payloads | `invariants.test.ts` 11 |
 | **D** a dead receiver | bounded exponential retries, deliveries recorded | `api.test.ts` "failures back off" |
+| **E** SSRF through the sanctions-list loader | the only `fetch(` under `screening/` takes the two fixed OFAC constants; no input reaches the URL | `security.test.ts` "the sanctions-list loader is the only outbound fetch" |
+| **T** a poisoned or truncated list replaces the one in force | size cap, non-2xx and parse-to-empty are refused and recorded; the current pointer and blob are left alone | `watchlistStore.test.ts` "failures" |
+| **D** the list source is down and vendors go unscreened | the failure is recorded on `/controls`; a vendor screened against the previous version keeps its result; a vendor never screened against the loaded list is refused `policy_screening_pending` when the policy is on | `watchlistStore.test.ts` "policy fails closed" |
 
 ### B7. ML artifacts and datasets
 

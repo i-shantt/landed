@@ -76,6 +76,7 @@ The projection rules below still hold for a signed-in reader: no query returns c
 | `controls.policy.set` / `applyRecommended` (admin) | the policy JSON (validated) | policy can only add refusals inside `payments.send`; logged with before/after |
 | `controls.demoGuard.setDemoControls` (admin) | kill switch for clock, simulated answers, re-seed | reduces the public surface; cannot be flipped on without an admin session |
 | `screening.screen.screenVendor` / `screenAll` / `review` | screening rows; `review` needs approver/admin | screening can only block (through policy), never release |
+| `screening.watchlistStore.refreshNow` (admin action), `status` (query) | starts a load of the OFAC SDN list; reads which list is in force | the loader only ever calls the two fixed Treasury export URLs (see Outbound requests); a failed or empty download leaves the current list untouched; once a list is loaded, policy `blockOnScreeningHit` refuses `policy_screening_pending` for a vendor not yet screened against it |
 | `api.keys.create` (admin action), `revoke` | API keys stored as SHA-256; plaintext returned once | scoped; per-key 600/min token bucket; a burst the bucket cannot serialise answers 429 with `retry_after_ms` (never a 500); `touch` updates last-used at most once a minute, best effort |
 | `webhooks.dispatch.createEndpoint` / `createInboxEndpoint` / `setActive` / `remove` / `pumpNow` / `sendTest` (admin) | endpoints (secret server-only), deliveries | HTTPS only, private hosts refused (SSRF), payloads are the redacted audit payloads, HMAC-signed, bounded retries |
 | `exports.paymentFiles.build` (any active operator) | a `paymentFiles` row + a storage blob | built only from lines that pass guard **and** policy; the full file (account numbers) stays in storage and is served only to a `files:read` API key; the browser gets a masked preview; building moves no money |
@@ -86,6 +87,14 @@ The projection rules below still hold for a signed-in reader: no query returns c
 ### REST API `/api/v1/*`
 
 Bearer `ld_live_sk_…` → SHA-256 lookup; scopes `read`, `write:changes`, `write:payments`, `write:vendors`, `files:read`, `webhooks:manage`. `Idempotency-Key` on POST: same key + same body replays the stored response (24 h), same key + different body → 409. Every write calls the same mutation the dashboard calls: `POST /payments` runs `payments.send` and returns 409 with the guard's or policy's reason; `POST /bank-changes` runs `bankAccounts.manualEdit` (new unverified version + case). Typed errors, cursor pagination, OpenAPI 3.1 at `/api/v1/openapi.json` (no key needed for the spec). The two model routes are `read`-scoped: `GET /model/health` returns aggregates only; `GET /model/labels` returns, per labelled payment, the amount, vendor id, rail, the operator disposition and the 20 scored feature values (ratios, counts, ages), never an account number, a probe amount or free text. Bursts beyond the per-key bucket, including write conflicts on the bucket itself, answer 429 with `retry_after_ms`, never 500.
+
+## Outbound requests
+
+Landed makes outbound HTTP requests from exactly three places, and all three are checked statically in `tests/security.test.ts`:
+
+- **Webhooks** (`webhooks/`): HTTPS only; private, loopback and link-local hosts are refused (SSRF guard); payloads are the redacted audit payloads.
+- **Voice** (`channels/`): only the number in `TEST_PHONE_NUMBERS` is ever dialled.
+- **Sanctions list** (`screening/watchlistSource.ts`): the only `fetch(` under `screening/`, called with the two fixed constants `SDN_URL` and `ALT_URL` on `sanctionslistservice.ofac.treas.gov`. No user or vendor input reaches the URL. A response over 64 MB, a non-2xx status or a file that parses to zero entries is refused and recorded as `watchlist_refresh_failed`; the list in force does not change. The list is versioned by the SHA-256 of `SDN.CSV`, kept as one JSON blob in Convex file storage, and pointed to by the setting `watchlist:current`; a re-seed keeps that pointer (and wipes screening rows, which the next load or Screen-all rebuilds). The refresh runs in the Node runtime (`watchlistFetch.ts`) because the real list does not fit the default isolate.
 
 ## Fixed after review (2026-10-25)
 
