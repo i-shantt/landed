@@ -1,15 +1,15 @@
 "use client";
 import { useState } from "react";
-import { ShieldCheck, Sparkles, Radar } from "lucide-react";
+import { ShieldCheck, Sparkles, Radar, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader, Section, Loading } from "@/components/landed/primitives";
 import { errorMessage } from "@/components/landed/ReasonDialog";
-import { usePolicy, usePolicyActions, useOperatorAdmin, useOperators, useScreeningSummary, useScreeningPending, useScreeningActions } from "@/lib/hooks";
+import { usePolicy, usePolicyActions, useOperatorAdmin, useOperators, useScreeningSummary, useScreeningPending, useScreeningActions, useWatchlistStatus, useWatchlistActions } from "@/lib/hooks";
 import Link from "next/link";
 import { useOperator } from "@/lib/operator";
-import { usd } from "@/lib/format";
+import { usd, absTime } from "@/lib/format";
 import { ROLE_LABEL } from "@/lib/labels";
 
 type Policy = NonNullable<ReturnType<typeof usePolicy>>;
@@ -74,6 +74,9 @@ export default function ControlsPage() {
   const screening = useScreeningSummary();
   const pendingHits = useScreeningPending();
   const { screenAll } = useScreeningActions();
+  const watchlist = useWatchlistStatus();
+  const { refreshNow } = useWatchlistActions();
+  const [refreshing, setRefreshing] = useState(false);
   const [edited, setEdited] = useState<Policy | null>(null);
   // The draft is the saved policy until the admin edits a field.
   const draft: Policy | null = edited ?? policy ?? null;
@@ -180,7 +183,13 @@ export default function ControlsPage() {
           </Section>
           <Section
             title={<span className="flex items-center gap-2"><Radar size={14} /> Sanctions screening</span>}
-            description={screening ? `List ${screening.listVersion} (${screening.listSize} entries, synthetic demo list; production loads OFAC SDN + consolidated). ${screening.screenedVendors} screened, ${screening.unscreened} not yet.` : "Loading…"}
+            description={
+              screening
+                ? screening.loaded
+                  ? `OFAC SDN list ${screening.listVersion.slice(0, 12)} (${screening.listSize.toLocaleString()} entries). ${screening.screenedVendors} screened, ${screening.stale} not yet screened against this list.`
+                  : `List ${screening.listVersion} (${screening.listSize} entries, synthetic demo list). ${screening.screenedVendors} screened, ${screening.unscreened} not yet. Load the real list in the card below.`
+                : "Loading…"
+            }
             actions={
               <Button
                 size="sm"
@@ -190,7 +199,11 @@ export default function ControlsPage() {
                   if (!operator) return;
                   try {
                     const r = await screenAll({});
-                    setMsg(`Screened ${r.screened} vendors: ${r.potentialMatches} possible match${r.potentialMatches === 1 ? "" : "es"}.`);
+                    setMsg(
+                      r.pending > 0
+                        ? `${r.pending} vendor${r.pending === 1 ? "" : "s"} queued for screening against list ${r.listVersion.slice(0, 12)}; ${r.screened} already screened (${r.potentialMatches} possible match${r.potentialMatches === 1 ? "" : "es"}).`
+                        : `Screened ${r.screened} vendors: ${r.potentialMatches} possible match${r.potentialMatches === 1 ? "" : "es"}.`,
+                    );
                   } catch (e) {
                     setMsg(errorMessage(e));
                   }
@@ -221,6 +234,63 @@ export default function ControlsPage() {
               </ul>
             )}
             <p className="mt-2 text-xs text-muted-foreground">Decisions (false positive / confirmed) are made on the vendor page by an approver. Turn on “Block on sanctions-screening match” above to make an open hit refuse payments.</p>
+          </Section>
+          <Section
+            title={<span className="flex items-center gap-2"><Globe size={14} /> Sanctions list</span>}
+            description={
+              watchlist === undefined
+                ? "Loading…"
+                : watchlist.loaded
+                  ? `OFAC SDN + ALT loaded ${absTime(watchlist.loaded.loadedAt)} from the Treasury export endpoint. Refreshed daily; a changed file re-screens every vendor.`
+                  : `Synthetic demo list ${watchlist.demo.version} (${watchlist.demo.entries} fictional entries) is in force. Loading the real list screens the whole vendor master against it and refreshes it daily.`
+            }
+            actions={
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!isAdmin || refreshing}
+                title={isAdmin ? "Download the current OFAC SDN and ALT files, version and store them, re-screen the vendor master" : "Admins only"}
+                onClick={async () => {
+                  setRefreshing(true);
+                  setMsg(null);
+                  try {
+                    const r = await refreshNow({});
+                    setMsg(r.chained ? "OFAC download started; the list refreshes daily from now on. Vendors are re-screened when the file changes." : "OFAC download started (a daily refresh is already booked).");
+                  } catch (e) {
+                    setMsg(errorMessage(e));
+                  } finally {
+                    setRefreshing(false);
+                  }
+                }}
+              >
+                {watchlist?.loaded ? "Refresh OFAC list now" : "Load OFAC list now"}
+              </Button>
+            }
+          >
+            {watchlist && (
+              <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
+                <div>
+                  <dt className="text-xs text-muted-foreground">Version</dt>
+                  <dd className="font-mono text-xs" title={watchlist.loaded?.version ?? watchlist.demo.version}>{(watchlist.loaded?.version ?? watchlist.demo.version).slice(0, 12)}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Entries · names</dt>
+                  <dd className="font-mono tabular-nums">{watchlist.loaded ? `${watchlist.loaded.entries.toLocaleString()} · ${watchlist.loaded.names.toLocaleString()}` : `${watchlist.demo.entries} · demo`}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Next refresh</dt>
+                  <dd>{watchlist.nextRunAt ? absTime(watchlist.nextRunAt) : "not scheduled"}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-muted-foreground">Last failure</dt>
+                  <dd className={watchlist.lastError ? "text-red-800" : ""}>{watchlist.lastError ? `${absTime(watchlist.lastError.at)} · ${watchlist.lastError.error}` : "none"}</dd>
+                </div>
+              </dl>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">
+              Sources: the Treasury export endpoint ({watchlist?.sources.map((s) => s.replace(/^https:\/\/[^/]+\//, "")).join(", ")}), the only hosts this module calls. Version is the SHA-256 of SDN.CSV. While a list is loaded, screening runs in the background and a vendor not yet screened against it cannot be paid when “Block on sanctions-screening match” is on.
+              {watchlist?.rescreenPending ? " A screening run is queued." : ""}
+            </p>
           </Section>
           <Section title="Operators and roles" description="Server-enforced roles. Adding an operator with their email is the invitation: they create their password at /signin with that email.">
             <ul className="divide-y text-sm">

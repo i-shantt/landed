@@ -116,6 +116,16 @@ test("/cases: selecting rows shows the bulk bar with the count and only the acti
   await expect(bar).toBeHidden();
 });
 
+test("/controls shows which sanctions list is in force and the admin-only OFAC load button", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/controls");
+  const section = page.getByRole("heading", { name: /sanctions list/i }).locator("xpath=ancestor::section[1]");
+  await expect(section).toBeVisible();
+  await expect(section).toContainText(/synthetic demo list|OFAC SDN \+ ALT loaded/i);
+  await expect(section.getByRole("button", { name: /(load|refresh) OFAC list now/i })).toBeVisible();
+  await expect(section).toContainText(/SDN\.CSV, .*ALT\.CSV/);
+});
+
 test("transaction monitoring renders", async ({ page }) => {
   await signIn(page);
   await page.goto("/monitoring");
