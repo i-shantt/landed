@@ -106,7 +106,7 @@ export async function recordResult(ctx: MutationCtx, vendorId: Id<"vendors">, re
 export async function scheduleRescreen(ctx: MutationCtx): Promise<boolean> {
   if ((await getSetting(ctx, RESCREEN_KEY)) !== null) return false;
   await setSetting(ctx, RESCREEN_KEY, String(Date.now()));
-  await ctx.scheduler.runAfter(0, internal.screening.watchlistStore.rescreen, {});
+  await ctx.scheduler.runAfter(0, internal.screening.watchlistFetch.rescreen, {});
   return true;
 }
 

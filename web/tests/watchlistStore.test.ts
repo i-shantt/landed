@@ -5,7 +5,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { api, internal } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import { setup, drain, pay, actors } from "./harness";
-import { SDN_URL, ALT_URL, sha256Hex, parseExports, MAX_BYTES } from "../convex/screening/watchlistStore";
+import { SDN_URL, ALT_URL, sha256Hex, parseExports, MAX_BYTES } from "../convex/screening/watchlistSource";
 import { CURRENT_KEY, RESCREEN_KEY } from "../convex/screening/listState";
 import { setSetting } from "../convex/settings";
 
@@ -47,7 +47,7 @@ async function insertVendor(t: T, name: string, slug: string) {
     return { vendorId, invoiceId };
   });
 }
-const refresh = (t: T) => t.action(internal.screening.watchlistStore.refresh, { reschedule: false });
+const refresh = (t: T) => t.action(internal.screening.watchlistFetch.refresh, { reschedule: false });
 const screenings = (t: T) => t.run(async (ctx) => ctx.db.query("screenings").collect());
 const events = (t: T, type: string) => t.run(async (ctx) => (await ctx.db.query("events").collect()).filter((e) => e.type === type));
 const latestOf = async (t: T, vendorId: Id<"vendors">) => {

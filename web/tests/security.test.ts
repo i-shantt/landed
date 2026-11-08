@@ -51,16 +51,20 @@ describe("security surface", () => {
   });
   it("the sanctions-list loader is the only outbound fetch in screening/ and it reaches only the two fixed OFAC export URLs", () => {
     for (const [f, text] of Object.entries(src)) {
-      if (f.startsWith("screening/") && f !== "screening/watchlistStore.ts") expect(text, f).not.toMatch(/\bfetch\(/);
+      if (f.startsWith("screening/") && f !== "screening/watchlistSource.ts") expect(text, f).not.toMatch(/\bfetch\(/);
     }
-    const loader = src["screening/watchlistStore.ts"];
-    expect((loader.match(/\bfetch\(/g) ?? []).length).toBe(1);
-    expect(loader).toMatch(/export async function fetchExport\(url: string\)[\s\S]*?const res = await fetch\(url,/);
-    const callers = [...loader.matchAll(/fetchExport\(([^)]*)\)/g)].map((m) => m[1]).filter((a) => a !== "url: string");
+    const source = src["screening/watchlistSource.ts"];
+    expect((source.match(/\bfetch\(/g) ?? []).length).toBe(1);
+    expect(source).toMatch(/export async function fetchExport\(url: string\)[\s\S]*?const res = await fetch\(url,/);
+    expect(source).toMatch(/const OFAC_EXPORTS = "https:\/\/sanctionslistservice\.ofac\.treas\.gov\/api\/PublicationPreview\/exports\/"/);
+    expect(source).toMatch(/const SDN_URL = `\$\{OFAC_EXPORTS\}SDN\.CSV`/);
+    expect(source).toMatch(/const ALT_URL = `\$\{OFAC_EXPORTS\}ALT\.CSV`/);
+    const callers: string[] = [];
+    for (const [f, text] of Object.entries(src)) {
+      if (!f.startsWith("screening/")) continue;
+      for (const m of text.matchAll(/fetchExport\(([^)]*)\)/g)) if (m[1] !== "url: string") callers.push(m[1]);
+    }
     expect(new Set(callers)).toEqual(new Set(["SDN_URL", "ALT_URL"]));
-    expect(loader).toMatch(/const OFAC_EXPORTS = "https:\/\/sanctionslistservice\.ofac\.treas\.gov\/api\/PublicationPreview\/exports\/"/);
-    expect(loader).toMatch(/const SDN_URL = `\$\{OFAC_EXPORTS\}SDN\.CSV`/);
-    expect(loader).toMatch(/const ALT_URL = `\$\{OFAC_EXPORTS\}ALT\.CSV`/);
   });
 
   it("every public query requires a session (requireActor) unless it is on the documented allowlist", () => {

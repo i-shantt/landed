@@ -99,6 +99,8 @@ import type * as screening_listState from "../screening/listState.js";
 import type * as screening_match from "../screening/match.js";
 import type * as screening_screen from "../screening/screen.js";
 import type * as screening_watchlist from "../screening/watchlist.js";
+import type * as screening_watchlistFetch from "../screening/watchlistFetch.js";
+import type * as screening_watchlistSource from "../screening/watchlistSource.js";
 import type * as screening_watchlistStore from "../screening/watchlistStore.js";
 import type * as seed from "../seed.js";
 import type * as seedDemo from "../seedDemo.js";
@@ -208,6 +210,8 @@ declare const fullApi: ApiFromModules<{
   "screening/match": typeof screening_match;
   "screening/screen": typeof screening_screen;
   "screening/watchlist": typeof screening_watchlist;
+  "screening/watchlistFetch": typeof screening_watchlistFetch;
+  "screening/watchlistSource": typeof screening_watchlistSource;
   "screening/watchlistStore": typeof screening_watchlistStore;
   seed: typeof seed;
   seedDemo: typeof seedDemo;
